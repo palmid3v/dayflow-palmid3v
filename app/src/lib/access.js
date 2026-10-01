@@ -15,9 +15,9 @@ export const APP_IDS = Object.freeze({
 });
 
 const DEFAULT_APPS = Object.freeze({
-  timetable: true,
-  todo: true,
-  dayflow: true
+  timetable: false,
+  todo: false,
+  dayflow: false
 });
 
 function requireDb() {
@@ -59,7 +59,10 @@ export async function ensureAppAccess(user) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
-    return normalizeAccess({ uid: user.uid, email: user.email, role: "user", apps: DEFAULT_APPS }, user.uid);
+    return normalizeAccess(
+      { uid: user.uid, email: user.email, role: "user", apps: DEFAULT_APPS },
+      user.uid
+    );
   }
 
   return normalizeAccess(snapshot.data(), user.uid);
@@ -80,14 +83,18 @@ export async function listAppAccess() {
 
 export async function updateAppAccess(uid, apps) {
   if (!uid) throw new Error("A user ID is required.");
-  await setDoc(doc(requireDb(), "appAccess", uid), {
-    apps: {
-      timetable: apps.timetable === true,
-      todo: apps.todo === true,
-      dayflow: apps.dayflow === true
+  await setDoc(
+    doc(requireDb(), "appAccess", uid),
+    {
+      apps: {
+        timetable: apps.timetable === true,
+        todo: apps.todo === true,
+        dayflow: apps.dayflow === true
+      },
+      updatedAt: serverTimestamp()
     },
-    updatedAt: serverTimestamp()
-  }, { merge: true });
+    { merge: true }
+  );
 }
 
 export function hasAppAccess(access, appId) {
