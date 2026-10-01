@@ -1,36 +1,23 @@
 # Firebase Architecture — DayFlow
 
-## Role in PALMI-D3V
+## Role
 
-DayFlow is the daily-orchestration and memory domain.
+DayFlow owns daily plans, reminders, execution results, reviews and memory.
 
-Firebase provides shared identity and persistence, while DayFlow owns only its own documents.
-
-## Shared ecosystem
+## Phase 3 contract
 
 ~~~text
-                    Firebase Auth
-                         │
-                         ▼
-                    user.uid
-                         │
-                  Cloud Firestore
-            ┌────────────┼────────────┐
-            ▼            ▼            ▼
-          To-Do       Timetable     DayFlow
-          tasks        schedule      plans
-                       history       memory
+Firebase Auth
+     │
+     ▼
+Firestore
+     │
+ ┌───┴─────────────────────────────┐
+ │ users/{uid}/dayflow/...         │
+ └─────────────────────────────────┘
 ~~~
 
-## Ownership
-
-- To-Do owns tasks.
-- Timetable owns recurring schedules and occurrences.
-- DayFlow owns daily plans, execution results, reminders and memory.
-
-## DayFlow collections
-
-Target user-scoped paths:
+Target collections:
 
 ~~~text
 users/{uid}/dayflow/plans/{dateKey}
@@ -39,31 +26,33 @@ users/{uid}/dayflow/memories/{dateKey}
 users/{uid}/dayflow/reminders/{id}
 ~~~
 
-DayFlow may store references to To-Do task IDs and Timetable occurrence IDs. It must not copy their full authoritative records into a second database.
+## References
 
-## Transitional browser bridge
+DayFlow stores lightweight references:
 
-The current To-Do postMessage bridge remains supported during migration.
+~~~text
+taskId
+occurrenceId
+~~~
 
-Long-term, authenticated shared references should replace copied task snapshots where practical.
+The source application remains authoritative.
 
-## Data durability
+## Local recovery
 
-Existing local DayFlow data must remain available until cloud persistence is verified.
+A future migration must preserve local state until cloud writes and reads have been verified.
 
-Migration order:
+## Transitional To-Do integration
 
-1. preserve local state
-2. authenticate user
-3. write cloud data
-4. verify cloud reads
-5. retain local recovery data
-6. only then mark migration complete
+The current browser bridge is a compatibility transport, not the final architecture. It may be replaced by authenticated shared references without changing DayFlow's domain ownership.
 
 ## External adapters
 
-Google Calendar and email should be integrated behind explicit adapters so DayFlow's domain remains independent from provider-specific APIs.
+Google Calendar and email remain outside the DayFlow domain. Provider IDs and sync metadata should be stored as references when implemented.
 
-## Security
+## Next phase
 
-Firebase Web configuration is client configuration, not an Admin credential. Security Rules remain the ownership boundary.
+- persist DayFlow domain records in Firestore
+- connect Timetable occurrence references
+- replace browser bridge
+- add recovery/export
+- add cross-app integrity tests
