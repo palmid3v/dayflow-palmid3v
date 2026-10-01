@@ -1,1 +1,60 @@
-﻿app/node_modules/
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+
+# Vite / tooling
+.vite/
+.cache/
+.parcel-cache/
+.turbo/
+
+# Vercel
+.vercel/
+
+# Environment variables / local secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Firebase local tooling
+.firebase/
+firebase-debug.log
+firestore-debug.log
+firestore-debug.*.log
+ui-debug.log
+
+# Test / coverage artifacts
+.nyc_output/
+playwright-report/
+test-results/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
