@@ -50,6 +50,27 @@ Implemented baseline:
 
 Full closure: app/docs/PHASES_1_3.md
 
+## 🔐 Shared account and access control
+
+All PALMI-D3V applications use the same Firebase Authentication identity and Firestore access registry.
+
+~~~text
+Firebase Auth
+    │
+    ├── platformAdmins/{uid} → platform administrator
+    │
+    └── appAccess/{uid}
+          ├── timetable: true/false
+          ├── todo: true/false
+          └── dayflow: true/false
+~~~
+
+A verified new account starts with all application flags disabled. The platform administrator can see the account in the shared Access Manager and enable the required applications.
+
+Administrators are identified by platformAdmins/{uid} and can enter/manage every PALMI-D3V app regardless of individual app flags.
+
+Firestore Rules remain the authoritative security boundary; the UI never grants permissions by itself.
+
 ## 🔗 Data model
 
 DayFlow-owned targets:
