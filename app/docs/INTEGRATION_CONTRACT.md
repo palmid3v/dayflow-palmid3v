@@ -1,6 +1,6 @@
 # DayFlow ↔ To-Do Integration Contract
 
-**Version:** 1.0.0
+**Version:** 1.1.0 · Phase 1–3 baseline
 
 ## Ownership
 
@@ -10,32 +10,18 @@
 | Edit task | To-Do |
 | Complete task | To-Do |
 | Persist task | To-Do |
-| Schedule task | DayFlow |
-| Reminders | DayFlow |
 | Daily planning | DayFlow |
+| Scheduling metadata | DayFlow |
+| Reminders | DayFlow |
 | Execution tracking | DayFlow |
 | Daily review | DayFlow |
 | Memory | DayFlow |
 
-DayFlow must never create a second authoritative task database.
+## Reference contract
 
-## Provider contract
+DayFlow consumes a normalized task reference:
 
-DayFlow exposes a read-only provider slot:
-
-`window.__PALMI_D3V_TODO_PROVIDER__`
-
-The provider must implement:
-
-```js
-{
-  getTasks: () => Task[]
-}
-```
-
-Tasks are normalized to:
-
-```js
+~~~js
 {
   id: string,
   title: string,
@@ -43,57 +29,53 @@ Tasks are normalized to:
   createdAt: string | null,
   updatedAt: string | null
 }
-```
+~~~
 
-The DayFlow adapter also exports `registerTodoProvider(provider)` for same-origin application integration.
+The authoritative record remains in To-Do.
 
-## Fallback
+## Current transport
 
-Until the production To-Do application registers a provider, DayFlow can read the existing `TODO` localStorage snapshot. This fallback is intentionally read-only.
+The production browser bridge uses:
 
-## Scheduling rule
+- Channel: PALMI_D3V_TODO
+- Version: 1.0.0
+- DayFlow → To-Do: GET_TASKS
+- To-Do → DayFlow: TASKS / TASKS_UPDATED
 
-When DayFlow eventually schedules a To-Do task, it stores only the task reference and scheduling metadata in DayFlow. It does not copy the task record.
+DayFlow validates origin and message source.
 
-Example:
+## Target transport
 
-```js
-{
-  taskId: "todo-123",
-  scheduledFor: "2026-10-01T16:00:00",
-  executionState: "planned"
-}
-```
+The bridge is transitional. The target is an authenticated shared reference:
 
-## Cross-application boundary
+~~~text
+To-Do
+  taskId
+    │
+    ▼
+DayFlow daily plan
+  executionState
+  scheduledFor
+  notes
+~~~
 
-The provider is the integration boundary. Any future authenticated/API/sync transport can replace the browser bridge without changing DayFlow's domain ownership.
+DayFlow must not persist a second authoritative copy of the task.
 
+## Timetable extension
 
-## Production browser bridge
+The same rule applies to schedule data:
 
-When the applications run on different origins, DayFlow cannot read To-Do's LocalStorage directly. The production integration therefore uses a read-only browser `postMessage` bridge.
+~~~text
+Timetable
+  occurrenceId
+      │
+      ▼
+DayFlow daily plan
+  executionState
+~~~
 
-Protocol:
+Timetable remains authoritative for the occurrence.
 
-- Channel: `PALMI_D3V_TODO`
-- Version: `1.0.0`
-- DayFlow → To-Do: `GET_TASKS`
-- To-Do → DayFlow: `TASKS` and `TASKS_UPDATED`
-- DayFlow validates the configured To-Do origin and message source.
-- To-Do validates the configured DayFlow origin and opener window.
+## Migration rule
 
-DayFlow configuration:
-
-```text
-VITE_TODO_URL=<To-Do application URL>
-VITE_TODO_ORIGIN=<To-Do origin>
-```
-
-To-Do configuration:
-
-```text
-VITE_DAYFLOW_ORIGIN=<DayFlow origin>
-```
-
-Task snapshots exist only in DayFlow memory after transfer; DayFlow does not persist a copied task collection.
+Replacing the transport must not delete the existing local source data until the new source has been verified.
