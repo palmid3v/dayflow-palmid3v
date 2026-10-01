@@ -65,9 +65,15 @@ Firebase Auth
           └── dayflow: true/false
 ~~~
 
-A verified new account starts with all application flags disabled. The platform administrator can see the account in the shared Access Manager and enable the required applications.
+### Automatic vs manual initialization
 
-Administrators are identified by platformAdmins/{uid} and can enter/manage every PALMI-D3V app regardless of individual app flags.
+- 👑 `platformAdmins/{uid}` is a **manual one-time bootstrap** for the platform owner.
+- 👤 `appAccess/{uid}` is **created automatically** for a verified non-admin on first app entry.
+- 🔁 The first app creates the shared record; the other apps reuse it.
+- 🚫 The administrator does not need `appAccess/{uid}`.
+- ☁️ DayFlow domain persistence is still the next phase, so its domain collections are not expected to appear until that cloud layer is implemented. Firestore creates collections/documents implicitly on first write.
+
+Administrators are identified by `platformAdmins/{uid}` and can enter/manage every PALMI-D3V app regardless of individual app flags.
 
 Firestore Rules remain the authoritative security boundary; the UI never grants permissions by itself.
 
@@ -135,4 +141,4 @@ npm run build
 - app/docs/INTEGRATION_CONTRACT.md
 - app/docs/ROADMAP.md
 
-**Current release:** v0.2.0 · Phase 1–3 complete · integration next.
+**Current release:** v0.2.0 · Phase 1–3 complete · shared access bootstrap fixed · DayFlow cloud persistence remains next.
