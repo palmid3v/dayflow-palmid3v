@@ -12,7 +12,7 @@
 - Product: **DayFlow**
 - Role: daily orchestration, tracking, and written-memory layer
 - Default branch: `main`
-- Current main commit: `f69b7b84d4c1417e3ceebd40e8e230f628c89035`
+- Latest implementation commit: `f69b7b84d4c1417e3ceebd40e8e230f628c89035`
 - Latest merged change: **PR #8 — fix: remove cross-origin popup event listener**
 - Application directory: **`app/`**
 - Production URL: **https://dayflow-palmid3v.vercel.app**
