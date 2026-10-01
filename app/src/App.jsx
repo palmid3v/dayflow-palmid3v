@@ -8,7 +8,6 @@ import {
   Clock3,
   Home,
   Plus,
-  Bell,
   Target
 } from "lucide-react";
 import { getDayFlowState, saveDayFlowState } from "./lib/dayflowStore";
