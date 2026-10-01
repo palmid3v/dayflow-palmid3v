@@ -1,21 +1,27 @@
 # 🧠 DayFlow — PALMI-D3V Chat Context
 
-> Paste this into a new development chat before making changes.
+> Current project context. Treat GitHub `main` as the source of truth before making implementation changes.
+
+## Context Date
+
+**2026-10-01**
 
 ## Identity
 
 - Repository: **palmid3v/dayflow-palmid3v**
 - Product: **DayFlow**
 - Role: daily orchestration, tracking, and written-memory layer
-- Default branch: **main**
-- Prototype branch: **feature/dayflow-mvp**
-- Current PR: **#1 — feat: DayFlow mobile-first MVP foundation**
+- Default branch: `main`
+- Current main commit: `f69b7b84d4c1417e3ceebd40e8e230f628c89035`
+- Latest merged change: **PR #8 — fix: remove cross-origin popup event listener**
+- Application directory: **`app/`**
+- Production URL: **https://dayflow-palmid3v.vercel.app**
 
 ## Product Definition
 
-~~~text
+```text
 PLAN → DO → TRACK → REMEMBER
-~~~
+```
 
 DayFlow combines:
 
@@ -30,241 +36,240 @@ Key question:
 
 > **What was planned, what actually happened, and what should be remembered?**
 
-## Existing Prototype
+## Ownership Boundary
 
-The feature branch prototype contains:
+### To-Do owns
 
-- package.json
-- index.html
-- src/main.jsx
-- src/styles.css
-- README.md
+- Task creation
+- Task editing
+- Task state
+- Completion
+- Task lifecycle
+- Task persistence
 
-It demonstrates:
+### DayFlow owns
 
-- Today dashboard
-- Daily progress
-- Timeline
-- Interactive tasks
-- Daily Memory card
-- Calendar/Tasks/Memory navigation
-- Emoji activity categories
-- Dark mobile-first styling
+- Calendar blocks
+- Reminders
+- Daily planning
+- Daily orchestration
+- Planned vs. actual tracking
+- Daily review
+- Written memory
 
-### ⚠️ Structural warning
+**Never create a second persistent task database inside DayFlow.**
 
-The prototype is currently at repository root.
+## Current Stack
 
-**Do not merge PR #1 as-is.**
+```text
+React 19
+Vite 7
+Tailwind CSS 4
+vite-plugin-pwa
+Lucide React
+ESLint
+Firebase Authentication
+Firestore readiness
+Local-first DayFlow persistence
+```
 
-Required structure:
+## Current Architecture
 
-~~~text
+```text
 dayflow-palmid3v/
 ├── app/
 │   ├── src/
+│   │   ├── domain/
+│   │   └── lib/
+│   │       ├── backendConfig.js
+│   │       ├── dayflowStore.js
+│   │       └── todoAdapter.js
 │   ├── public/
 │   ├── package.json
-│   ├── vite.config.*
-│   └── ...
+│   └── vite.config.*
 ├── archive/
+├── CONTEXT.md
 └── README.md
-~~~
+```
 
-## Definitive Technology
+### Important files
 
-Use:
+- `src/App.jsx` — primary application shell and workflows
+- `src/domain/models.js` — DayFlow domain model helpers
+- `src/lib/dayflowStore.js` — local DayFlow persistence
+- `src/lib/todoAdapter.js` — read-only To-Do integration
+- `src/lib/backendConfig.js` — static Vite Firebase configuration
+- `src/lib/firebase.js` — Firebase application/auth boundary
 
-**React + Vite + Tailwind CSS + PWA + Local-first persistence + Lucide React + ESLint**
+## To-Do Integration
 
-Do not introduce unnecessary frameworks or change the stack without a concrete reason.
+Repository: **palmid3v/to-do**
 
-## To-Do Relationship
+Production:
 
-Task repository: **palmid3v/to-do**
+```text
+DayFlow: https://dayflow-palmid3v.vercel.app
+To-Do:   https://to-do-palmid3v.vercel.app
+```
 
-To-Do is currently a legacy vanilla HTML/CSS/JavaScript + LocalStorage application and is being modernized in a separate chat.
+DayFlow uses:
 
-### Ownership
+```text
+VITE_TODO_URL
+VITE_TODO_ORIGIN
+```
 
-**To-Do owns:**
-- task creation
-- task state
-- completion
-- lifecycle
-- persistence
+Production values:
 
-**DayFlow owns:**
-- calendar blocks
-- reminders
-- daily orchestration
-- planned vs actual tracking
-- daily review
-- written memory
+```text
+VITE_TODO_URL=https://to-do-palmid3v.vercel.app
+VITE_TODO_ORIGIN=https://to-do-palmid3v.vercel.app
+```
 
-Never duplicate the task system unnecessarily.
+Protocol:
 
-## Core Data Concepts
+```text
+Channel:  PALMI_D3V_TODO
+Version:  1.0.0
+Request:  GET_TASKS
+Response: TASKS
+Update:   TASKS_UPDATED
+```
 
-### Task
-Something that can be completed.
+The bridge is read-only from DayFlow's perspective.
 
-### Event / Calendar Block
-Something scheduled at a time.
+### Cross-origin constraint
 
-### Reminder
-A prompt associated with a future moment or condition.
+Do not access properties or event APIs on the cross-origin popup WindowProxy.
 
-### Daily Plan
-The planned composition of tasks, events, and reminders for a day.
+The previous implementation attempted:
 
-### Daily Result
-What actually happened.
+```js
+popup.addEventListener?.("load", requestTasks);
+```
 
-### Daily Memory
-A human-readable record derived from the daily plan and daily result.
+This caused the browser error:
 
-Do not collapse these into one generic object merely for convenience.
+```text
+Blocked a frame with origin ... from accessing a cross-origin frame.
+```
 
-## Daily Memory
+PR #8 removed that access. The bridge now relies on the timed `postMessage` request, which is the correct cross-origin mechanism.
 
-The defining feature is converting activity into a written record:
+## Firebase
 
-~~~text
-Planned
-   +
-Completed
-   +
-Skipped
-   +
-Changed
-   +
-Notes
-   ↓
-📝 Daily Memory
-~~~
+Firebase Authentication is integrated.
 
-The memory should represent the actual day, not simply copy the planned schedule.
+- Email/Password authentication is enabled.
+- Vite Firebase variables are referenced statically.
+- Production values are configured in Vercel.
+- DayFlow-owned persistence remains local-first for now.
+- Firestore is the target for user-scoped DayFlow persistence.
+- Firebase Admin credentials must never be placed in the client.
 
-## UX Direction
+## Current Product State
 
-Primary navigation:
+Implemented:
 
-~~~text
-🏠 Today
-📅 Calendar
-✅ Tasks
-📝 Memory
-~~~
-
-Future:
-
-~~~text
-⚙️ Settings
-~~~
-
-Visual direction:
-
-- dark dashboard
-- rounded cards
-- clear hierarchy
-- timeline daily view
-- large touch targets
-- restrained information density
-- emojis for personality
-- Lucide for interface controls
-
-## Asset Rules
-
-External images/icons may be used when useful.
-
-For external assets:
-
-- document source
-- document license/usage basis when relevant
-- avoid copied/watermarked assets
-- prefer lightweight SVG/icon assets
-- keep attribution/reference information when needed
+- Today dashboard
+- Daily plan persistence
+- Calendar blocks
+- Planned/completed/skipped/changed states
+- Reminder creation/completion/deletion
+- Daily results
+- Daily review
+- Generated daily memory
+- Historical memory browser
+- Theme system
+- Responsive mobile-first UI
+- PWA foundation
+- Firebase authentication boundary
+- Read-only To-Do integration
+- Production Vercel environment configuration
+- Cross-origin popup compatibility fix
 
 ## Roadmap
 
 ### Phase 0 — Foundation
-- [x] Repository
+**Status: ✅ Complete**
+
+- [x] Repository structure
 - [x] Product definition
-- [x] Initial visual prototype
-- [ ] Reorganize prototype into app/
-- [ ] Establish final React/Vite/Tailwind/PWA architecture
+- [x] React/Vite/Tailwind/PWA architecture
+- [x] DayFlow domain boundaries
+- [x] Theme system
+- [x] Firebase authentication boundary
 
 ### Phase 1 — To-Do Integration
-- [ ] Coordinate with modernized To-Do
-- [ ] Define shared task contract
-- [ ] Integrate without duplicate task storage
+**Status: ✅ Implemented**
+
+- [x] Preserve To-Do ownership
+- [x] Define shared contract
+- [x] Read adapter
+- [x] Browser message bridge
+- [x] Production origins
+- [x] Cross-origin popup fix
+- [ ] Finalize long-term shared Firestore task source
 
 ### Phase 2 — Planning
-- [ ] Calendar model
-- [ ] Reminder model
-- [ ] Daily plan
-- [ ] Planned vs actual state
+**Status: ✅ Implemented**
+
+- [x] Calendar model
+- [x] Calendar persistence
+- [x] Reminder model/persistence
+- [x] Daily plan
+- [x] Planned vs. actual state
 
 ### Phase 3 — Tracking
-- [ ] Execution tracking
-- [ ] Daily metrics
-- [ ] Daily review
+**Status: ✅ Implemented**
+
+- [x] Execution tracking
+- [x] Daily progress
+- [x] Daily result
+- [x] Daily review
+- [x] History foundation
 
 ### Phase 4 — Memory
-- [ ] Memory model
-- [ ] Generated summary
-- [ ] Manual notes
-- [ ] History
+**Status: ✅ Implemented**
+
+- [x] Memory model
+- [x] Generated summary
+- [x] Manual notes
+- [x] History
 
 ### Phase 5 — PWA
-- [ ] Offline
-- [ ] Installability
-- [ ] Persistence
+**Status: 🟡 Validation pending**
+
+- [x] Manifest
+- [x] Service worker foundation
+- [ ] Offline validation
+- [ ] Installability validation
 - [ ] Sync strategy if required
 
-## Current Status
+### Phase 6 — Identity & Persistence
+**Status: 🟡 In progress**
 
-**Product:** Defined.
-
-**Repository:** Created.
-
-**Visual prototype:** Built on feature/dayflow-mvp.
-
-**PR:** #1 open.
-
-**Production architecture:** Not finalized.
-
-**To-Do integration:** Planned, not implemented.
-
-**Calendar:** Not implemented.
-
-**Reminders:** Not implemented.
-
-**Tracking:** Prototype only.
-
-**Written memory:** Concept/prototype only.
-
-## Immediate Next Step
-
-1. Restructure prototype into app/.
-2. Establish React/Vite/Tailwind/PWA correctly.
-3. Review modernized To-Do contract.
-4. Define DayFlow domain models.
-5. Implement Calendar, Reminders, Tracking, and Memory.
+- [x] Firebase Authentication
+- [x] Production Firebase configuration
+- [ ] Firestore persistence for DayFlow-owned data
+- [ ] Cross-device persistence validation
+- [ ] Final sync architecture
 
 ## Working Rules
 
 - Keep mobile-first.
 - Keep UI polished but practical.
 - Use emojis intentionally.
-- Avoid duplicate To-Do.
-- Avoid premature backend complexity.
-- Prefer local-first initially.
-- Keep docs synchronized.
-- Validate build/lint.
-- Keep archive for history.
-- Do not merge the initial prototype until structure is corrected.
+- Never duplicate To-Do ownership.
+- Prefer local-first while DayFlow persistence is being migrated.
+- Use Firebase Auth for identity.
+- Keep Firebase Admin credentials out of client code.
+- Treat Vercel env vars as build-time configuration.
+- After changing Vercel env vars, redeploy Production.
+- Validate lint/build after implementation changes.
+- Keep documentation synchronized with actual GitHub state.
+- Keep `archive/` for historical material.
+- Prefer small, traceable branches/PRs for implementation changes.
 
 ## Definition of Success
 
