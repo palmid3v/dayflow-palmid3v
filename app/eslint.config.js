@@ -19,7 +19,10 @@ export default [
       ...js.configs.recommended.rules,
       ...react.configs.flat.recommended.rules,
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }]
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react/react-in-jsx-scope": "off",
+      "react/prop-types": "off",
+      "react/no-unescaped-entities": "off"
     }
   }
 ];
