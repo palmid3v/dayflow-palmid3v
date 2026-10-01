@@ -32,6 +32,8 @@
 - [x] Local preservation/migration rule
 
 ## Phase 4 — Ecosystem integration
+- [x] Shared Firebase identity + verified email
+- [x] App-level access gate
 - [ ] Replace browser bridge with authenticated references
 - [ ] Connect Timetable occurrences
 - [ ] Persist DayFlow plans/results/memory/reminders in Firestore
