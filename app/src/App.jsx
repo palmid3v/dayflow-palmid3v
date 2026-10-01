@@ -23,7 +23,7 @@ import {
   saveDayFlowState,
   saveMemory
 } from "./lib/dayflowStore";
-import { getTodoTasksFromStorage } from "./lib/todoAdapter";
+import { connectToDoProvider, getTodoTasksFromStorage } from "./lib/todoAdapter";
 import { createDailyMemory, createDailyResult } from "./domain/models";
 
 const navItems = [
@@ -70,7 +70,7 @@ function App() {
   const [tasks, setTasks] = useState(() => getTodoTasksFromStorage());
   const [theme, setTheme] = useState(() => getDayFlowState().settings?.theme ?? "system");
   const [showSettings, setShowSettings] = useState(false);
-  const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));
+  const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));\n  const [todoConnected, setTodoConnected] = useState(false);\n  const [todoError, setTodoError] = useState("");
 
   const completed = plan.blocks.filter((block) => block.state === "completed").length;
   const progress = plan.blocks.length ? Math.round((completed / plan.blocks.length) * 100) : 0;
@@ -164,7 +164,7 @@ function App() {
     setReviewSaved(true);
   }
 
-  function changeTheme(value) {
+  function connectTodo() {\n    try {\n      setTodoError("");\n      const connection = connectToDoProvider();\n      setTodoConnected(true);\n      window.setTimeout(() => setTasks(getTodoTasksFromStorage()), 1000);\n      return () => connection.disconnect();\n    } catch (error) {\n      setTodoConnected(false);\n      setTodoError(error instanceof Error ? error.message : "Unable to connect To-Do.");\n      return null;\n    }\n  }\n\n  function changeTheme(value) {
     setTheme(value);
     saveDayFlowState({ settings: { theme: value } });
   }
@@ -249,7 +249,7 @@ function App() {
         )}
 
         {tab === "calendar" && <CalendarView plan={plan} onToggle={updateBlock} onDelete={deleteBlock} onAdd={addBlock} />}
-        {tab === "tasks" && <TasksView tasks={tasks} />}
+        {tab === "tasks" && (\n          <TasksView\n            tasks={tasks}\n            connected={todoConnected}\n            error={todoError}\n            onConnect={connectTodo}\n          />\n        )}
         {tab === "memory" && <MemoryView plan={plan} note={note} onChange={saveNote} onSave={saveReview} />}
 
         {showSettings && (
@@ -383,15 +383,28 @@ function CalendarView({ plan, onToggle, onDelete, onAdd }) {
   );
 }
 
-function TasksView({ tasks }) {
+function TasksView({ tasks, connected, error, onConnect }) {
   return (
     <Page title="Tasks" icon={<CheckCircle2 />} subtitle="Tasks remain authoritative in PALMI-D3V To-Do.">
-      <div className="mb-4 flex items-start gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 text-xs text-[var(--text-muted)]">
-        <Target size={17} className="mt-0.5 shrink-0" /> Read-only integration surface — DayFlow references tasks but does not duplicate or mutate them.
+      <div className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        <div className="flex items-start gap-2 text-xs text-[var(--text-muted)]">
+          <Target size={17} className="mt-0.5 shrink-0" />
+          <span>Read-only integration surface — DayFlow references tasks but never duplicates or mutates them.</span>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <button onClick={onConnect} className="min-h-10 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--accent-contrast)]">
+            {connected ? "Reconnect To-Do" : "Connect To-Do"}
+          </button>
+          <span className="text-xs text-[var(--text-muted)]">{connected ? "Connected" : "Not connected"}</span>
+        </div>
+        {error && <p className="mt-3 text-xs text-[var(--danger)]">{error}</p>}
+        <p className="mt-3 text-[11px] leading-5 text-[var(--text-muted)]">
+          The connection opens the PALMI-D3V To-Do app and exchanges read-only task snapshots through a browser message bridge.
+        </p>
       </div>
       {tasks.length
         ? tasks.map((task) => <div key={task.id} className="mb-2 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">{task.completed ? <CheckCircle2 size={18} /> : <Circle size={18} className="text-[var(--text-muted)]" />}<span className={task.completed ? "text-[var(--text-muted)] line-through" : ""}>{task.title}</span></div>)
-        : <Empty title="No connected tasks" text="Connect the production To-Do provider to expose its current tasks here." />}
+        : <Empty title="No connected tasks" text="Connect To-Do to expose its current tasks here." />}
     </Page>
   );
 }
