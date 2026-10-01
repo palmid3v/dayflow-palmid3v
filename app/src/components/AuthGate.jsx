@@ -25,11 +25,34 @@ export default function AuthGate({ children }) {
         setError("");
         if (!nextUser) { setLoading(false); return; }
         if (!nextUser.emailVerified) { setLoading(false); return; }
+
         setLoading(true);
-        Promise.all([ensureAppAccess(nextUser), isPlatformAdmin(nextUser.uid)])
-          .then(([nextAccess, nextAdmin]) => { setAccess(nextAccess); setAdmin(nextAdmin); })
-          .catch((authError) => setError(getAuthErrorMessage(authError)))
-          .finally(() => setLoading(false));
+
+        async function resolveAccess() {
+          try {
+            const nextAdmin = await isPlatformAdmin(nextUser.uid);
+
+            // Platform admins are authorized by platformAdmins/{uid}.
+            // They do not need an appAccess document.
+            if (nextAdmin) {
+              setAdmin(true);
+              setAccess(null);
+              return;
+            }
+
+            // Only non-admin verified users need an appAccess record.
+            // The first app they open creates the shared record automatically.
+            const nextAccess = await ensureAppAccess(nextUser);
+            setAdmin(false);
+            setAccess(nextAccess);
+          } catch (authError) {
+            setError(getAuthErrorMessage(authError));
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        resolveAccess();
       });
     } catch (authError) {
       setError(getAuthErrorMessage(authError));
