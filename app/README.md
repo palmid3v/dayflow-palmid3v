@@ -23,6 +23,8 @@ Active PALMI-D3V daily-orchestration application.
 - Product / Phase 1: ✅
 - UX/UI / Phase 2: ✅
 - Architecture & data / Phase 3: ✅
+- Shared Firebase identity + email verification: ✅
+- App-level access gate: ✅
 - Shared backend/external integrations: ⏸️ next phase
 
 See docs/PHASES_1_3.md.
@@ -51,6 +53,7 @@ References use taskId and future occurrenceId; source applications remain author
 - src/lib/todoAdapter.js — read-only To-Do bridge
 - src/domain/models.js — execution/result/memory models
 - src/lib/firebase.js — Firebase boundary
+- src/lib/access.js — shared PALMI-D3V app access
 
 ## Commands
 
