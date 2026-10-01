@@ -9,7 +9,6 @@ Active PALMI-D3V daily-orchestration application.
 │ 🌊 Thursday · Your day, in one flow │
 ├──────────────────────────────────────┤
 │ 72%  TODAY'S FLOW                    │
-│                                      │
 │ 08:00 🏋️ Training          ✓         │
 │ 10:00 💻 Deep work         ✓         │
 │ 13:00 🍽️ Lunch             →         │
@@ -19,43 +18,22 @@ Active PALMI-D3V daily-orchestration application.
 └──────────────────────────────────────┘
 ~~~
 
-## Stack
+## Phase status
 
-React + Vite + Tailwind CSS + PWA + Firebase Authentication / Firestore readiness + Lucide React + ESLint.
+- Product / Phase 1: ✅
+- UX/UI / Phase 2: ✅
+- Architecture & data / Phase 3: ✅
+- Shared backend/external integrations: ⏸️ next phase
 
-## Product boundary
+See docs/PHASES_1_3.md.
 
-DayFlow owns:
+## Ownership
 
-- 📅 daily plan
-- 🔔 reminders
-- 📊 execution tracking
-- 📝 daily review
-- 🧠 written memory
+DayFlow owns daily plans, reminders, execution tracking, daily review and memory.
 
-To-Do owns tasks. Timetable owns recurring schedule and schedule occurrences.
+To-Do owns tasks. Timetable owns recurring schedules and occurrences.
 
-## Architecture
-
-~~~text
-🔐 Firebase Auth
-       │
-       ▼
-☁️ Firestore
- ┌─────┼──────────┐
- ▼     ▼          ▼
-To-Do Timetable  DayFlow
-tasks  schedule   plans/results
-                  memory
-~~~
-
-DayFlow should reference source records instead of copying them into another authoritative store.
-
-## Current integration
-
-The existing To-Do browser bridge remains compatible with the current production setup. It is a transitional transport and can later be replaced by authenticated shared references.
-
-## DayFlow-owned Firestore direction
+## Data model
 
 ~~~text
 users/{uid}/dayflow/plans/{dateKey}
@@ -63,6 +41,16 @@ users/{uid}/dayflow/results/{dateKey}
 users/{uid}/dayflow/memories/{dateKey}
 users/{uid}/dayflow/reminders/{id}
 ~~~
+
+References use taskId and future occurrenceId; source applications remain authoritative.
+
+## Current modules
+
+- src/App.jsx — daily orchestration UI
+- src/lib/dayflowStore.js — local state persistence
+- src/lib/todoAdapter.js — read-only To-Do bridge
+- src/domain/models.js — execution/result/memory models
+- src/lib/firebase.js — Firebase boundary
 
 ## Commands
 
@@ -72,5 +60,3 @@ npm run dev
 npm run lint
 npm run build
 ~~~
-
-See docs/INTEGRATION_CONTRACT.md and docs/FIREBASE_ARCHITECTURE.md.
