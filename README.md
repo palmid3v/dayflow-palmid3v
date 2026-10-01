@@ -1,165 +1,117 @@
-# 🌊 DayFlow — PALMI-D3V
+# 🌊 PALMI-D3V DayFlow
 
-**Plan → Do → Track → Remember**
+**Plan → Do → Track → Remember.**
 
-DayFlow is the **daily-orchestration and memory layer** of the PALMI-D3V productivity ecosystem.
+DayFlow is the daily-orchestration and memory layer of PALMI-D3V.
 
 ## 🎨 Visual mockup
 
-```text
-┌────────────────────────────────────────────────┐
-│ 🌊 PALMI-D3V · DAYFLOW             ⚙️          │
-│ Thursday · Your day, in one flow               │
-├────────────────────────────────────────────────┤
-│ TODAY'S FLOW                         72%  ◉      │
-│                                                │
-│ 08:00 🏋️ Morning training       ✓ completed    │
-│ 10:00 💻 Deep work              ✓ completed    │
-│ 13:00 🍽️ Lunch                   → planned      │
-│ 16:00 🚀 Project work            → planned      │
-│                                                │
-│ 🔔 Reminders        ✅ To-Do        📝 Memory   │
-└────────────────────────────────────────────────┘
-```
+~~~text
+┌──────────────────────────────────────────────┐
+│ 🌊 DAYFLOW · Thursday                       ⚙️│
+├──────────────────────────────────────────────┤
+│ TODAY'S FLOW                         72%  ◉   │
+│ 08:00 🏋️ Training              ✓             │
+│ 10:00 💻 Deep work             ✓             │
+│ 13:00 🍽️ Lunch                 →             │
+│ 16:00 🚀 Project               →             │
+│                                              │
+│ 🔔 Reminders   ✅ To-Do   📝 Memory          │
+└──────────────────────────────────────────────┘
+~~~
 
-## 🧩 Product boundary
+## 🎯 Product boundary
 
 | Product | Owns |
 |---|---|
-| ✅ To-Do | tasks, completion, lifecycle, persistence |
-| 🗓️ Timetable | recurring schedule, occurrences, schedule history |
+| ✅ To-Do | tasks, completion, lifecycle |
+| 🗓️ Timetable | recurring schedule, occurrences |
 | 🌊 DayFlow | daily plan, execution, review, memory |
 | 📅 Google Calendar | external calendar surface |
-| ✉️ Email provider | notification transport |
+| ✉️ Email | delivery transport |
 
-DayFlow should **reference** tasks and schedule occurrences. It must not create duplicate task or schedule databases.
+DayFlow references source records; it does not duplicate their authoritative data.
 
-## 🏗️ Shared ecosystem
+## ✅ Phases 1–3
 
-```text
-                 🔐 Firebase Auth
-                       │
-                       ▼
-                ☁️ Firestore
-             shared user identity
-                       │
-        ┌──────────────┼──────────────┐
-        ▼              ▼              ▼
-      To-Do         Timetable       DayFlow
-       tasks        schedule        daily flow
-                                      │
-                         ┌────────────┴────────────┐
-                         ▼                         ▼
-                  📅 Google Calendar          ✉️ Email
-                    external adapter          delivery
-```
+**Closed:** Product, UX/UI, and Architecture & Data.
 
-This is intentionally **not** one giant application. The products remain independently deployable and independently understandable.
+Implemented baseline:
+- Today-first daily flow
+- calendar planning view
+- execution states
+- reminders
+- To-Do read-only context
+- daily review and memory
+- persistent theme
+- responsive PWA interface
+- local persistence
+- documented cross-app contract
 
-An API/serverless boundary is reserved for systems that require secrets or OAuth, such as Google Calendar and email delivery. The three browser applications do not need a REST API just to talk to each other when authenticated Firestore references can express the relationship safely.
+Full closure: app/docs/PHASES_1_3.md
 
-## 🔗 Data relationships
+## 🔗 Data model
 
-Example:
+DayFlow-owned targets:
 
-```text
-To-Do task
-  id = todo-123
-       │
-       └──── referenced by ────► DayFlow daily block
-
-Timetable occurrence
-  id = occ-2026-10-01-go
-       │
-       └──── referenced by ────► DayFlow daily plan
-```
-
-DayFlow records **what happened during the day** without taking ownership of the source records.
-
-## 💾 Persistence direction
-
-Firebase Authentication is already present at the application boundary.
-
-DayFlow-owned data is intended for user-scoped Firestore:
-
-```text
+~~~text
 users/{uid}/dayflow/plans/{dateKey}
 users/{uid}/dayflow/results/{dateKey}
 users/{uid}/dayflow/memories/{dateKey}
 users/{uid}/dayflow/reminders/{id}
-```
+~~~
 
-To-Do owns:
+References:
 
-```text
-users/{uid}/tasks/{taskId}
-```
+~~~text
+To-Do taskId ─────────────► daily plan
+Timetable occurrenceId ──► daily plan
+~~~
 
-Timetable will own its own schedule collections under the same user.
+The source app remains authoritative.
 
-The browser bridge remains transitional until shared authenticated references are fully implemented.
+## 🔐 Ecosystem
 
-## 📅 Google Calendar
+~~~text
+🔐 Firebase Auth
+       │
+       ▼
+☁️ Firestore
+ ┌─────┼─────────┐
+ ▼     ▼         ▼
+To-Do Timetable DayFlow
+ tasks schedule  daily flow
+~~~
 
-Google Calendar should be treated as an external synchronization adapter.
+The current browser bridge is transitional. Authenticated shared references are the next integration step.
 
-The intended first direction is:
+## ✉️ Notifications
 
-**PALMI-D3V → Google Calendar**
+Email is the target notification channel. Resend will be an external delivery adapter. API credentials remain server-side.
 
-with stable external IDs and sync metadata. Google Calendar access requires OAuth authorization with the scopes needed by the operations we perform. citeturn0search5turn0search12
+## 📅 Calendar
 
-## ✉️ Email notifications
+Google Calendar is an external adapter. Initial direction: PALMI-D3V → Google Calendar, with stable external IDs before bidirectional sync.
 
-The target notification mechanism is email rather than browser notifications.
+## 🧱 Stack
 
-Resend currently lists a free tier of 3,000 transactional emails/month and 100/day, and supports scheduled email delivery. citeturn0search0turn3search4
+React 19 · Vite 7 · Tailwind CSS 4 · PWA · Firebase readiness · Lucide React · ESLint
 
-The sender should be a dedicated PALMI-D3V address/domain, while the recipient can be the personal inbox chosen in the application.
+## ▶️ Development
 
-The API key belongs only in the server-side environment.
-
-## 🚀 Stack
-
-- React 19
-- Vite 7
-- Tailwind CSS 4
-- vite-plugin-pwa
-- Lucide React
-- Firebase Authentication / Firestore readiness
-- Local-first persistence during migration
-- ESLint
-
-## Development
-
-```powershell
+~~~powershell
 cd app
 npm install
 npm run dev
 npm run lint
 npm run build
-```
+~~~
 
-## Current status
+## 📚 Documentation
 
-**Status:** 🟢 Core product foundation and To-Do integration are implemented.
+- app/docs/PHASES_1_3.md
+- app/docs/FIREBASE_ARCHITECTURE.md
+- app/docs/INTEGRATION_CONTRACT.md
+- app/docs/ROADMAP.md
 
-The next ecosystem work is to complete Timetable persistence and replace transitional browser bridges with durable shared references.
-
-## Roadmap
-
-### Ecosystem phase
-- [x] Preserve To-Do ownership
-- [x] Define DayFlow domain ownership
-- [x] Define shared Firebase identity/persistence direction
-- [ ] Connect Timetable as a first-class domain
-- [ ] Replace copied task snapshots with shared references
-- [ ] Add schedule-occurrence references
-- [ ] Add Google Calendar OAuth adapter
-- [ ] Add email delivery adapter
-- [ ] Add recovery/export tooling
-- [ ] Validate cross-app data integrity
-
----
-
-**PALMI-D3V · DayFlow** — *Plan your day. Live it. Remember it.* 🌊📝
+**Current release:** v0.2.0 · Phase 1–3 complete · integration next.
