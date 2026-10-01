@@ -33,14 +33,6 @@ const navItems = [
   [BookOpen, "memory", "Memory"]
 ];
 
-const defaultBlocks = [
-  { id: "b1", time: "08:00", emoji: "🏋️", title: "Morning training", meta: "45 min", state: "completed" },
-  { id: "b2", time: "10:00", emoji: "💻", title: "Deep work", meta: "2 hours", state: "completed" },
-  { id: "b3", time: "13:00", emoji: "🍽️", title: "Lunch", meta: "1 hour", state: "planned" },
-  { id: "b4", time: "16:00", emoji: "🚀", title: "DayFlow build", meta: "90 min", state: "planned" },
-  { id: "b5", time: "20:00", emoji: "📝", title: "Daily review", meta: "15 min", state: "planned" }
-];
-
 function dateKey(date = new Date()) {
   return date.toLocaleDateString("en-CA");
 }
@@ -54,11 +46,14 @@ function formatDate(key) {
 }
 
 function getInitialPlan(key) {
-  const plan = getDailyPlan(key);
-  if (plan.blocks?.length) return plan;
-  const initial = { date: key, blocks: defaultBlocks, createdAt: new Date().toISOString() };
-  saveDailyPlan(key, initial);
-  return initial;
+  return getDailyPlan(key);
+}
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
 }
 
 function App() {
@@ -195,7 +190,7 @@ function App() {
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
             <p className="label">{formatDate(today).toUpperCase()}</p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight">Good evening, Palmi 👋</h1>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight">{getGreeting()}, Palmi 👋</h1>
             <p className="mt-1 text-sm text-[var(--text-muted)]">Your day, in one flow.</p>
           </div>
           <button
