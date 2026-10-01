@@ -1,17 +1,10 @@
-/**
- * DayFlow never owns tasks.
- *
- * Integration order:
- * 1. A future To-Do provider can register through registerTodoProvider().
- * 2. Same-origin consumers can expose window.__PALMI_D3V_TODO_PROVIDER__.
- * 3. Until a provider exists, DayFlow reads the legacy TODO localStorage snapshot.
- *
- * DayFlow may schedule/reference a task, but task lifecycle and persistence
- * remain owned by To-Do.
- */
-
 const TODO_STORAGE_KEY = "TODO";
 const PROVIDER_KEY = "__PALMI_D3V_TODO_PROVIDER__";
+const CHANNEL = "PALMI_D3V_TODO";
+const VERSION = "1.0.0";
+const REQUEST = "GET_TASKS";
+const RESPONSE = "TASKS";
+const UPDATE = "TASKS_UPDATED";
 
 function normalizeTask(task) {
   return {
@@ -58,11 +51,67 @@ export function getTodoTasksFromStorage(storage = globalThis.localStorage) {
   }
 }
 
+export function connectToDoProvider() {
+  const todoUrl = import.meta.env.VITE_TODO_URL;
+  const todoOrigin = import.meta.env.VITE_TODO_ORIGIN;
+
+  if (!todoUrl || !todoOrigin) {
+    throw new Error("Configure VITE_TODO_URL and VITE_TODO_ORIGIN before connecting To-Do.");
+  }
+
+  const popup = window.open(todoUrl, "palmi-d3v-todo");
+  if (!popup) {
+    throw new Error("The To-Do window was blocked. Allow popups and try again.");
+  }
+
+  let currentTasks = [];
+  let cleanupProvider = null;
+
+  const provider = {
+    getTasks: () => currentTasks
+  };
+
+  const onMessage = (event) => {
+    if (event.origin !== todoOrigin || event.source !== popup) return;
+    if (event.data?.channel !== CHANNEL || event.data?.version !== VERSION) return;
+
+    if (event.data.type === RESPONSE || event.data.type === UPDATE) {
+      currentTasks = Array.isArray(event.data.tasks)
+        ? event.data.tasks.map(normalizeTask).filter((task) => task.title)
+        : [];
+      cleanupProvider?.();
+      cleanupProvider = registerTodoProvider(provider);
+    }
+  };
+
+  window.addEventListener("message", onMessage);
+
+  const requestTasks = () => {
+    if (popup.closed) return;
+    popup.postMessage(
+      { channel: CHANNEL, version: VERSION, type: REQUEST },
+      todoOrigin
+    );
+  };
+
+  popup.addEventListener?.("load", requestTasks);
+  window.setTimeout(requestTasks, 800);
+
+  return {
+    popup,
+    disconnect() {
+      window.removeEventListener("message", onMessage);
+      cleanupProvider?.();
+    }
+  };
+}
+
 export const todoContract = {
-  version: "1.0.0",
+  version: VERSION,
   source: "palmi-d3v/to-do",
   storageKey: TODO_STORAGE_KEY,
   providerKey: PROVIDER_KEY,
+  channel: CHANNEL,
   direction: "read-only",
   ownership: {
     taskCreation: "todo",
