@@ -56,7 +56,9 @@ function formatDate(key) {
 function getInitialPlan(key) {
   const plan = getDailyPlan(key);
   if (plan.blocks?.length) return plan;
-  return { date: key, blocks: defaultBlocks };
+  const initial = { date: key, blocks: defaultBlocks, createdAt: new Date().toISOString() };
+  saveDailyPlan(key, initial);
+  return initial;
 }
 
 function App() {
@@ -255,7 +257,7 @@ function App() {
         )}
       </div>
 
-      <nav className="fixed bottom-3 left-1/2 z-10 grid w-[calc(100%-24px)] max-w-[720px] -translate-x-1/2 grid-cols-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
+      <nav className="fixed bottom-3 left-1/2 z-10 grid w-[calc(100%-24px)] max-w-[720px] -translate-x-1/2 grid-cols-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
         {navItems.map(([Icon, key, label]) => (
           <button
             key={key}
