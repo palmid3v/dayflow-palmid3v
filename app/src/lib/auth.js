@@ -2,6 +2,8 @@ import {
   browserLocalPersistence,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  reload,
+  sendEmailVerification,
   setPersistence,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut
@@ -12,25 +14,38 @@ function requireAuth() {
   if (!auth) {
     throw new Error("Firebase Authentication is not configured.");
   }
-
   return auth;
 }
 
 export function subscribeAuth(callback) {
-  const instance = requireAuth();
-  return onAuthStateChanged(instance, callback);
+  return onAuthStateChanged(requireAuth(), callback);
 }
 
 export async function signIn(email, password) {
   const instance = requireAuth();
   await setPersistence(instance, browserLocalPersistence);
-  return signInWithEmailAndPassword(instance, email.trim(), password);
+  const credential = await signInWithEmailAndPassword(instance, email.trim(), password);
+  await reload(credential.user);
+  return credential;
 }
 
 export async function signUp(email, password) {
   const instance = requireAuth();
   await setPersistence(instance, browserLocalPersistence);
-  return createUserWithEmailAndPassword(instance, email.trim(), password);
+  const credential = await createUserWithEmailAndPassword(instance, email.trim(), password);
+  await sendEmailVerification(credential.user);
+  return credential;
+}
+
+export async function resendVerification(user = auth?.currentUser) {
+  if (!user) throw new Error("No authenticated user is available.");
+  await sendEmailVerification(user);
+}
+
+export async function refreshVerification(user = auth?.currentUser) {
+  if (!user) return false;
+  await reload(user);
+  return Boolean(user.emailVerified);
 }
 
 export function signOut() {
