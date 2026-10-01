@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BookOpen,
   CalendarDays,
@@ -70,7 +70,7 @@ function App() {
   const [tasks, setTasks] = useState(() => getTodoTasksFromStorage());
   const [theme, setTheme] = useState(() => getDayFlowState().settings?.theme ?? "system");
   const [showSettings, setShowSettings] = useState(false);
-  const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));\n  const [todoConnected, setTodoConnected] = useState(false);\n  const [todoError, setTodoError] = useState("");
+  const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));\n  const [todoConnected, setTodoConnected] = useState(false);\n  const [todoError, setTodoError] = useState("");\n  const todoConnectionRef = useRef(null);
 
   const completed = plan.blocks.filter((block) => block.state === "completed").length;
   const progress = plan.blocks.length ? Math.round((completed / plan.blocks.length) * 100) : 0;
@@ -164,7 +164,7 @@ function App() {
     setReviewSaved(true);
   }
 
-  function connectTodo() {\n    try {\n      setTodoError("");\n      const connection = connectToDoProvider();\n      setTodoConnected(true);\n      window.setTimeout(() => setTasks(getTodoTasksFromStorage()), 1000);\n      return () => connection.disconnect();\n    } catch (error) {\n      setTodoConnected(false);\n      setTodoError(error instanceof Error ? error.message : "Unable to connect To-Do.");\n      return null;\n    }\n  }\n\n  function changeTheme(value) {
+  useEffect(() => () => todoConnectionRef.current?.disconnect(), []);\n\n  function connectTodo() {\n    try {\n      todoConnectionRef.current?.disconnect();\n      setTodoError("");\n      const connection = connectToDoProvider();\n      todoConnectionRef.current = connection;\n      setTodoConnected(true);\n      window.setTimeout(() => setTasks(getTodoTasksFromStorage()), 1000);\n    } catch (error) {\n      setTodoConnected(false);\n      setTodoError(error instanceof Error ? error.message : "Unable to connect To-Do.");\n      return null;\n    }\n  }\n\n  function changeTheme(value) {
     setTheme(value);
     saveDayFlowState({ settings: { theme: value } });
   }
@@ -397,7 +397,7 @@ function TasksView({ tasks, connected, error, onConnect }) {
           </button>
           <span className="text-xs text-[var(--text-muted)]">{connected ? "Connected" : "Not connected"}</span>
         </div>
-        {error && <p className="mt-3 text-xs text-[var(--danger)]">{error}</p>}
+        {error && <p className="mt-3 text-xs text-[var(--text-muted)]">{error}</p>}
         <p className="mt-3 text-[11px] leading-5 text-[var(--text-muted)]">
           The connection opens the PALMI-D3V To-Do app and exchanges read-only task snapshots through a browser message bridge.
         </p>
