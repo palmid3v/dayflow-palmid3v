@@ -32,9 +32,9 @@ DayFlow consumes To-Do through a **read-only browser `postMessage` bridge**. To-
 
 **Status:** 🟢 Core product foundation implemented and production integration configured.
 
-Current `main`:
+Current implementation baseline:
 
-- Commit: `f69b7b84d4c1417e3ceebd40e8e230f628c89035`
+- Latest implementation commit: `f69b7b84d4c1417e3ceebd40e8e230f628c89035`
 - PR #6: static Vite Firebase env references — merged
 - PR #7: static Vite To-Do env references — merged
 - PR #8: cross-origin popup listener fix — merged
