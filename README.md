@@ -94,6 +94,12 @@ npm run build
 
 For local development, copy `app/.env.example` to `app/.env.local` and point `VITE_TODO_URL` / `VITE_TODO_ORIGIN` at the running To-Do app. DayFlow opens To-Do from the Tasks view and requests read-only task snapshots.
 
+## 🔐 Firebase Authentication
+
+Firebase Authentication is now integrated at the application boundary. Email/Password is enabled, the app is gated behind authentication, and the browser-local Auth session is observed through Firebase Auth.
+
+Configure the Firebase Web SDK values through `app/.env.local` for local development and Vercel environment variables for deployments. Do not commit real environment values or Firebase Admin credentials.
+
 ## 🔐 Production identity and persistence
 
 DayFlow is being prepared for a shared PALMI-D3V account model before public deployment.
