@@ -93,3 +93,21 @@ npm run build
 ## To-Do connection
 
 For local development, copy `app/.env.example` to `app/.env.local` and point `VITE_TODO_URL` / `VITE_TODO_ORIGIN` at the running To-Do app. DayFlow opens To-Do from the Tasks view and requests read-only task snapshots.
+
+## 🔐 Firebase Authentication
+
+Firebase Authentication is now integrated at the application boundary. Email/Password is enabled, the app is gated behind authentication, and the browser-local Auth session is observed through Firebase Auth.
+
+Configure the Firebase Web SDK values through `app/.env.local` for local development and Vercel environment variables for deployments. Do not commit real environment values or Firebase Admin credentials.
+
+## 🔐 Production identity and persistence
+
+DayFlow is being prepared for a shared PALMI-D3V account model before public deployment.
+
+- Firebase Authentication will provide the signed-in user identity.
+- Firestore will provide user-scoped persistence.
+- DayFlow-owned data will remain separate from To-Do-owned tasks.
+- The current browser bridge is a temporary transition mechanism while Firebase is configured.
+- Firebase Admin credentials must never be placed in the Vite client or Vercel environment.
+
+See [docs/FIREBASE_ARCHITECTURE.md](docs/FIREBASE_ARCHITECTURE.md) for the planned architecture and migration order.
