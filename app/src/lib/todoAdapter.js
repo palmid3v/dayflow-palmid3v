@@ -94,7 +94,6 @@ export function connectToDoProvider() {
     );
   };
 
-  popup.addEventListener?.("load", requestTasks);
   window.setTimeout(requestTasks, 800);
 
   return {
