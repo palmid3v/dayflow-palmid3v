@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Bell,
   BookOpen,
   CalendarDays,
   Check,
   CheckCircle2,
   ChevronRight,
   Circle,
-  Clock3,
   Home,
   Moon,
   Plus,
