@@ -10,11 +10,24 @@ DayFlow is the daily-orchestration layer of the PALMI-D3V productivity ecosystem
 
 To-Do owns task creation, state, completion, lifecycle, and persistence. DayFlow owns calendar blocks, reminders, daily planning, planned-vs-actual tracking, review, and written memory. DayFlow must not create a second task database.
 
+DayFlow now exposes a read-only To-Do provider contract so the applications can connect without transferring task ownership.
+
 ## Foundation
 
 The application lives under `app/` and uses React 19, Vite 7, Tailwind CSS 4, vite-plugin-pwa, Lucide React, ESLint, and local-first persistence.
 
-Implemented foundation: Today dashboard, daily timeline, To-Do read adapter, explicit ownership contract, Calendar surface, Tasks integration surface, Daily Memory notes, DayFlow LocalStorage store, PWA foundation, and domain definitions.
+Implemented:
+- Today dashboard with durable daily plan state
+- Calendar blocks with planned/completed/skipped/changed states
+- Reminder creation and completion
+- Daily result persistence
+- Daily review and generated memory
+- Historical memory browser
+- To-Do read-only provider bridge
+- Dark / light / system theme preference
+- Responsive mobile-first UI and accessibility basics
+- PWA manifest and service worker foundation
+- DayFlow local storage model
 
 ## Development
 
@@ -34,33 +47,34 @@ npm run build
 - [x] Move application into `app/`
 - [x] Establish React/Vite/Tailwind/PWA architecture
 - [x] Define DayFlow domain boundaries
+- [x] Theme system
 
 ### Phase 1 — To-Do Integration
 - [x] Preserve To-Do ownership
 - [x] Define integration contract
 - [x] Add read adapter
-- [ ] Establish cross-application provider/bridge
-- [ ] Define task scheduling ownership
+- [x] Establish provider/bridge contract
+- [ ] Connect the production To-Do provider
 
 ### Phase 2 — Planning
-- [x] Initial calendar-block model
-- [ ] Calendar persistence
-- [ ] Reminder model and persistence
-- [ ] Daily plan persistence
-- [ ] Planned vs actual snapshots
+- [x] Calendar-block model
+- [x] Calendar persistence
+- [x] Reminder model and persistence
+- [x] Daily plan persistence
+- [x] Planned vs actual snapshots
 
 ### Phase 3 — Tracking
-- [x] Initial execution states
+- [x] Execution states
 - [x] Daily progress
-- [ ] Durable daily results
-- [ ] Daily review workflow
-- [ ] Metrics/history
+- [x] Durable daily results
+- [x] Daily review workflow
+- [x] Metrics/history foundation
 
 ### Phase 4 — Memory
 - [x] Manual daily notes
-- [ ] Memory model
-- [ ] Generated daily summary
-- [ ] Historical memory browser
+- [x] Memory model
+- [x] Generated daily summary
+- [x] Historical memory browser
 
 ### Phase 5 — PWA
 - [x] Manifest
@@ -68,5 +82,9 @@ npm run build
 - [ ] Offline validation
 - [ ] Installability validation
 - [ ] Sync strategy if required
+
+## Product principle
+
+**What is happening today → what needs attention → what has happened → what the day became.**
 
 **PALMI-D3V · DayFlow** — *Plan your day. Live it. Remember it.* 🌊📝
