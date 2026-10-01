@@ -30,6 +30,10 @@ Firebase Authentication
 - To-Do owns task creation, task state, completion, lifecycle, and task persistence.
 - DayFlow may read To-Do tasks but must not create a second task collection or mutate To-Do tasks.
 
+## Current implementation
+
+Firebase Authentication is now integrated at the application boundary using the modular Firebase Web SDK. The app requires authentication before rendering personal data, and Auth state is observed through Firebase's auth observer. Firestore persistence is intentionally not enabled yet.
+
 ## Current transition state
 
 The application still uses local-first persistence and the existing read-only browser bridge for To-Do.
@@ -54,7 +58,7 @@ The exact schema and Security Rules will be finalized after the Firebase project
 
 ## Security requirements
 
-1. Authentication is required before personal data is shown.
+1. Authentication is required before personal data is shown. **Implemented.**
 2. Firestore reads/writes must be restricted to the authenticated user's UID.
 3. Client applications must never contain Firebase Admin credentials.
 4. Vercel environment variables will contain only public Firebase Web SDK configuration.
