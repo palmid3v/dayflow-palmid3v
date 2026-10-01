@@ -52,8 +52,8 @@ export function getTodoTasksFromStorage(storage = globalThis.localStorage) {
 }
 
 export function connectToDoProvider() {
-  const todoUrl = import.meta.env.VITE_TODO_URL;
-  const todoOrigin = import.meta.env.VITE_TODO_ORIGIN;
+  const todoUrl = import.meta.env.VITE_TODO_URL ?? "";
+  const todoOrigin = import.meta.env.VITE_TODO_ORIGIN ?? "";
 
   if (!todoUrl || !todoOrigin) {
     throw new Error("Configure VITE_TODO_URL and VITE_TODO_ORIGIN before connecting To-Do.");
