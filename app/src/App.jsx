@@ -70,7 +70,10 @@ function App() {
   const [tasks, setTasks] = useState(() => getTodoTasksFromStorage());
   const [theme, setTheme] = useState(() => getDayFlowState().settings?.theme ?? "system");
   const [showSettings, setShowSettings] = useState(false);
-  const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));\n  const [todoConnected, setTodoConnected] = useState(false);\n  const [todoError, setTodoError] = useState("");\n  const todoConnectionRef = useRef(null);
+  const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));
+  const [todoConnected, setTodoConnected] = useState(false);
+  const [todoError, setTodoError] = useState("");
+  const todoConnectionRef = useRef(null);
 
   const completed = plan.blocks.filter((block) => block.state === "completed").length;
   const progress = plan.blocks.length ? Math.round((completed / plan.blocks.length) * 100) : 0;
@@ -164,7 +167,24 @@ function App() {
     setReviewSaved(true);
   }
 
-  useEffect(() => () => todoConnectionRef.current?.disconnect(), []);\n\n  function connectTodo() {\n    try {\n      todoConnectionRef.current?.disconnect();\n      setTodoError("");\n      const connection = connectToDoProvider();\n      todoConnectionRef.current = connection;\n      setTodoConnected(true);\n      window.setTimeout(() => setTasks(getTodoTasksFromStorage()), 1000);\n    } catch (error) {\n      setTodoConnected(false);\n      setTodoError(error instanceof Error ? error.message : "Unable to connect To-Do.");\n      return null;\n    }\n  }\n\n  function changeTheme(value) {
+  useEffect(() => () => todoConnectionRef.current?.disconnect(), []);
+
+  function connectTodo() {
+    try {
+      todoConnectionRef.current?.disconnect();
+      setTodoError("");
+      const connection = connectToDoProvider();
+      todoConnectionRef.current = connection;
+      setTodoConnected(true);
+      window.setTimeout(() => setTasks(getTodoTasksFromStorage()), 1000);
+    } catch (error) {
+      setTodoConnected(false);
+      setTodoError(error instanceof Error ? error.message : "Unable to connect To-Do.");
+      return null;
+    }
+  }
+
+  function changeTheme(value) {
     setTheme(value);
     saveDayFlowState({ settings: { theme: value } });
   }
@@ -249,7 +269,14 @@ function App() {
         )}
 
         {tab === "calendar" && <CalendarView plan={plan} onToggle={updateBlock} onDelete={deleteBlock} onAdd={addBlock} />}
-        {tab === "tasks" && (\n          <TasksView\n            tasks={tasks}\n            connected={todoConnected}\n            error={todoError}\n            onConnect={connectTodo}\n          />\n        )}
+        {tab === "tasks" && (
+          <TasksView
+            tasks={tasks}
+            connected={todoConnected}
+            error={todoError}
+            onConnect={connectTodo}
+          />
+        )}
         {tab === "memory" && <MemoryView plan={plan} note={note} onChange={saveNote} onSave={saveReview} />}
 
         {showSettings && (
