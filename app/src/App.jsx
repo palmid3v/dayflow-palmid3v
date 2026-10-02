@@ -25,6 +25,14 @@ import {
 } from "./lib/dayflowStore";
 import { connectToDoProvider, getTodoTasksFromStorage } from "./lib/todoAdapter";
 import { createDailyMemory, createDailyResult } from "./domain/models";
+import { auth } from "./lib/firebase";
+import {
+  saveDailyPlanCloud,
+  saveDailyResultCloud,
+  saveMemoryCloud,
+  saveRemindersCloud,
+  synchronizeDayFlow
+} from "./lib/dayflowCloudStore";
 
 const navItems = [
   [Home, "today", "Today"],
@@ -66,6 +74,8 @@ function App() {
   const [theme, setTheme] = useState(() => getDayFlowState().settings?.theme ?? "system");
   const [showSettings, setShowSettings] = useState(false);
   const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));
+  const [cloudReady, setCloudReady] = useState(false);
+  const [cloudError, setCloudError] = useState("");
   const [todoConnected, setTodoConnected] = useState(false);
   const [todoError, setTodoError] = useState("");
   const todoConnectionRef = useRef(null);
@@ -77,6 +87,39 @@ function App() {
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
+
+  useEffect(() => {
+    const uid = auth?.currentUser?.uid;
+    if (!uid) {
+      setCloudReady(true);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    synchronizeDayFlow(uid, getDayFlowState())
+      .then((state) => {
+        if (cancelled) return;
+        saveDayFlowState(state);
+        setPlan(state.dailyPlans?.[today] ?? { date: today, blocks: [] });
+        setNote(state.notes?.[today] ?? "");
+        setReminders(state.reminders ?? []);
+        setReviewSaved(Boolean(state.dailyResults?.[today]));
+        setCloudError("");
+        setCloudReady(true);
+      })
+      .catch((error) => {
+        console.error("Unable to synchronize DayFlow with Firebase:", error);
+        if (!cancelled) {
+          setCloudError("Cloud sync is unavailable. Your local DayFlow data remains available.");
+          setCloudReady(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [today]);
 
   useEffect(() => {
     const refresh = () => setTasks(getTodoTasksFromStorage());
@@ -92,6 +135,9 @@ function App() {
     const nextPlan = { ...plan, blocks: nextBlocks, updatedAt: new Date().toISOString() };
     setPlan(nextPlan);
     saveDailyPlan(today, nextPlan);
+    void saveDailyPlanCloud(auth?.currentUser?.uid, today, nextPlan).catch((error) => {
+      console.error("Unable to save DayFlow plan to Firebase:", error);
+    });
     setReviewSaved(false);
   }
 
@@ -130,6 +176,9 @@ function App() {
     const next = reminders.map((item) => item.id === id ? { ...item, completed: !item.completed } : item);
     setReminders(next);
     saveDayFlowState({ reminders: next });
+    void saveRemindersCloud(auth?.currentUser?.uid, next).catch((error) => {
+      console.error("Unable to save DayFlow reminders to Firebase:", error);
+    });
   }
 
   function addReminder(event) {
@@ -146,6 +195,9 @@ function App() {
     }].sort((a, b) => a.time.localeCompare(b.time));
     setReminders(next);
     saveDayFlowState({ reminders: next });
+    void saveRemindersCloud(auth?.currentUser?.uid, next).catch((error) => {
+      console.error("Unable to save DayFlow reminders to Firebase:", error);
+    });
     event.currentTarget.reset();
   }
 
@@ -153,12 +205,22 @@ function App() {
     const next = reminders.filter((item) => item.id !== id);
     setReminders(next);
     saveDayFlowState({ reminders: next });
+    void saveRemindersCloud(auth?.currentUser?.uid, next).catch((error) => {
+      console.error("Unable to save DayFlow reminders to Firebase:", error);
+    });
   }
 
   function saveReview() {
     const result = createDailyResult(plan, today);
+    const memory = createDailyMemory(plan, result, note);
     saveDailyResult(today, result);
-    saveMemory(today, createDailyMemory(plan, result, note));
+    saveMemory(today, memory);
+    void saveDailyResultCloud(auth?.currentUser?.uid, today, result).catch((error) => {
+      console.error("Unable to save DayFlow daily result to Firebase:", error);
+    });
+    void saveMemoryCloud(auth?.currentUser?.uid, today, memory).catch((error) => {
+      console.error("Unable to save DayFlow memory to Firebase:", error);
+    });
     setReviewSaved(true);
   }
 
@@ -184,9 +246,26 @@ function App() {
     saveDayFlowState({ settings: { theme: value } });
   }
 
+  if (!cloudReady) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-[var(--bg)] px-4 text-[var(--text)]">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-6 py-5 text-center shadow-xl">
+          <p className="font-semibold">Syncing DayFlow…</p>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">Restoring your cloud data before the day starts.</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <div className="mx-auto min-h-screen max-w-3xl px-4 pb-28 pt-6 sm:px-6">
+        {cloudError && (
+          <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200" role="status">
+            {cloudError}
+          </div>
+        )}
+
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
             <p className="label">{formatDate(today).toUpperCase()}</p>
