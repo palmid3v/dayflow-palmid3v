@@ -45,7 +45,10 @@ Implemented baseline:
 - daily review and memory
 - persistent theme
 - responsive PWA interface
-- local persistence
+- local persistence and recovery
+- Firestore persistence for DayFlow-owned domain data
+- shared app-level access control
+- consistent Sign out UX across auth states
 - documented cross-app contract
 
 Full closure: app/docs/PHASES_1_3.md
@@ -71,11 +74,15 @@ Firebase Auth
 - 👤 `appAccess/{uid}` is **created automatically** for a verified non-admin on first app entry.
 - 🔁 The first app creates the shared record; the other apps reuse it.
 - 🚫 The administrator does not need `appAccess/{uid}`.
-- ☁️ DayFlow domain persistence is still the next phase, so its domain collections are not expected to appear until that cloud layer is implemented. Firestore creates collections/documents implicitly on first write.
+- ☁️ DayFlow domain records are now persisted in Firestore; `localStorage["DAYFLOW"]` remains the recovery/cache layer. Firestore creates collections/documents implicitly on first write.
 
 Administrators are identified by `platformAdmins/{uid}` and can enter/manage every PALMI-D3V app regardless of individual app flags.
 
 Firestore Rules remain the authoritative security boundary; the UI never grants permissions by itself.
+
+## 🚪 Authentication UX
+
+DayFlow exposes Sign out in the authenticated header, Access pending state and email verification state with the same high-contrast treatment used by the other PALMI-D3V apps.
 
 ## 🔗 Data model
 
@@ -112,9 +119,13 @@ To-Do Timetable DayFlow
 
 The current browser bridge is transitional. Authenticated shared references are the next integration step.
 
+## ✉️ Weekly summary
+
+DayFlow contributes cloud data to the shared weekly summary backend: planned/reviewed days, block outcomes, open reminders and recent memory summaries. The backend is scheduled for Sunday 20:00 America/Bogota after Firebase Functions and Resend server configuration are deployed.
+
 ## ✉️ Notifications
 
-Email is the target notification channel. Resend will be an external delivery adapter. API credentials remain server-side.
+Email is the target notification channel. Resend remains the external delivery adapter. API credentials remain server-side.
 
 ## 📅 Calendar
 
@@ -122,7 +133,7 @@ Google Calendar is an external adapter. Initial direction: PALMI-D3V → Google 
 
 ## 🧱 Stack
 
-React 19 · Vite 7 · Tailwind CSS 4 · PWA · Firebase readiness · Lucide React · ESLint
+React 19 · Vite 7 · Tailwind CSS 4 · PWA · Firebase Auth · Cloud Firestore · Lucide React · ESLint
 
 ## ▶️ Development
 
@@ -141,7 +152,11 @@ npm run build
 - app/docs/INTEGRATION_CONTRACT.md
 - app/docs/ROADMAP.md
 
-**Current release:** v0.2.0 · Phase 1–3 complete · shared access bootstrap fixed · DayFlow cloud persistence remains next.
+**Current release:** v0.2.0 · shared access control verified · DayFlow Firestore persistence active · auth UX hardened.
+
+## 🌐 Deployment boundaries
+
+Vercel deploys the browser application. Firebase CLI deploys Rules and the shared scheduled Functions backend.
 
 ## Access provisioning
 
