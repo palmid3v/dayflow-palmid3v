@@ -69,7 +69,7 @@ vite-plugin-pwa
 Lucide React
 ESLint
 Firebase Authentication
-Firestore readiness
+Cloud Firestore
 Local-first DayFlow persistence
 ```
 
