@@ -71,7 +71,7 @@ export default function AuthGate({ children }) {
       <div className="sticky top-0 z-30 border-b border-[var(--border,#272b33)] bg-[var(--surface,#11151b)]/95 px-4 py-2 backdrop-blur sm:px-6">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 text-xs">
           <span className="truncate opacity-80">{user.email}{admin ? " · Admin" : ""}</span>
-          <button type="button" onClick={() => signOut()} className="rounded-lg px-2.5 py-1.5 opacity-60 hover:bg-[var(--surface-muted,#1b2028)] hover:opacity-100">Sign out</button>
+          <button type="button" onClick={() => signOut()} aria-label="Sign out" className="rounded-lg border border-[var(--border,#272b33)] bg-[var(--surface-muted,#1b2028)] px-3 py-2 font-semibold text-[var(--text,#f5f7fa)] opacity-90 transition hover:border-[var(--text-muted,#7d8490)] hover:bg-[var(--surface,#11151b)]">Sign out</button>
         </div>
       </div>
       {error && <p className="mx-auto max-w-5xl px-4 py-2 text-xs text-red-400" role="alert">{error}</p>}
