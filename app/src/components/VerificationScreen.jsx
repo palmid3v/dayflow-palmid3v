@@ -55,7 +55,11 @@ export default function VerificationScreen({ productName, user }) {
           <button type="button" onClick={handleResend} disabled={busy} className="min-h-11 rounded-xl border border-[var(--border,#272b33)] px-4 text-sm font-semibold disabled:opacity-50">
             Resend verification email
           </button>
-          <button type="button" onClick={() => signOut()} className="min-h-10 text-sm opacity-60 hover:opacity-100">
+          <button
+            type="button"
+            onClick={() => signOut()}
+            className="min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-4 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-900 hover:text-white"
+          >
             Sign out
           </button>
         </div>
