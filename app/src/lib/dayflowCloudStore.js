@@ -44,11 +44,6 @@ function toRecordMap(snapshot) {
   );
 }
 
-async function loadCollectionMap(uid, name) {
-  const snapshot = await getDocs(dayflowCollection(uid, name));
-  return toRecordMap(snapshot);
-}
-
 export async function loadDayFlowCloud(uid) {
   if (!uid) throw new Error("A Firebase user ID is required.");
 
@@ -76,7 +71,8 @@ export async function saveDailyPlanCloud(uid, dateKey, plan) {
   await setDoc(dayflowDoc(uid, PLANS, dateKey), {
     ...plan,
     date: dateKey,
-    updatedAt: serverTimestamp()
+    updatedAt: String(plan?.updatedAt ?? new Date().toISOString()),
+    cloudSyncedAt: serverTimestamp()
   }, { merge: true });
 }
 
@@ -85,7 +81,8 @@ export async function saveDailyResultCloud(uid, dateKey, result) {
   await setDoc(dayflowDoc(uid, RESULTS, dateKey), {
     ...result,
     date: dateKey,
-    updatedAt: serverTimestamp()
+    updatedAt: String(result?.updatedAt ?? result?.recordedAt ?? new Date().toISOString()),
+    cloudSyncedAt: serverTimestamp()
   }, { merge: true });
 }
 
@@ -94,7 +91,8 @@ export async function saveMemoryCloud(uid, dateKey, memory) {
   await setDoc(dayflowDoc(uid, MEMORIES, dateKey), {
     ...memory,
     date: dateKey,
-    updatedAt: serverTimestamp()
+    updatedAt: String(memory?.updatedAt ?? memory?.generatedAt ?? new Date().toISOString()),
+    cloudSyncedAt: serverTimestamp()
   }, { merge: true });
 }
 
@@ -102,7 +100,8 @@ export async function saveRemindersCloud(uid, reminders) {
   if (!uid) return;
   await setDoc(dayflowDoc(uid, REMINDERS, REMINDER_DOC), {
     items: Array.isArray(reminders) ? reminders : [],
-    updatedAt: serverTimestamp()
+    updatedAt: new Date().toISOString(),
+    cloudSyncedAt: serverTimestamp()
   }, { merge: true });
 }
 
@@ -129,10 +128,13 @@ function mergeRecordMaps(localMap = {}, cloudMap = {}) {
   return merged;
 }
 
-async function uploadMissingRecords(uid, localMap, cloudMap, saveRecord) {
+async function uploadMissingOrNewerRecords(uid, localMap, cloudMap, saveRecord) {
   await Promise.all(
     Object.entries(localMap)
-      .filter(([key]) => !cloudMap[key])
+      .filter(([key, value]) => {
+        const cloudValue = cloudMap[key];
+        return !cloudValue || recordTimestamp(value) > recordTimestamp(cloudValue);
+      })
       .map(([key, value]) => saveRecord(uid, key, value))
   );
 }
@@ -146,9 +148,9 @@ export async function synchronizeDayFlow(uid, localState) {
   const memories = mergeRecordMaps(localState.memories, cloudState.memories);
 
   await Promise.all([
-    uploadMissingRecords(uid, localState.dailyPlans, cloudState.dailyPlans, saveDailyPlanCloud),
-    uploadMissingRecords(uid, localState.dailyResults, cloudState.dailyResults, saveDailyResultCloud),
-    uploadMissingRecords(uid, localState.memories, cloudState.memories, saveMemoryCloud)
+    uploadMissingOrNewerRecords(uid, localState.dailyPlans, cloudState.dailyPlans, saveDailyPlanCloud),
+    uploadMissingOrNewerRecords(uid, localState.dailyResults, cloudState.dailyResults, saveDailyResultCloud),
+    uploadMissingOrNewerRecords(uid, localState.memories, cloudState.memories, saveMemoryCloud)
   ]);
 
   const localReminders = Array.isArray(localState.reminders) ? localState.reminders : [];
