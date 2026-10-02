@@ -49,11 +49,21 @@ References use taskId and future occurrenceId; source applications remain author
 ## Current modules
 
 - src/App.jsx — daily orchestration UI
-- src/lib/dayflowStore.js — local state persistence
+- src/lib/dayflowStore.js — local state persistence/recovery
+- src/lib/dayflowCloudStore.js — Firestore persistence and synchronization
 - src/lib/todoAdapter.js — read-only To-Do bridge
 - src/domain/models.js — execution/result/memory models
 - src/lib/firebase.js — Firebase boundary
 - src/lib/access.js — shared PALMI-D3V app access
+- Authentication UX includes visible Sign out in all relevant auth states
+
+## Persistence
+
+Authenticated DayFlow sessions restore cloud data before the main UI becomes interactive. Local `DAYFLOW` storage remains the recovery/cache layer if cloud synchronization fails.
+
+## Weekly summary
+
+DayFlow records are consumed by the shared weekly summary backend in the Timetable repository.
 
 ## Commands
 
