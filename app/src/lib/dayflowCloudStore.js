@@ -30,8 +30,10 @@ function dayflowDoc(uid, name, id) {
 function toPlain(data) {
   if (!data || typeof data !== "object") return data;
   const plain = { ...data };
-  if (plain.updatedAt?.toDate instanceof Function) {
-    plain.updatedAt = plain.updatedAt.toDate().toISOString();
+  for (const key of ["updatedAt", "cloudSyncedAt"]) {
+    if (plain[key]?.toDate instanceof Function) {
+      plain[key] = plain[key].toDate().toISOString();
+    }
   }
   return plain;
 }
