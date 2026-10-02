@@ -45,7 +45,7 @@ export async function getAppAccess(uid) {
 }
 
 export async function ensureAppAccess(user) {
-  if (!user?.uid || !user.emailVerified) return null;
+  if (!user?.uid) return null;
   const database = requireDb();
   const reference = doc(database, "appAccess", user.uid);
   const snapshot = await getDoc(reference);
