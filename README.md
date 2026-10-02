@@ -142,3 +142,41 @@ npm run build
 - app/docs/ROADMAP.md
 
 **Current release:** v0.2.0 · Phase 1–3 complete · shared access bootstrap fixed · DayFlow cloud persistence remains next.
+
+## Access provisioning
+
+New Firebase Authentication users are automatically provisioned into the shared `appAccess/{uid}` record when they enter the app, even before email verification is completed. The initial access state is:
+
+```
+timetable: false
+todo: false
+dayflow: false
+```
+
+Email verification is still required before application data can be accessed. The platform admin is controlled separately by `platformAdmins/{uid}` and does not require an `appAccess` record.
+
+### Access flow
+
+```
+👤 New account
+   │
+   ▼
+🔐 Firebase Auth
+   │
+   ▼
+🧾 appAccess/{uid}
+   ├── TimeTable  ❌
+   ├── To-Do      ❌
+   └── DayFlow    ❌
+   │
+   ▼
+📧 Verify email
+   │
+   ▼
+🛡️ Admin enables the required apps
+   │
+   ▼
+🚀 App access
+```
+
+This provisioning record is intentionally separate from the platform-admin record. Security Rules continue to require verified email plus explicit app access for application data.
