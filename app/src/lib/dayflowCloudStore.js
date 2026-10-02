@@ -29,8 +29,11 @@ function dayflowDoc(uid, name, id) {
 
 function toPlain(data) {
   if (!data || typeof data !== "object") return data;
-  const { updatedAt, ...rest } = data;
-  return rest;
+  const plain = { ...data };
+  if (plain.updatedAt?.toDate instanceof Function) {
+    plain.updatedAt = plain.updatedAt.toDate().toISOString();
+  }
+  return plain;
 }
 
 function toRecordMap(snapshot) {
