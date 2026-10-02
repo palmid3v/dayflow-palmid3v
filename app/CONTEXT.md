@@ -4,7 +4,7 @@
 
 ## Context Date
 
-**2026-10-01**
+**2026-10-02**
 
 ## Identity
 
@@ -12,8 +12,8 @@
 - Product: **DayFlow**
 - Role: daily orchestration, tracking, and written-memory layer
 - Default branch: `main`
-- Latest implementation commit: `f69b7b84d4c1417e3ceebd40e8e230f628c89035`
-- Latest merged change: **PR #8 — fix: remove cross-origin popup event listener**
+- Latest merged implementation commit: `8da348a2041ddcef6e26b8671ea7e6c85c9d0c51`
+- Latest merged change: **PR #10 — fix: improve sign out visibility across auth states**
 - Application directory: **`app/`**
 - Production URL: **https://dayflow-palmid3v.vercel.app**
 
@@ -96,7 +96,8 @@ dayflow-palmid3v/
 
 - `src/App.jsx` — primary application shell and workflows
 - `src/domain/models.js` — DayFlow domain model helpers
-- `src/lib/dayflowStore.js` — local DayFlow persistence
+- `src/lib/dayflowStore.js` — local DayFlow persistence/recovery
+- `src/lib/dayflowCloudStore.js` — Firestore DayFlow persistence and synchronization
 - `src/lib/todoAdapter.js` — read-only To-Do integration
 - `src/lib/backendConfig.js` — static Vite Firebase configuration
 - `src/lib/firebase.js` — Firebase application/auth boundary
@@ -158,14 +159,20 @@ PR #8 removed that access. The bridge now relies on the timed `postMessage` requ
 
 ## Firebase
 
-Firebase Authentication is integrated.
+Firebase Authentication and Firestore persistence are integrated.
 
 - Email/Password authentication is enabled.
 - Vite Firebase variables are referenced statically.
 - Production values are configured in Vercel.
-- DayFlow-owned persistence remains local-first for now.
-- Firestore is the target for user-scoped DayFlow persistence.
+- DayFlow-owned plans, results, memories and reminders persist in Firestore.
+- `localStorage["DAYFLOW"]` remains the local recovery/cache layer.
+- `src/lib/dayflowCloudStore.js` hydrates and synchronizes cloud state before the primary UI becomes interactive.
 - Firebase Admin credentials must never be placed in the client.
+
+## Authentication UX
+- High-contrast Sign out in authenticated header
+- Sign out available from Access pending
+- Sign out available from email verification
 
 ## Current Product State
 
@@ -186,6 +193,9 @@ Implemented:
 - Firebase authentication boundary
 - Read-only To-Do integration
 - Production Vercel environment configuration
+- Firestore persistence for DayFlow domain data
+- Local/cloud recovery synchronization
+- Weekly summary data source
 - Cross-origin popup compatibility fix
 
 ## Roadmap
@@ -247,13 +257,21 @@ Implemented:
 - [ ] Sync strategy if required
 
 ### Phase 6 — Identity & Persistence
-**Status: 🟡 In progress**
+**Status: ✅ Implemented**
 
 - [x] Firebase Authentication
 - [x] Production Firebase configuration
-- [ ] Firestore persistence for DayFlow-owned data
-- [ ] Cross-device persistence validation
-- [ ] Final sync architecture
+- [x] Firestore persistence for DayFlow-owned data
+- [x] Local/cloud synchronization flow
+- [x] Recovery behavior when cloud sync fails
+- [ ] Cross-device validation
+
+## Weekly Summary
+DayFlow data is consumed by the shared weekly summary backend in `palmid3v/timetable-palmid3v/functions/`. The scheduled job is Sunday 20:00 America/Bogota and includes planned/reviewed days, block outcomes, open reminders and recent memory summaries. Live delivery still requires the Resend secret and Firebase Functions deployment.
+
+## Deployment Boundaries
+- Vercel deploys the browser application.
+- Firebase CLI deploys Firestore Rules and Cloud Functions.
 
 ## Working Rules
 
