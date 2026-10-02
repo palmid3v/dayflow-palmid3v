@@ -24,7 +24,6 @@ export default function AuthGate({ children }) {
         setAdmin(false);
         setError("");
         if (!nextUser) { setLoading(false); return; }
-        if (!nextUser.emailVerified) { setLoading(false); return; }
 
         setLoading(true);
 
@@ -40,8 +39,8 @@ export default function AuthGate({ children }) {
               return;
             }
 
-            // Only non-admin verified users need an appAccess record.
-            // The first app they open creates the shared record automatically.
+            // Provision the shared access record before email verification.
+            // The record is always created with all app flags disabled.
             const nextAccess = await ensureAppAccess(nextUser);
             setAdmin(false);
             setAccess(nextAccess);
