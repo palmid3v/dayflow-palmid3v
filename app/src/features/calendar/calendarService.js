@@ -14,7 +14,7 @@ const IMPORT_COLLECTION = "dayflowCalendarImports";
 const IMPORT_DOC = "current";
 const MAX_BATCH_WRITES = 450;
 
-import { calendarEventsToDailyBlocks, parseIcsCalendar, safeId } from "./icsParser.js";
+import { parseIcsCalendar, safeId } from "./icsParser.js";
 export { calendarEventsToDailyBlocks } from "./icsParser.js";
 
 function requireDb() {
