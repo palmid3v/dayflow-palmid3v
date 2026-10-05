@@ -10,7 +10,6 @@ import {
   Moon,
   Plus,
   Settings,
-  Sun,
   Target,
   Trash2
 } from "lucide-react";
@@ -242,11 +241,6 @@ function App() {
       console.error("Unable to save DayFlow memory to Firebase:", error);
     });
     setReviewSaved(true);
-  }
-
-  function changeTheme(value) {
-    setTheme(value);
-    saveDayFlowState({ settings: { theme: value } });
   }
 
   if (!cloudReady) {
