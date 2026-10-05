@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   setDoc,
   writeBatch
@@ -363,7 +364,6 @@ function cursorBefore(date) {
 }
 
 function ruleMatchesWithoutCount(event, rule, target) {
-  const clone = { ...event, rules: [] };
   const start = new Date(event.start);
   if (target < startOfDay(start)) return false;
   const freq = rule.FREQ;
@@ -428,9 +428,9 @@ export async function loadImportedCalendarEvents(uid) {
 }
 
 export async function getCalendarImport(uid) {
-  const snapshot = await getDocs(collection(requireDb(), "users", uid, IMPORT_COLLECTION));
-  const current = snapshot.docs.find((item) => item.id === IMPORT_DOC);
-  return current?.data() ?? null;
+  if (!uid) return null;
+  const snapshot = await getDoc(importRef(uid));
+  return snapshot.exists() ? snapshot.data() : null;
 }
 
 export async function importIcsCalendar(uid, text, fileName) {
