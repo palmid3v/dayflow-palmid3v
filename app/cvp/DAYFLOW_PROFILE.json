@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "id": "dayflow-palmid3v",
+    "name": "DayFlow",
+    "version": "0.2.0",
+    "appPath": "app",
+    "productionUrlEnv": "DAYFLOW_VALIDATE_URL",
+    "defaultProductionUrl": "https://dayflow-palmid3d.vercel.app"
+  },
+  "stack": ["React", "Vite", "Tailwind CSS", "Firebase Authentication", "Cloud Firestore", "PWA"],
+  "commands": {
+    "install": {"command": "npm", "arguments": ["ci", "--ignore-scripts", "--no-audit", "--no-fund"]},
+    "test": {"command": "npm", "arguments": ["test"]},
+    "lint": {"command": "npm", "arguments": ["run", "lint"]},
+    "build": {"command": "npm", "arguments": ["run", "build"]}
+  },
+  "requiredPaths": {
+    "files": [
+      "app/package.json", "app/package-lock.json", "app/vite.config.js",
+      "app/src/App.jsx", "app/src/lib/dayflowCloudStore.js", "app/src/lib/access.js",
+      "app/playwright.config.mjs", "app/e2e/dayflow.spec.mjs",
+      "app/e2e/fixtures/validation.ics", "firebase.json", "firestore.rules"
+    ],
+    "directories": [
+      "app/src/features/tasks", "app/src/features/schedule", "app/src/features/calendar",
+      "app/src/features/reminders", "app/src/features/memory", "app/src/features/dashboard", "app/tests"
+    ]
+  },
+  "sourceChecks": [
+    {"path": "firebase.json", "pattern": "\"rules\"\\s*:\\s*\"firestore.rules\"", "description": "Canonical Firestore rules source"},
+    {"path": "firestore.rules", "pattern": "function canUseDayFlowFeature", "description": "Feature-aware Firestore permissions"},
+    {"path": "app/vite.config.js", "pattern": "VitePWA", "description": "PWA plugin"}
+  ],
+  "releaseGates": [
+    "automated validation", "Firebase rules deployment confirmation", "production E2E",
+    "manual smoke test", "PWA and responsive verification", "rollback evidence"
+  ]
+}
