@@ -73,7 +73,7 @@ function App() {
   const [note, setNote] = useState(() => getDayFlowState().notes?.[today] ?? "");
   const [reminders, setReminders] = useState(() => getDayFlowState().reminders ?? []);
   const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid));
-  const [theme] = useState("dark");
+  const theme = "dark";
   const [scheduleBlocks, setScheduleBlocks] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));
@@ -86,7 +86,7 @@ function App() {
   const openReminders = reminders.filter((reminder) => !reminder.completed);
 
   useEffect(() => {
-    applyTheme(theme);
+    applyTheme();
   }, [theme]);
 
   useEffect(() => {
@@ -162,23 +162,6 @@ function App() {
 
   function updateBlock(id, state) {
     updatePlan(plan.blocks.map((block) => block.id === id ? { ...block, state } : block));
-  }
-
-  function addBlock(event) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const title = String(form.get("title") ?? "").trim();
-    const time = String(form.get("time") ?? "18:00");
-    if (!title) return;
-    updatePlan([...plan.blocks, {
-      id: `block-${Date.now()}`,
-      time,
-      emoji: String(form.get("emoji") || "📌"),
-      title,
-      meta: String(form.get("meta") || "Planned"),
-      state: "planned"
-    }].sort((a, b) => a.time.localeCompare(b.time)));
-    event.currentTarget.reset();
   }
 
   function deleteBlock(id) {
@@ -364,9 +347,30 @@ function App() {
   );
 }
 
-function applyTheme(theme) {
+function applyTheme() {
   const resolved = "dark";
   document.documentElement.dataset.theme = resolved;
+}
+
+function Empty({ title, text }) {
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-5 text-center">
+      <p className="text-sm font-semibold">{title}</p>
+      <p className="mt-1 text-xs text-[var(--text-muted)]">{text}</p>
+    </div>
+  );
+}
+
+function Page({ title, icon, subtitle, children }) {
+  return (
+    <section>
+      <div className="mb-5 flex items-start gap-3">
+        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface-muted)]">{icon}</div>
+        <div><p className="label">DAYFLOW</p><h1 className="mt-1 text-2xl font-bold">{title}</h1><p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p></div>
+      </div>
+      {children}
+    </section>
+  );
 }
 
 function ProgressRing({ value }) {
@@ -502,3 +506,4 @@ function SettingsDialog({ onClose }) {
   );
 }
 
+export default App;
