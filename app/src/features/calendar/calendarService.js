@@ -341,16 +341,15 @@ function ruleMatchesDate(event, target) {
 
     if (!matches || !rule.COUNT) return matches;
 
+    const end = startOfDay(target);
+    const cursor = startOfDay(start);
     let count = 0;
-    const cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-    const end = new Date(target.getFullYear(), target.getMonth(), target.getDate());
-    while (cursor <= end && count < Number(rule.COUNT)) {
-      if (cursor.getTime() === startOfDay(start).getTime() || ruleMatchesWithoutCount(event, rule, cursor)) {
-        count += 1;
-      }
+    while (cursor <= end) {
+      if (ruleMatchesWithoutCount(event, rule, cursor)) count += 1;
+      if (count > Number(rule.COUNT)) return false;
       cursor.setDate(cursor.getDate() + 1);
     }
-    return count > 0 && count <= Number(rule.COUNT) && sameDay(cursorBefore(end), target);
+    return count > 0 && count <= Number(rule.COUNT);
   });
 }
 
@@ -358,9 +357,6 @@ function startOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-function cursorBefore(date) {
-  return date;
-}
 
 function ruleMatchesWithoutCount(event, rule, target) {
   const start = new Date(event.start);
