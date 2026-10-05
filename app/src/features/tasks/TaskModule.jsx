@@ -32,9 +32,17 @@ export default function TaskModule({ onTasksChange }) {
     (async () => {
       try {
         const cloud = await loadTasks(uid);
-        if (active) {
-          setTasks(cloud);
-          onTasksChange?.(cloud);
+        if (cloud.length) {
+          if (active) {
+            setTasks(cloud);
+            onTasksChange?.(cloud);
+          }
+        } else {
+          const migrated = await migrateLegacyTasks(uid);
+          if (active) {
+            setTasks(migrated);
+            onTasksChange?.(migrated);
+          }
         }
       } catch {
         try {
