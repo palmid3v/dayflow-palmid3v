@@ -73,12 +73,13 @@ The previous repositories remain untouched for now:
 
 They are migration references and rollback sources until the unified DayFlow implementation is validated.
 
-### Phases 11–16
+### Phases 11–17
 
 - **Phase 11 — Design System / UX System:** centralized visual tokens, reusable surface/control patterns, focus states, motion preferences, and consistent responsive spacing.
 - **Phase 12 — Responsive / PWA:** mobile-first navigation, safe-area handling, touch-friendly controls, install metadata, automatic service-worker updates, and SPA offline navigation fallback.
 - **Phase 15 — CVP:** automated validation, E2E coverage, production validation prerequisites, and release hardening.
 - **Phase 16 — Production Readiness:** deployment gates, smoke-test evidence, PWA/runtime checks, Firebase/Vercel verification, and rollback readiness.
+- **Phase 17 — CVP Platform Foundation:** machine-readable DayFlow validation profile and profile-driven structural validation, without changing runtime behavior.
 
 ### Calendar import
 
