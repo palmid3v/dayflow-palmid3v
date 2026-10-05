@@ -6,7 +6,7 @@
     "version": "0.2.0",
     "appPath": "app",
     "productionUrlEnv": "DAYFLOW_VALIDATE_URL",
-    "defaultProductionUrl": "https://dayflow-palmid3d.vercel.app"
+    "defaultProductionUrl": "https://dayflow-palmid3v.vercel.app"
   },
   "stack": ["React", "Vite", "Tailwind CSS", "Firebase Authentication", "Cloud Firestore", "PWA"],
   "commands": {
