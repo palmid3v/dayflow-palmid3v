@@ -327,15 +327,15 @@ function App({ access, admin = false }) {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <div className="mx-auto min-h-screen max-w-3xl px-4 pb-28 pt-6 sm:px-6">
+      <div className="app-shell min-h-screen text-[var(--text)]">
         {cloudError && (
           <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200" role="status">
             {cloudError}
           </div>
         )}
 
-        <header className="mb-6 flex items-start justify-between gap-4">
-          <div className="absolute left-4 top-3 flex items-center gap-1 sm:left-6">
+        <header className="relative mb-6 flex items-start justify-between gap-4 pt-10 sm:pt-2">
+          <div className="absolute left-0 top-0 flex items-center gap-1 sm:relative sm:left-auto sm:top-auto">
             <button onClick={() => setSelectedDate(dateKey(new Date(new Date(selectedDate + "T12:00:00").getTime() - 86400000)))} className="grid size-9 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)]" aria-label="Previous day"><ChevronLeft size={16}/></button>
             <button onClick={() => setSelectedDate(today)} className="min-h-9 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold">Today</button>
             <button onClick={() => setSelectedDate(dateKey(new Date(new Date(selectedDate + "T12:00:00").getTime() + 86400000)))} className="grid size-9 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)]" aria-label="Next day"><ChevronRight size={16}/></button>
@@ -445,12 +445,12 @@ function App({ access, admin = false }) {
         )}
       </div>
 
-      <nav className="fixed bottom-3 left-1/2 z-10 grid w-[calc(100%-24px)] max-w-[720px] -translate-x-1/2 grid-cols-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
+      <nav className="mobile-nav fixed bottom-2 left-1/2 z-40 grid w-[calc(100%-16px)] max-w-[720px] -translate-x-1/2 grid-cols-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
         {navItems.filter(([, key]) => admin || key === "today" || key === "dashboard" || (key === "calendar" && canUse("schedule")) || (key === "tasks" && canUse("tasks")) || (key === "memory" && canUse("memory"))).map(([Icon, key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`grid min-h-12 justify-items-center gap-1 rounded-xl px-2 py-2 text-[10px] transition ${tab === key ? "bg-[var(--surface-muted)] text-[var(--text)]" : "text-[var(--text-muted)]"}`}
+            className={`mobile-nav-button grid min-h-12 justify-items-center gap-1 rounded-xl px-2 py-2 text-[10px] transition ${tab === key ? "bg-[var(--surface-muted)] text-[var(--text)]" : "text-[var(--text-muted)]"}`}
             aria-current={tab === key ? "page" : undefined}
           >
             <Icon size={20} />

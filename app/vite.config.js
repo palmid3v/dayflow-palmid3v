@@ -9,14 +9,22 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        cleanupOutdatedCaches: true,
+        navigateFallback: "/index.html"
+      },
       includeAssets: ["favicon.svg"],
       manifest: {
         name: "DayFlow — PALMI-D3V",
         short_name: "DayFlow",
+        id: "/dayflow",
+        start_url: "/",
+        scope: "/",
         description: "Plan, do, track, remember.",
         theme_color: "#090a0d",
         background_color: "#090a0d",
         display: "standalone",
+        orientation: "portrait-primary",
         icons: [
           { src: "/pwa-192.svg", sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
           { src: "/pwa-512.svg", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
