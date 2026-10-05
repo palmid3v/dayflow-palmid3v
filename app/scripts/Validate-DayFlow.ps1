@@ -2,7 +2,9 @@
 [CmdletBinding()]
 param(
     [string]$AppPath = (Join-Path $PSScriptRoot ".."),
-    [switch]$Strict
+    [switch]$Strict,
+    [ValidateSet("Automatic", "Manual")]
+    [string]$Mode = "Automatic"
 )
 
 $ErrorActionPreference = "Stop"
@@ -185,6 +187,7 @@ Write-Host "PALMI-D3V" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "App:        $AppPath"
 Write-Host "Target URL: $productionUrl"
+Write-Host "Mode:       $Mode"
 Write-Host "Report:     $ReportPath"
 Write-Host ""
 
@@ -300,18 +303,22 @@ if (Get-Command firebase -ErrorAction SilentlyContinue) {
 
 Write-Section "8. PRODUCTION E2E"
 
-$authFile = Join-Path $AppPath "playwright/.auth/dayflow.json"
-$hasCredentials = (-not [string]::IsNullOrWhiteSpace($env:DAYFLOW_VALIDATE_EMAIL)) -and (-not [string]::IsNullOrWhiteSpace($env:DAYFLOW_VALIDATE_PASSWORD))
-
-if (-not $hasCredentials -and -not (Test-Path $authFile)) {
-    Add-Result "E2E" "Authentication bootstrap" "FAIL" "Set DAYFLOW_VALIDATE_EMAIL and DAYFLOW_VALIDATE_PASSWORD once, or provide a valid local Playwright auth state"
+if ($Mode -eq "Manual") {
+    Add-Result "E2E" "Production browser flow" "SKIP" "Manual mode selected. Complete docs/QA_MATRIX.md against Preview and Production."
 } else {
-    $browserInstallOk = Invoke-CheckedCommand "E2E" "Playwright Chromium availability" $AppPath "npx" @("--yes", "playwright@1.63.0", "install", "chromium")
+    $authFile = Join-Path $AppPath "playwright/.auth/dayflow.json"
+    $hasCredentials = (-not [string]::IsNullOrWhiteSpace($env:DAYFLOW_VALIDATE_EMAIL)) -and (-not [string]::IsNullOrWhiteSpace($env:DAYFLOW_VALIDATE_PASSWORD))
 
-    if ($browserInstallOk) {
-        Invoke-CheckedCommand "E2E" "Production browser flow" $AppPath "npx" @("--yes", "@playwright/test@1.63.0", "test", "--config=playwright.config.mjs") | Out-Null
-        if (Test-Path $E2EJsonPath) {
-            Add-Result "E2E" "Playwright result artifact" "PASS" $E2EJsonPath
+    if (-not $hasCredentials -and -not (Test-Path $authFile)) {
+        Add-Result "E2E" "Authentication bootstrap" "FAIL" "Set DAYFLOW_VALIDATE_EMAIL and DAYFLOW_VALIDATE_PASSWORD once, or provide a valid local Playwright auth state"
+    } else {
+        $browserInstallOk = Invoke-CheckedCommand "E2E" "Playwright Chromium availability" $AppPath "npx" @("--yes", "playwright@1.63.0", "install", "chromium")
+
+        if ($browserInstallOk) {
+            Invoke-CheckedCommand "E2E" "Production browser flow" $AppPath "npx" @("--yes", "@playwright/test@1.63.0", "test", "--config=playwright.config.mjs") | Out-Null
+            if (Test-Path $E2EJsonPath) {
+                Add-Result "E2E" "Playwright result artifact" "PASS" $E2EJsonPath
+            }
         }
     }
 }
