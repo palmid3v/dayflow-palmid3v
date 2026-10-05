@@ -4,6 +4,7 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   Circle,
   Home,
@@ -69,6 +70,8 @@ function getGreeting() {
 
 function App() {
   const today = dateKey();
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [quickBlockTitle, setQuickBlockTitle] = useState("");
   const [tab, setTab] = useState("today");
   const [plan, setPlan] = useState(() => getInitialPlan(today));
   const [note, setNote] = useState(() => getDayFlowState().notes?.[today] ?? "");
@@ -81,15 +84,27 @@ function App() {
   const [cloudReady, setCloudReady] = useState(false);
   const [cloudError, setCloudError] = useState("");
 
-  const visibleBlocks = [...scheduleBlocks, ...plan.blocks.filter((block) => block.source !== "schedule")].sort((a, b) => a.time.localeCompare(b.time));
+  const selectedPlan = selectedDate === today ? plan : getDailyPlan(selectedDate);
+  const visibleBlocks = = [...scheduleBlocks, ...plan.blocks.filter((block) => block.source !== "schedule")].sort((a, b) => a.time.localeCompare(b.time));
   const completed = plan.blocks.filter((block) => block.state === "completed").length;
   const progressTotal = plan.blocks.length;
+  const skipped = plan.blocks.filter((block) => block.state === "skipped").length;
+  const changed = plan.blocks.filter((block) => block.state === "changed").length;
   const progress = progressTotal ? Math.round((completed / progressTotal) * 100) : 0;
-  const openReminders = reminders.filter((reminder) => !reminder.completed);
+  const todayReminders = reminders.filter((reminder) => reminder.date === selectedDate);
+  const openReminders = todayReminders.filter((reminder) => !reminder.completed);
 
   useEffect(() => {
     applyTheme();
   }, [theme]);
+
+  useEffect(() => {
+    if (selectedDate === today) return undefined;
+    setPlan(getDailyPlan(selectedDate));
+    setNote(getDayFlowState().notes?.[selectedDate] ?? "");
+    setReviewSaved(Boolean(getDailyResult(selectedDate)));
+    return undefined;
+  }, [selectedDate, today]);
 
   useEffect(() => {
     const uid = auth?.currentUser?.uid;
@@ -122,8 +137,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [today]);
-
+  }, [selectedDate]);
 
   useEffect(() => {
     const uid = auth?.currentUser?.uid;
@@ -137,7 +151,7 @@ function App() {
           loadImportedCalendarEvents(uid)
         ]);
         if (!active) return;
-        const currentDate = new Date(`${today}T12:00:00`);
+        const currentDate = new Date(`${selectedDate}T12:00:00`);
         setScheduleBlocks([
           ...scheduleToDailyBlocks(schedules, currentDate),
           ...calendarEventsToDailyBlocks(importedEvents, currentDate)
@@ -178,8 +192,8 @@ function App() {
   function updatePlan(nextBlocks) {
     const nextPlan = { ...plan, blocks: nextBlocks, updatedAt: new Date().toISOString() };
     setPlan(nextPlan);
-    saveDailyPlan(today, nextPlan);
-    void saveDailyPlanCloud(auth?.currentUser?.uid, today, nextPlan).catch((error) => {
+    saveDailyPlan(selectedDate, nextPlan);
+    void saveDailyPlanCloud(auth?.currentUser?.uid, selectedDate, nextPlan).catch((error) => {
       console.error("Unable to save DayFlow plan to Firebase:", error);
     });
     setReviewSaved(false);
@@ -196,7 +210,7 @@ function App() {
   function saveNote(value) {
     setNote(value);
     const state = getDayFlowState();
-    saveDayFlowState({ notes: { ...state.notes, [today]: value } });
+    saveDayFlowState({ notes: { ...state.notes, [selectedDate]: value } });
   }
 
   function toggleReminder(id) {
@@ -217,7 +231,7 @@ function App() {
       id: `reminder-${Date.now()}`,
       title,
       time: String(form.get("time") || "18:00"),
-      date: today,
+      date: selectedDate,
       completed: false
     }].sort((a, b) => a.time.localeCompare(b.time));
     setReminders(next);
@@ -238,14 +252,14 @@ function App() {
   }
 
   function saveReview() {
-    const result = createDailyResult(plan, today);
+    const result = createDailyResult(plan, selectedDate);
     const memory = createDailyMemory(plan, result, note);
-    saveDailyResult(today, result);
-    saveMemory(today, memory);
-    void saveDailyResultCloud(auth?.currentUser?.uid, today, result).catch((error) => {
+    saveDailyResult(selectedDate, result);
+    saveMemory(selectedDate, memory);
+    void saveDailyResultCloud(auth?.currentUser?.uid, selectedDate, result).catch((error) => {
       console.error("Unable to save DayFlow daily result to Firebase:", error);
     });
-    void saveMemoryCloud(auth?.currentUser?.uid, today, memory).catch((error) => {
+    void saveMemoryCloud(auth?.currentUser?.uid, selectedDate, memory).catch((error) => {
       console.error("Unable to save DayFlow memory to Firebase:", error);
     });
     setReviewSaved(true);
@@ -272,8 +286,13 @@ function App() {
         )}
 
         <header className="mb-6 flex items-start justify-between gap-4">
+          <div className="absolute left-4 top-3 flex items-center gap-1 sm:left-6">
+            <button onClick={() => setSelectedDate(dateKey(new Date(new Date(selectedDate + "T12:00:00").getTime() - 86400000)))} className="grid size-9 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)]" aria-label="Previous day"><ChevronLeft size={16}/></button>
+            <button onClick={() => setSelectedDate(today)} className="min-h-9 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold">Today</button>
+            <button onClick={() => setSelectedDate(dateKey(new Date(new Date(selectedDate + "T12:00:00").getTime() + 86400000)))} className="grid size-9 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)]" aria-label="Next day"><ChevronRight size={16}/></button>
+          </div>
           <div>
-            <p className="label">{formatDate(today).toUpperCase()}</p>
+            <p className="label">{formatDate(selectedDate).toUpperCase()}</p>
             <h1 className="mt-1 text-2xl font-bold tracking-tight">{getGreeting()}, Palmi 👋</h1>
             <p className="mt-1 text-sm text-[var(--text-muted)]">Your day, in one flow.</p>
           </div>
@@ -305,18 +324,31 @@ function App() {
             </section>
 
             <section className="mb-7">
-              <SectionHeader title="Today" action="View calendar" onClick={() => setTab("calendar")} />
+              <SectionHeader title={selectedDate === today ? "Today" : formatDate(selectedDate)} action="View calendar" onClick={() => setTab("calendar")} />
               <div className="relative ml-9 border-l border-[var(--border)]">
                 {visibleBlocks.map((block) => (
                   <BlockRow key={block.id} block={block} onToggle={updateBlock} onDelete={deleteBlock} />
                 ))}
-                {!visibleBlocks.length && <Empty title="Nothing planned" text="Add your first block from Calendar." />}
+                {!visibleBlocks.length && <Empty title="Nothing planned" text="Add a block below or bring context from Schedule/Calendar." />}
               </div>
+            </section>
+
+            <section className="mb-7 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
+              <form onSubmit={(event) => {
+                event.preventDefault();
+                const title = quickBlockTitle.trim();
+                if (!title) return;
+                updatePlan([...plan.blocks, { id: `block-${Date.now()}`, source: "plan", time: "18:00", emoji: "○", title, meta: "Added to Today", state: "planned" }]);
+                setQuickBlockTitle("");
+              }} className="flex gap-2">
+                <input value={quickBlockTitle} onChange={(event)=>setQuickBlockTitle(event.target.value)} placeholder="Add a block to Today…" className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm outline-none" aria-label="Add a block to today"/>
+                <button className="grid size-10 place-items-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)]" aria-label="Add block"><Plus size={17}/></button>
+              </form>
             </section>
 
             <section className="mb-7">
               <SectionHeader title="Reminders" action={`${openReminders.length} open`} />
-              <ReminderPanel reminders={reminders.filter((item) => item.date === today)} onToggle={toggleReminder} onDelete={deleteReminder} onAdd={addReminder} />
+              <ReminderPanel reminders={todayReminders} onToggle={toggleReminder} onDelete={deleteReminder} onAdd={addReminder} />
             </section>
 
             <section className="mb-7">
@@ -342,7 +374,7 @@ function App() {
               </div>
             </section>
 
-            <MemoryCard note={note} saved={reviewSaved} onChange={saveNote} onSave={saveReview} />
+            <MemoryCard note={note} saved={reviewSaved} summary={{completed, skipped, changed, progressTotal}} onChange={saveNote} onSave={saveReview} />
           </>
         )}
 
@@ -437,9 +469,13 @@ function BlockRow({ block, onToggle, onDelete }) {
         {external ? <CalendarDays size={19} className="text-[var(--text-muted)]" /> : block.state === "completed" ? <CheckCircle2 size={19} /> : <Circle size={19} className="text-[var(--text-muted)]" />}
       </button>
       {!external && (
-        <button onClick={() => onDelete(block.id)} className="grid size-9 shrink-0 place-items-center self-center rounded-xl text-[var(--text-faint)] hover:bg-[var(--surface-muted)]" aria-label={`Delete ${block.title}`} type="button">
+        <div className="flex shrink-0 items-center gap-1 self-center">
+          <button onClick={() => onToggle(block.id, "skipped")} className="grid size-8 place-items-center rounded-lg text-[var(--text-faint)] hover:bg-[var(--surface-muted)] text-[10px]" aria-label={`Skip ${block.title}`}>SKIP</button>
+          <button onClick={() => onToggle(block.id, "changed")} className="grid size-8 place-items-center rounded-lg text-[var(--text-faint)] hover:bg-[var(--surface-muted)] text-[10px]" aria-label={`Mark ${block.title} as changed`}>↻</button>
+          <button onClick={() => onDelete(block.id)} className="grid size-9 shrink-0 place-items-center self-center rounded-xl text-[var(--text-faint)] hover:bg-[var(--surface-muted)]" aria-label={`Delete ${block.title}`} type="button">
           <Trash2 size={15} />
-        </button>
+          </button>
+        </div>
       )}
     </div>
   );
@@ -470,14 +506,14 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd }) {
   );
 }
 
-function MemoryCard({ note, saved, onChange, onSave }) {
+function MemoryCard({ note, saved, onChange, onSave, summary }) {
   return (
     <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
       <div className="flex gap-3">
         <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface-muted)]"><BookOpen size={19} /></div>
         <div className="flex-1">
           <p className="label">DAILY MEMORY</p>
-          <h2 className="mt-1 text-sm font-semibold">Turn today's activity into a written memory.</h2>
+          <h2 className="mt-1 text-sm font-semibold">Review the day before you close it.</h2><p className="mt-1 text-xs text-[var(--text-muted)]">{summary.completed} completed · {summary.changed} changed · {summary.skipped} skipped · {summary.progressTotal} planned</p>
           <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">DayFlow captures the difference between the plan and the day you actually lived.</p>
           <textarea value={note} onChange={(event) => onChange(event.target.value)} placeholder="Add a note about today…" className="mt-3 min-h-20 w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] p-3 text-xs outline-none placeholder:text-[var(--text-faint)]" />
           <button onClick={onSave} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--accent-contrast)]">
