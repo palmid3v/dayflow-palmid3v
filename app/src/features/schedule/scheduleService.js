@@ -40,3 +40,24 @@ export async function saveSchedule(uid, schedule) {
 export async function removeSchedule(uid, id) {
   await deleteDoc(doc(ref(uid), id));
 }
+export function getSchedulesForDate(schedules, date = new Date()) {
+  const weekday = date.getDay();
+  return schedules
+    .filter((item) => item.weekday === weekday)
+    .sort((a, b) => a.start.localeCompare(b.start));
+}
+
+export function scheduleToDailyBlocks(schedules, date = new Date()) {
+  const dateKey = date instanceof Date ? date.toLocaleDateString("en-CA") : String(date);
+  const targetDate = date instanceof Date ? date : new Date(`${dateKey}T12:00:00`);
+  return getSchedulesForDate(schedules, targetDate).map((item) => ({
+    id: `schedule-${item.id}-${dateKey}`,
+    source: "schedule",
+    sourceId: item.id,
+    time: item.start,
+    emoji: "🗓️",
+    title: item.subject,
+    meta: `${item.start}–${item.end} · Schedule`,
+    state: "planned"
+  }));
+}
