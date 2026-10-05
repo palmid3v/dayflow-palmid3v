@@ -76,7 +76,7 @@ export default function AdminAccessPanel() {
                         {STATUS.map((value) => <option key={value} value={value}>{value}</option>)}
                       </select>
                     </td>
-                    {FEATURES.map(([featureId, label]) => (
+                    {FEATURES.map(([featureId]) => (
                       <td key={featureId} className="px-4 py-3">
                         <button
                           type="button"
