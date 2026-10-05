@@ -4,7 +4,7 @@ DayFlow is the **single productivity application** for the PALMI-D3V ecosystem.
 
 Tasks, recurring schedules, daily planning, reminders, review, and memory live inside one React/Vite application backed by one Firebase Authentication identity and one Cloud Firestore database.
 
-> **Current status:** Unified product architecture is implemented through Phases 1–10. DayFlow now includes admin analytics, an audited access manager, feature-aware cloud permissions, and browser reminder notifications while keeping local-first fallback behavior. To-Do and Timetable remain separate repositories only as migration/rollback sources; they are no longer runtime dependencies of DayFlow.
+> **Current status:** Unified product architecture is implemented through Phases 1–12. DayFlow now includes the design/UX system, responsive mobile-first shell, installable PWA metadata, offline navigation support, admin analytics, audited access management, feature-aware cloud permissions, and browser reminder notifications while keeping local-first fallback behavior. To-Do and Timetable remain separate repositories only as migration/rollback sources; they are no longer runtime dependencies of DayFlow.
 
 ## Product modules
 
@@ -86,6 +86,8 @@ dayflow-palmid3v/
 10. External integrations are adapters, not sources of truth.
 11. Admin access changes are audited and feature permissions are enforced at the Firestore boundary.
 12. Vercel deployments should only run when the app directory changes.
+13. The UI uses a dark-only visual system with shared design tokens and mobile-safe-area support.
+14. PWA updates are automatic and the app keeps a local-first experience when cloud access is unavailable.
 
 ## Development
 
@@ -105,6 +107,11 @@ The previous repositories remain untouched for now:
 - `palmid3v/timetable-palmid3v`
 
 They are migration references and rollback sources until the unified DayFlow implementation is validated.
+
+### Phases 11–12
+
+- **Phase 11 — Design System / UX System:** centralized visual tokens, reusable surface/control patterns, focus states, motion preferences, and consistent responsive spacing.
+- **Phase 12 — Responsive / PWA:** mobile-first navigation, safe-area handling, touch-friendly controls, install metadata, automatic service-worker updates, and SPA offline navigation fallback.
 
 ### Calendar import
 
