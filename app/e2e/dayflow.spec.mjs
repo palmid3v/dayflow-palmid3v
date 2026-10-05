@@ -328,7 +328,8 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
         await expect(page.getByText("FEATURE ADOPTION")).toBeVisible();
 
         await page
-          .getByRole("button", { name: "Close access manager" })
+          .getByRole("dialog", { name: "Access Manager" })
+          .getByLabel("Close access manager")
           .click();
       }
     });
