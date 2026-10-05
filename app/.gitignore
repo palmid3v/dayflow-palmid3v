@@ -1,0 +1,6 @@
+# Local DayFlow validation artifacts
+playwright/.auth/
+playwright-report/
+test-results/
+validation-reports/*.json
+validation-reports/*.tmp
