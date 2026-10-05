@@ -3,7 +3,6 @@ import {
   deleteDoc,
   doc,
   getDocs,
-  setDoc,
   writeBatch
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
