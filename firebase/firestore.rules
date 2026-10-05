@@ -51,12 +51,17 @@ service cloud.firestore {
         ])
         && request.resource.data.uid == uid
         && request.resource.data.role == "user"
-        && request.resource.data.apps.keys().hasOnly([
-          "timetable", "todo", "dayflow"
+        && request.resource.data.status == "pending"
+        && request.resource.data.apps.keys().hasOnly(["dayflow"])
+        && request.resource.data.apps.dayflow == false
+        && request.resource.data.features.keys().hasOnly([
+          "tasks", "schedule", "calendar", "reminders", "memory"
         ])
-        && request.resource.data.apps.timetable == false
-        && request.resource.data.apps.todo == false
-        && request.resource.data.apps.dayflow == false;
+        && request.resource.data.features.tasks == false
+        && request.resource.data.features.schedule == false
+        && request.resource.data.features.calendar == false
+        && request.resource.data.features.reminders == false
+        && request.resource.data.features.memory == false;
 
       allow update, delete: if isAdmin();
     }
@@ -101,6 +106,14 @@ service cloud.firestore {
 
     match /users/{uid}/dayflowReminders/{reminderId} {
       allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/dayflowImportedCalendarEvents/{eventId} {
+      allow read, write: if canUseDayFlowFeature("calendar") && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/dayflowCalendarImports/{document} {
+      allow read, write: if canUseDayFlowFeature("calendar") && request.auth.uid == uid;
     }
 
     match /{document=**} {
