@@ -105,7 +105,7 @@ They are migration references and rollback sources until the unified DayFlow imp
 
 ### Calendar import
 
-DayFlow accepts `.ics` files directly in Schedule. Google Calendar supports exporting calendars as `.ics` files, including recurring-event data; the imported snapshot is stored in DayFlow and is not live-synchronized. Re-import the latest `.ics` file when the external calendar changes. citeturn2search0turn2search1
+DayFlow accepts `.ics` files directly in Schedule. Google Calendar supports exporting calendars as `.ics` files, including recurring-event data; the imported snapshot is stored in DayFlow and is not live-synchronized. Re-import the latest `.ics` file when the external calendar changes.
 
 ---
 
