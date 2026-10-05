@@ -103,3 +103,10 @@ temp/
 **/temp/
 *.tmp
 *.temp
+
+# DayFlow automated validation
+app/playwright/.auth/
+app/playwright-report/
+app/test-results/
+app/validation-reports/*.json
+app/validation-reports/*.tmp
