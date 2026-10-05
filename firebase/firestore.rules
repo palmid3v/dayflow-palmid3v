@@ -1,0 +1,105 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function verified() {
+      return signedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/platformAdmins/$(request.auth.uid));
+    }
+
+    function hasAppAccess(appId) {
+      return verified() &&
+        exists(/databases/$(database)/documents/appAccess/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/appAccess/$(request.auth.uid)).data.apps[appId] == true;
+    }
+
+    function canUseApp(appId) {
+      return isAdmin() || hasAppAccess(appId);
+    }
+
+    function canUseUnifiedDayFlow() {
+      return canUseApp("dayflow");
+    }
+
+    match /platformAdmins/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /appAccess/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          "uid", "email", "role", "apps", "createdAt", "updatedAt"
+        ])
+        && request.resource.data.uid == uid
+        && request.resource.data.role == "user"
+        && request.resource.data.apps.keys().hasOnly([
+          "timetable", "todo", "dayflow"
+        ])
+        && request.resource.data.apps.timetable == false
+        && request.resource.data.apps.todo == false
+        && request.resource.data.apps.dayflow == false;
+
+      allow update, delete: if isAdmin();
+    }
+
+    // Unified DayFlow domains. Legacy app access remains valid during migration.
+    match /users/{uid}/tasks/{taskId} {
+      allow read, write: if (canUseApp("todo") || canUseUnifiedDayFlow()) &&
+        request.auth.uid == uid;
+    }
+
+    match /users/{uid}/timetableTemplates/{templateId} {
+      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
+        request.auth.uid == uid;
+    }
+
+    match /users/{uid}/timetableOccurrences/{occurrenceId} {
+      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
+        request.auth.uid == uid;
+    }
+
+    match /users/{uid}/timetableSettings/{document} {
+      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
+        request.auth.uid == uid;
+    }
+
+    match /users/{uid}/timetableExternalLinks/{document} {
+      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
+        request.auth.uid == uid;
+    }
+
+    match /users/{uid}/dayflow/plans/{dateKey} {
+      allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/dayflow/results/{dateKey} {
+      allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/dayflow/memories/{dateKey} {
+      allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/dayflow/reminders/{reminderId} {
+      allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
