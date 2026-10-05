@@ -14,7 +14,18 @@ const pageErrors = [];
 const failedRequests = [];
 
 async function waitForApp(page) {
-  await expect(page.getByText("Your day, in one flow.")).toBeVisible({ timeout: 30000 });
+  try {
+    await expect(page.getByText("Your day, in one flow.")).toBeVisible({ timeout: 30000 });
+  } catch (error) {
+    const bodyText = await page.locator("body").innerText().catch(function () { return ""; });
+    const compactBody = bodyText.replace(/\s+/g, " ").trim().slice(0, 2000);
+    throw new Error(
+      "DayFlow did not reach the authenticated app shell. " +
+      "Current URL: " + page.url() + ". " +
+      "Visible state: " + compactBody,
+      { cause: error }
+    );
+  }
 }
 
 async function ensureAuthenticated(browser, baseURL) {
