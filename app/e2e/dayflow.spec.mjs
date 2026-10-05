@@ -158,7 +158,7 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
       // Enter task edit mode before locating the editor.
       await page.getByRole("button", { name: title, exact: true }).click();
 
-      const editor = page.getByDisplayValue(title, { exact: true });
+      const editor = page.locator("input").filter({ hasValue: title }).first();
 
       await expect(editor).toBeVisible();
       await editor.fill(title + " edited");
