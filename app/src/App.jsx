@@ -81,7 +81,7 @@ function App() {
   const [cloudError, setCloudError] = useState("");
 
   const visibleBlocks = [...scheduleBlocks, ...plan.blocks.filter((block) => block.source !== "schedule")].sort((a, b) => a.time.localeCompare(b.time));
-  const completed = visibleBlocks.filter((block) => block.state === "completed").length;
+  const completed = plan.blocks.filter((block) => block.state === "completed").length;
   const progress = plan.blocks.length ? Math.round((completed / plan.blocks.length) * 100) : 0;
   const openReminders = reminders.filter((reminder) => !reminder.completed);
 
@@ -302,7 +302,7 @@ function App() {
                 {visibleBlocks.map((block) => (
                   <BlockRow key={block.id} block={block} onToggle={updateBlock} onDelete={deleteBlock} />
                 ))}
-                {!plan.blocks.length && <Empty title="Nothing planned" text="Add your first block from Calendar." />}
+                {!visibleBlocks.length && <Empty title="Nothing planned" text="Add your first block from Calendar." />}
               </div>
             </section>
 
