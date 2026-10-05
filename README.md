@@ -46,7 +46,8 @@ users/{uid}/dayflowResults/
 users/{uid}/dayflowMemories/
 users/{uid}/dayflowReminders/
 users/{uid}/dayflowImportedCalendarEvents/
-users/{uid}/dayflowCalendarImports/\naccessAudit/ — immutable admin access-change audit records
+users/{uid}/dayflowCalendarImports/
+accessAudit/ — immutable admin access-change audit records
 ```
 
 There is one database, but each domain retains a clear responsibility.
@@ -82,7 +83,9 @@ dayflow-palmid3v/
 7. No duplicated authoritative records.
 8. New productivity features become DayFlow modules.
 9. Keep the file structure small and responsibility-driven.
-10. External integrations are adapters, not sources of truth.\n11. Admin access changes are audited and feature permissions are enforced at the Firestore boundary.\n12. Vercel deployments should only run when the app directory changes.
+10. External integrations are adapters, not sources of truth.
+11. Admin access changes are audited and feature permissions are enforced at the Firestore boundary.
+12. Vercel deployments should only run when the app directory changes.
 
 ## Development
 
