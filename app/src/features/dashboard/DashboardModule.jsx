@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { BarChart3, CheckCircle2, Flame, Target, TrendingUp } from "lucide-react";
 import { getDayFlowState } from "../../lib/dayflowStore";
 
@@ -62,8 +61,8 @@ function Metric({ icon, label, value, detail }) {
 export default function DashboardModule() {
   const state = getDayFlowState();
   const keys = daysBack(7).reverse();
-  const summary = useMemo(() => summarize(state, keys), [state, keys.join(",")]);
-  const streak = useMemo(() => calculateStreak(state), [state]);
+  const summary = summarize(state, keys);
+  const streak = calculateStreak(state);
   const completionRate = summary.total ? Math.round((summary.completed / summary.total) * 100) : 0;
   const consistency = Math.round((summary.activeDays / 7) * 100);
   const adherence = summary.total ? Math.round(((summary.completed + summary.changed) / summary.total) * 100) : 0;

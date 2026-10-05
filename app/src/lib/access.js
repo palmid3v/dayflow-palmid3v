@@ -1,12 +1,16 @@
 import {
+  addDoc,
   collection,
   doc,
   getDoc,
   getDocs,
+  limit,
+  orderBy,
+  query,
   serverTimestamp,
   setDoc
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { auth, db } from "./firebase";
 
 export const APP_IDS = Object.freeze({ dayflow: "dayflow" });
 
@@ -18,7 +22,7 @@ export const DAYFLOW_FEATURES = Object.freeze({
   memory: "memory"
 });
 
-const DEFAULT_FEATURES = Object.freeze({
+export const DEFAULT_FEATURES = Object.freeze({
   tasks: false,
   schedule: false,
   calendar: false,
@@ -31,23 +35,32 @@ function requireDb() {
   return db;
 }
 
+function normalizeFeatures(storedFeatures, legacyDayFlowEnabled) {
+  return Object.fromEntries(
+    Object.keys(DEFAULT_FEATURES).map((key) => [
+      key,
+      storedFeatures ? storedFeatures[key] === true : legacyDayFlowEnabled
+    ])
+  );
+}
+
 function normalizeAccess(data, uid) {
   const legacyDayFlowEnabled = data?.apps?.dayflow === true;
-  const storedFeatures = data?.features;
-  const features = storedFeatures
-    ? Object.fromEntries(Object.keys(DEFAULT_FEATURES).map((key) => [key, storedFeatures[key] === true]))
-    : Object.fromEntries(Object.keys(DEFAULT_FEATURES).map((key) => [key, legacyDayFlowEnabled]));
-
   return {
     uid,
     email: String(data?.email ?? ""),
     role: data?.role === "admin" ? "admin" : "user",
     status: data?.status === "suspended" ? "suspended" : data?.status === "pending" ? "pending" : "active",
     apps: { dayflow: legacyDayFlowEnabled },
-    features,
+    features: normalizeFeatures(data?.features, legacyDayFlowEnabled),
     createdAt: data?.createdAt ?? null,
     updatedAt: data?.updatedAt ?? null
   };
+}
+
+function serializeAuditDate(value) {
+  if (value?.toDate instanceof Function) return value.toDate().toISOString();
+  return value ?? null;
 }
 
 export async function getAppAccess(uid) {
@@ -73,7 +86,17 @@ export async function ensureAppAccess(user) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
-    return normalizeAccess({ uid: user.uid, email: user.email, role: "user", status: "pending", apps: { dayflow: false }, features: DEFAULT_FEATURES }, user.uid);
+    return normalizeAccess(
+      {
+        uid: user.uid,
+        email: user.email,
+        role: "user",
+        status: "pending",
+        apps: { dayflow: false },
+        features: DEFAULT_FEATURES
+      },
+      user.uid
+    );
   }
 
   return normalizeAccess(snapshot.data(), user.uid);
@@ -94,16 +117,70 @@ export async function listAppAccess() {
 
 export async function updateAccess(uid, { status, features }) {
   if (!uid) throw new Error("A user ID is required.");
+
+  const before = await getAppAccess(uid);
+  const nextStatus = ["pending", "active", "suspended"].includes(status) ? status : "pending";
+  const nextFeatures = Object.fromEntries(
+    Object.keys(DEFAULT_FEATURES).map((key) => [key, features?.[key] === true])
+  );
+
   await setDoc(
     doc(requireDb(), "appAccess", uid),
     {
-      status: ["pending", "active", "suspended"].includes(status) ? status : "pending",
-      apps: { dayflow: status === "active" },
-      features: Object.fromEntries(Object.keys(DEFAULT_FEATURES).map((key) => [key, features?.[key] === true])),
+      status: nextStatus,
+      apps: { dayflow: nextStatus === "active" },
+      features: nextFeatures,
       updatedAt: serverTimestamp()
     },
     { merge: true }
   );
+
+  try {
+    await recordAccessAudit({
+      targetUid: uid,
+      action: "access.update",
+      before: {
+        status: before?.status ?? null,
+        features: before?.features ?? DEFAULT_FEATURES
+      },
+      after: {
+        status: nextStatus,
+        features: nextFeatures
+      }
+    });
+  } catch (error) {
+    console.warn("Unable to record access audit event:", error);
+  }
+}
+
+export async function recordAccessAudit({ targetUid, action, before, after }) {
+  const actorUid = auth?.currentUser?.uid;
+  if (!actorUid || !targetUid) return;
+
+  await addDoc(collection(requireDb(), "accessAudit"), {
+    actorUid,
+    targetUid,
+    action: String(action || "access.update"),
+    before: before ?? {},
+    after: after ?? {},
+    createdAt: serverTimestamp()
+  });
+}
+
+export async function listAccessAudit(maxItems = 8) {
+  const snapshot = await getDocs(
+    query(
+      collection(requireDb(), "accessAudit"),
+      orderBy("createdAt", "desc"),
+      limit(Math.min(Math.max(Number(maxItems) || 8, 1), 25))
+    )
+  );
+
+  return snapshot.docs.map((item) => ({
+    id: item.id,
+    ...item.data(),
+    createdAt: serializeAuditDate(item.data()?.createdAt)
+  }));
 }
 
 export function hasAppAccess(access, appId) {

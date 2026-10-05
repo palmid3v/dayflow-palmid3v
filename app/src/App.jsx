@@ -32,6 +32,7 @@ import { createReminder, isReminderCompletedForDate, loadCachedReminders, remind
 import MemoryModule from "./features/memory/MemoryModule";
 import DashboardModule from "./features/dashboard/DashboardModule";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
+import { getNotificationSupport, notifyDueReminders, requestReminderNotificationPermission, showReminderNotification } from "./features/reminders/notificationService";
 import { calendarEventsToDailyBlocks, loadImportedCalendarEvents } from "./features/calendar/calendarService";
 import { auth } from "./lib/firebase";
 import {
@@ -89,6 +90,7 @@ function App({ access, admin = false }) {
   const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));
   const [cloudReady, setCloudReady] = useState(false);
   const [cloudError, setCloudError] = useState("");
+  const [notificationPermission, setNotificationPermission] = useState(() => getNotificationSupport().permission);
 
   const visibleBlocks = [...scheduleBlocks, ...plan.blocks.filter((block) => block.source !== "schedule")].sort((a, b) => a.time.localeCompare(b.time));
   const completed = plan.blocks.filter((block) => block.state === "completed").length;
@@ -119,7 +121,10 @@ function App({ access, admin = false }) {
 
     let cancelled = false;
 
-    synchronizeDayFlow(uid, getDayFlowState())
+    synchronizeDayFlow(uid, getDayFlowState(), {
+      memory: canUse("memory"),
+      reminders: canUse("reminders")
+    })
       .then((state) => {
         if (cancelled) return;
         saveDayFlowState(state);
@@ -143,6 +148,40 @@ function App({ access, admin = false }) {
       cancelled = true;
     };
   }, [today]);
+
+  useEffect(() => {
+    if (!canUse("reminders")) return undefined;
+
+    const checkDueReminders = () => {
+      void notifyDueReminders(remindersForDate(reminders, dateKey()), new Date());
+    };
+
+    checkDueReminders();
+    const interval = window.setInterval(checkDueReminders, 15000);
+    return () => window.clearInterval(interval);
+  }, [reminders, admin, access]);
+
+  async function enableReminderNotifications() {
+    const permission = await requestReminderNotificationPermission();
+    setNotificationPermission(permission);
+    if (permission === "granted") {
+      void notifyDueReminders(remindersForDate(reminders, dateKey()), new Date());
+    }
+  }
+
+  async function testReminderNotification() {
+    const permission = getNotificationSupport().permission;
+    if (permission !== "granted") {
+      await enableReminderNotifications();
+      return;
+    }
+
+    await showReminderNotification({
+      id: "dayflow-test",
+      title: "DayFlow notifications are working",
+      time: new Date().toTimeString().slice(0, 5)
+    });
+  }
 
   useEffect(() => {
     const uid = auth?.currentUser?.uid;
@@ -356,9 +395,17 @@ function App({ access, admin = false }) {
               </form>
             </section>
 
-            {canUse("reminders") && <section className="mb-7">
-              <SectionHeader title="Reminders" action={`${openReminders.length} open`} />
-              <ReminderPanel reminders={todayReminders} onToggle={toggleReminder} onDelete={deleteReminder} onAdd={addReminder} />
+            {canUse("reminders") && <section id="dayflow-reminders" className="mb-7">
+              <SectionHeader title="Reminders" action={`${openReminders.length} open`} onClick={() => document.getElementById("dayflow-reminders")?.scrollIntoView({ behavior: "smooth", block: "start" })} />
+              <ReminderPanel
+                reminders={todayReminders}
+                onToggle={toggleReminder}
+                onDelete={deleteReminder}
+                onAdd={addReminder}
+                notificationPermission={notificationPermission}
+                onEnableNotifications={enableReminderNotifications}
+                onTestNotification={testReminderNotification}
+              />
             </section>}
 
             <section className="mb-7">
@@ -384,7 +431,7 @@ function App({ access, admin = false }) {
               </div>
             </section>
 
-            <MemoryCard note={note} saved={reviewSaved} summary={{completed, skipped, changed, progressTotal}} onChange={saveNote} onSave={saveReview} />
+            {canUse("memory") && <MemoryCard note={note} saved={reviewSaved} summary={{completed, skipped, changed, progressTotal}} onChange={saveNote} onSave={saveReview} />}
           </>
         )}
 
@@ -426,18 +473,6 @@ function Empty({ title, text }) {
       <p className="text-sm font-semibold">{title}</p>
       <p className="mt-1 text-xs text-[var(--text-muted)]">{text}</p>
     </div>
-  );
-}
-
-function Page({ title, icon, subtitle, children }) {
-  return (
-    <section>
-      <div className="mb-5 flex items-start gap-3">
-        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface-muted)]">{icon}</div>
-        <div><p className="label">DAYFLOW</p><h1 className="mt-1 text-2xl font-bold">{title}</h1><p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p></div>
-      </div>
-      {children}
-    </section>
   );
 }
 
@@ -492,7 +527,7 @@ function BlockRow({ block, onToggle, onDelete }) {
   );
 }
 
-function ReminderPanel({ reminders, onToggle, onDelete, onAdd }) {
+function ReminderPanel({ reminders, onToggle, onDelete, onAdd, notificationPermission, onEnableNotifications, onTestNotification }) {
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
       <div className="mb-3 grid gap-2">
@@ -513,6 +548,22 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd }) {
         <input name="time" type="time" defaultValue="18:00" aria-label="Reminder time" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-2 text-sm" />
         <select name="repeat" aria-label="Reminder repeat" className="min-h-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-2 text-xs"><option value="none">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select><button className="grid min-h-10 place-items-center rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-contrast)]" aria-label="Add reminder"><Plus size={17} /></button>
       </form>
+      <div className="mt-3 flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold">Notifications</p>
+          <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+            {notificationPermission === "granted" ? "Enabled for this browser." : notificationPermission === "denied" ? "Blocked by the browser. Change site permissions to enable them." : notificationPermission === "unsupported" ? "This browser does not support web notifications." : "Enable notifications to get a browser alert when a reminder is due while DayFlow is open."}
+          </p>
+        </div>
+        <div className="flex shrink-0 gap-2">
+          {notificationPermission !== "granted" && notificationPermission !== "unsupported" && (
+            <button type="button" onClick={onEnableNotifications} className="min-h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold">Enable</button>
+          )}
+          {notificationPermission === "granted" && (
+            <button type="button" onClick={onTestNotification} className="min-h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold">Test</button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -533,34 +584,6 @@ function MemoryCard({ note, saved, onChange, onSave, summary }) {
         </div>
       </div>
     </section>
-  );
-}
-
-function MemoryView({ plan, note, onChange, onSave }) {
-  const state = getDayFlowState();
-  const memories = Object.values(state.memories ?? {}).sort((a, b) => b.date.localeCompare(a.date));
-  const result = createDailyResult(plan, dateKey());
-  return (
-    <Page title="Memory" icon={<BookOpen />} subtitle="A record of what the day became.">
-      <div className="mb-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <p className="label">TODAY · {formatDate(dateKey()).toUpperCase()}</p>
-        <h2 className="mt-2 text-lg font-semibold">The day in progress</h2>
-        <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{result.completed} completed · {result.skipped} skipped · {result.changed} changed · {result.planned} still planned.</p>
-        <textarea value={note} onChange={(event) => onChange(event.target.value)} placeholder="Write what mattered today…" className="mt-4 min-h-36 w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] p-3 text-sm outline-none placeholder:text-[var(--text-faint)]" />
-        <button onClick={onSave} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--accent-contrast)]"><BookOpen size={15} /> Save memory</button>
-      </div>
-      <h3 className="mb-3 text-sm font-semibold">History</h3>
-      <div className="grid gap-2">
-        {memories.map((memory) => (
-          <article key={memory.date} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-            <p className="label">{formatDate(memory.date).toUpperCase()}</p>
-            <p className="mt-2 text-sm">{memory.summary}</p>
-            {memory.note && <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">{memory.note}</p>}
-          </article>
-        ))}
-        {!memories.length && <Empty title="No memories yet" text="Save today's review and DayFlow will start your history." />}
-      </div>
-    </Page>
   );
 }
 

@@ -31,8 +31,26 @@ service cloud.firestore {
     }
 
     function canUseDayFlowFeature(featureId) {
-      return isAdmin() || (canUseUnifiedDayFlow() &&
-        get(/databases/$(database)/documents/appAccess/$(request.auth.uid)).data.features[featureId] == true);
+      return isAdmin() || (
+        canUseUnifiedDayFlow() &&
+        get(/databases/$(database)/documents/appAccess/$(request.auth.uid)).data.features[featureId] == true
+      );
+    }
+
+    function validFeatureMap(features) {
+      return features.keys().hasOnly([
+          "tasks", "schedule", "calendar", "reminders", "memory"
+        ]) &&
+        features.tasks is bool &&
+        features.schedule is bool &&
+        features.calendar is bool &&
+        features.reminders is bool &&
+        features.memory is bool;
+    }
+
+    function validAppMap(apps) {
+      return apps.keys().hasOnly(["dayflow"]) &&
+        apps.dayflow is bool;
     }
 
     match /platformAdmins/{uid} {
@@ -52,18 +70,46 @@ service cloud.firestore {
         && request.resource.data.uid == uid
         && request.resource.data.role == "user"
         && request.resource.data.status == "pending"
-        && request.resource.data.apps.keys().hasOnly(["dayflow"])
+        && validAppMap(request.resource.data.apps)
         && request.resource.data.apps.dayflow == false
-        && request.resource.data.features.keys().hasOnly([
-          "tasks", "schedule", "calendar", "reminders", "memory"
-        ])
-        && request.resource.data.features.tasks == false
-        && request.resource.data.features.schedule == false
-        && request.resource.data.features.calendar == false
-        && request.resource.data.features.reminders == false
-        && request.resource.data.features.memory == false;
+        && validFeatureMap(request.resource.data.features);
 
-      allow update, delete: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "status", "apps", "features", "updatedAt"
+        ])
+        && (
+          request.resource.data.status == "pending" ||
+          request.resource.data.status == "active" ||
+          request.resource.data.status == "suspended"
+        )
+        && validAppMap(request.resource.data.apps)
+        && request.resource.data.apps.dayflow == (request.resource.data.status == "active")
+        && validFeatureMap(request.resource.data.features);
+
+      allow delete: if isAdmin();
+    }
+
+    match /accessAudit/{auditId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          "actorUid", "targetUid", "action", "before", "after", "createdAt"
+        ])
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.targetUid is string
+        && request.resource.data.action == "access.update"
+        && request.resource.data.before.keys().hasOnly(["status", "features"])
+        && request.resource.data.after.keys().hasOnly(["status", "features"])
+        && request.resource.data.before.features is map
+        && request.resource.data.after.features is map
+        && validFeatureMap(request.resource.data.before.features)
+        && validFeatureMap(request.resource.data.after.features);
+      allow update, delete: if false;
     }
 
     // Unified DayFlow domains. Legacy app access remains valid during migration.
@@ -101,11 +147,11 @@ service cloud.firestore {
     }
 
     match /users/{uid}/dayflowMemories/{dateKey} {
-      allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
+      allow read, write: if canUseDayFlowFeature("memory") && request.auth.uid == uid;
     }
 
     match /users/{uid}/dayflowReminders/{reminderId} {
-      allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
+      allow read, write: if canUseDayFlowFeature("reminders") && request.auth.uid == uid;
     }
 
     match /users/{uid}/dayflowImportedCalendarEvents/{eventId} {
