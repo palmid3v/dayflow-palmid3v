@@ -73,7 +73,7 @@ function getGreeting() {
   return "Good evening";
 }
 
-function App() {
+function App({ access, admin = false }) {
   const today = dateKey();
   const [selectedDate, setSelectedDate] = useState(today);
   const [quickBlockTitle, setQuickBlockTitle] = useState("");
@@ -83,6 +83,7 @@ function App() {
   const [reminders, setReminders] = useState(() => loadCachedReminders(auth?.currentUser?.uid).length ? loadCachedReminders(auth?.currentUser?.uid) : (getDayFlowState().reminders ?? []));
   const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid));
   const theme = "dark";
+  const canUse = (feature) => admin || access?.features?.[feature] === true;
   const [scheduleBlocks, setScheduleBlocks] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));
@@ -145,14 +146,14 @@ function App() {
 
   useEffect(() => {
     const uid = auth?.currentUser?.uid;
-    if (!uid) return undefined;
+    if (!uid || (!canUse("schedule") && !canUse("calendar"))) return undefined;
     let active = true;
 
     async function loadCalendarBlocks() {
       try {
         const [schedules, importedEvents] = await Promise.all([
-          loadSchedules(uid),
-          loadImportedCalendarEvents(uid)
+          canUse("schedule") ? loadSchedules(uid) : Promise.resolve([]),
+          canUse("calendar") ? loadImportedCalendarEvents(uid) : Promise.resolve([])
         ]);
         if (!active) return;
         const currentDate = new Date(`${selectedDate}T12:00:00`);
@@ -180,7 +181,7 @@ function App() {
 
   useEffect(() => {
     const uid = auth?.currentUser?.uid;
-    if (!uid) return undefined;
+    if (!uid || !canUse("tasks")) return undefined;
     let active = true;
     loadTasks(uid)
       .then((next) => active && setTasks(next))
@@ -355,10 +356,10 @@ function App() {
               </form>
             </section>
 
-            <section className="mb-7">
+            {canUse("reminders") && <section className="mb-7">
               <SectionHeader title="Reminders" action={`${openReminders.length} open`} />
               <ReminderPanel reminders={todayReminders} onToggle={toggleReminder} onDelete={deleteReminder} onAdd={addReminder} />
-            </section>
+            </section>}
 
             <section className="mb-7">
               <SectionHeader title="To-Do" action="Open tasks" onClick={() => setTab("tasks")} />
@@ -388,9 +389,9 @@ function App() {
         )}
 
         {tab === "dashboard" && <DashboardModule />}
-        {tab === "calendar" && <ScheduleModule />}
-        {tab === "tasks" && <TaskModule onTasksChange={setTasks} />}
-        {tab === "memory" && <MemoryModule />}
+        {tab === "calendar" && canUse("schedule") && <ScheduleModule canUseCalendar={canUse("calendar")} />}
+        {tab === "tasks" && canUse("tasks") && <TaskModule onTasksChange={setTasks} />}
+        {tab === "memory" && canUse("memory") && <MemoryModule />}
 
         {showSettings && (
           <SettingsDialog onClose={() => setShowSettings(false)} />
@@ -398,7 +399,7 @@ function App() {
       </div>
 
       <nav className="fixed bottom-3 left-1/2 z-10 grid w-[calc(100%-24px)] max-w-[720px] -translate-x-1/2 grid-cols-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
-        {navItems.map(([Icon, key, label]) => (
+        {navItems.filter(([, key]) => admin || key === "today" || key === "dashboard" || (key === "calendar" && canUse("schedule")) || (key === "tasks" && canUse("tasks")) || (key === "memory" && canUse("memory"))).map(([Icon, key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
