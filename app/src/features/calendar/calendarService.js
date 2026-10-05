@@ -34,13 +34,6 @@ function importRef(uid) {
   return doc(requireDb(), "users", uid, IMPORT_COLLECTION, IMPORT_DOC);
 }
 
-function safeId(value) {
-  return String(value)
-    .replace(/[^a-zA-Z0-9_-]/g, "_")
-    .slice(0, 120);
-}
-
-
 
 export async function loadImportedCalendarEvents(uid) {
   const snapshot = await getDocs(eventsRef(uid));
