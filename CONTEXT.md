@@ -4,67 +4,85 @@
 
 - Product: DayFlow
 - Ecosystem: PALMI-D3V productivity suite
-- Layer: Daily orchestration
+- Role: Single productivity application and center of operations
 - Developer: PALMI-D3V
 
-## Purpose
+## Product architecture
 
-DayFlow is responsible for daily plans, execution tracking, reminders, daily review, and memory. It references records owned by To-Do and Timetable instead of duplicating them.
+DayFlow is the only active PALMI-D3V productivity application.
 
-## Current state
+Internal domains:
+- Tasks
+- Schedule
+- Daily Flow
+- Reminders
+- Review
+- Memory
 
-- Phase 1 product: complete
-- Phase 2 UX/UI: complete
-- Phase 3 architecture/data: complete
-- Shared Firebase identity: implemented
-- Email verification: implemented
-- App-level access gate: implemented
-- External integrations: next phase
+To-Do and Timetable repositories remain migration sources during the transition. They are not active application dependencies.
 
-## Data
+## Data ownership
 
-~~~text
+One Firebase project, one authenticated user, one Firestore database.
+
+```text
+users/{uid}/tasks/{taskId}
+users/{uid}/timetableTemplates/{templateId}
+users/{uid}/timetableOccurrences/{occurrenceId}
+users/{uid}/timetableSettings/{document}
+users/{uid}/timetableExternalLinks/{document}
+
 users/{uid}/dayflow/plans/{dateKey}
 users/{uid}/dayflow/results/{dateKey}
 users/{uid}/dayflow/memories/{dateKey}
-users/{uid}/dayflow/reminders/{id}
-~~~
+users/{uid}/dayflow/reminders/{reminderId}
+```
 
-## Current modules
+Tasks and recurring schedules are now consumed directly by DayFlow. No popup, postMessage bridge, duplicate authoritative store, or second frontend is required.
 
-- src/App.jsx
-- src/lib/dayflowStore.js
-- src/lib/dayflowCloudStore.js
-- src/lib/todoAdapter.js
-- src/domain/models.js
-- src/lib/firebase.js
-- src/lib/access.js
+## Current state
 
-## Persistence
+- Unified DayFlow frontend: implemented
+- Native Tasks domain: implemented
+- Native Schedule domain: implemented
+- Shared Firestore access: implemented
+- Legacy To-Do bridge: removed
+- Legacy repositories: preserved externally for migration/rollback
+- Shared authentication: implemented
+- Email verification: implemented
+- App access control: implemented
+- PWA foundation: implemented
 
-Cloud Firestore is the authenticated source of truth. Local DayFlow storage remains a recovery/cache layer when synchronization fails.
+## Structure rule
 
-## Ecosystem contracts
+Prefer the smallest useful structure.
 
-- To-Do owns tasks.
-- Timetable owns recurring schedules and occurrences.
-- DayFlow orchestrates the user's day.
-- Weekly summary data is consumed by the shared backend in the Timetable repository.
+```text
+app/src/
+├── components/       # shared app/auth UI
+├── features/
+│   ├── tasks/        # task domain
+│   └── schedule/     # recurring schedule domain
+├── domain/           # DayFlow daily models
+└── lib/              # shared Firebase + DayFlow persistence
+```
+
+Do not create another application for a new productivity capability when it can be an internal DayFlow feature.
 
 ## Development
 
-~~~bash
+```bash
 cd app
 npm install
 npm run dev
 npm run lint
 npm run build
-~~~
+```
 
-## Documentation
+## Migration rule
 
-See app/docs/ for phase, architecture, access, integration, roadmap, task, and release documentation.
+Existing To-Do and Timetable repositories are migration sources only. Do not delete them as part of this codebase change. The owner will remove/archive them after the unified DayFlow application has been validated.
 
-## Rule for future work
+## Future integrations
 
-New features must preserve data ownership boundaries and should not create duplicated authoritative task or timetable records.
+Google Calendar, email, notifications, and other external services belong behind DayFlow integration adapters. External providers are never the source of truth for PALMI-D3V productivity data.
