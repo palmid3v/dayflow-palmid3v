@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Pencil, Plus, Trash2, X } from "lucide-react";
 import { auth } from "../../lib/firebase";
 import { loadSchedules, removeSchedule, saveSchedule } from "./scheduleService";
-import GoogleCalendarModule from "../calendar/GoogleCalendarModule";
+import CalendarImportModule from "../calendar/CalendarImportModule";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -96,7 +96,7 @@ export default function ScheduleModule() {
           </div>
         ))}
       </div>
-      <GoogleCalendarModule />
+      <CalendarImportModule />
     </section>
   );
 }
