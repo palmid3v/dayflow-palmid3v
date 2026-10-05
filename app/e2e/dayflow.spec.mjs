@@ -165,17 +165,21 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
 
       await page.getByRole("button", { name: "Save task" }).click();
 
-      await expect(
-        page.getByText(title + " edited", { exact: true })
-      ).toBeVisible();
-
-      await page.getByRole("button", { name: "Complete task" }).click();
+      const taskRow = page
+        .getByText(title + " edited", { exact: true })
+        .locator("..");
 
       await expect(
-        page.getByRole("button", { name: "Reopen task" })
+        taskRow.getByText(title + " edited", { exact: true })
       ).toBeVisible();
 
-      await page.getByRole("button", { name: "Delete task" }).click();
+      await taskRow.getByRole("button", { name: "Complete task" }).click();
+
+      await expect(
+        taskRow.getByRole("button", { name: "Reopen task" })
+      ).toBeVisible();
+
+      await taskRow.getByRole("button", { name: "Delete task" }).click();
 
       await expect(
         page.getByText(title + " edited", { exact: true })
