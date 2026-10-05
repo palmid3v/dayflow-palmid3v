@@ -280,7 +280,22 @@ $generatedManifest = Join-Path $AppPath "dist/manifest.webmanifest"
 Test-RequiredFile "PWA" $generatedManifest | Out-Null
 if (Test-Path $generatedManifest) {
     Test-TextContains "PWA" $generatedManifest '"display"\s*:\s*"standalone"' "Generated standalone manifest" | Out-Null
-    Test-TextContains "PWA" $generatedManifest '"pwa-192.svg"' "Generated PWA icon manifest" | Out-Null
+
+    try {
+        $manifest = Get-Content -Raw -Path $generatedManifest | ConvertFrom-Json
+        $iconSources = @($manifest.icons | ForEach-Object { [string]$_.src })
+        $has192 = $iconSources -contains "/pwa-192.svg"
+        $has512 = $iconSources -contains "/pwa-512.svg"
+
+        if ($has192 -and $has512) {
+            Add-Result "PWA" "Generated PWA icon manifest" "PASS" "Both production icon entries are present"
+        } else {
+            Add-Result "PWA" "Generated PWA icon manifest" "FAIL" "Expected /pwa-192.svg and /pwa-512.svg entries"
+        }
+    }
+    catch {
+        Add-Result "PWA" "Generated PWA icon manifest" "FAIL" "Generated manifest is not valid JSON"
+    }
 }
 
 Write-Section "7. FIREBASE CLI ACCESS"
