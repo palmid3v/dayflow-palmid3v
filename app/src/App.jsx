@@ -10,7 +10,6 @@ import {
   Moon,
   Plus,
   Settings,
-  Sun,
   Target,
   Trash2
 } from "lucide-react";
@@ -27,6 +26,7 @@ import { createDailyMemory, createDailyResult } from "./domain/models";
 import TaskModule from "./features/tasks/TaskModule";
 import ScheduleModule from "./features/schedule/ScheduleModule";
 import { loadCachedTasks, loadTasks } from "./features/tasks/taskService";
+import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
 import { auth } from "./lib/firebase";
 import {
   saveDailyPlanCloud,
@@ -73,12 +73,14 @@ function App() {
   const [note, setNote] = useState(() => getDayFlowState().notes?.[today] ?? "");
   const [reminders, setReminders] = useState(() => getDayFlowState().reminders ?? []);
   const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid));
-  const [theme, setTheme] = useState(() => getDayFlowState().settings?.theme ?? "system");
+  const [theme] = useState("dark");
+  const [scheduleBlocks, setScheduleBlocks] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));
   const [cloudReady, setCloudReady] = useState(false);
   const [cloudError, setCloudError] = useState("");
 
+  const visibleBlocks = [...scheduleBlocks, ...plan.blocks.filter((block) => block.source !== "schedule")].sort((a, b) => a.time.localeCompare(b.time));
   const completed = plan.blocks.filter((block) => block.state === "completed").length;
   const progress = plan.blocks.length ? Math.round((completed / plan.blocks.length) * 100) : 0;
   const openReminders = reminders.filter((reminder) => !reminder.completed);
@@ -120,6 +122,18 @@ function App() {
     };
   }, [today]);
 
+
+  useEffect(() => {
+    const uid = auth?.currentUser?.uid;
+    if (!uid) return undefined;
+    let active = true;
+    loadSchedules(uid)
+      .then((schedules) => {
+        if (active) setScheduleBlocks(scheduleToDailyBlocks(schedules, today));
+      })
+      .catch((error) => console.error("Unable to load DayFlow schedule:", error));
+    return () => { active = false; };
+  }, [today]);
 
   useEffect(() => {
     const uid = auth?.currentUser?.uid;
@@ -229,11 +243,6 @@ function App() {
     setReviewSaved(true);
   }
 
-  function changeTheme(value) {
-    setTheme(value);
-    saveDayFlowState({ settings: { theme: value } });
-  }
-
   if (!cloudReady) {
     return (
       <main className="grid min-h-screen place-items-center bg-[var(--bg)] px-4 text-[var(--text)]">
@@ -277,7 +286,7 @@ function App() {
                   <p className="label">TODAY'S FLOW</p>
                   <strong className="mt-1 block text-5xl tracking-tighter">{progress}%</strong>
                   <p className="mt-1 text-sm text-[var(--text-muted)]">
-                    {completed} of {plan.blocks.length} planned blocks completed
+                    {completed} of {visibleBlocks.length} planned blocks completed
                   </p>
                 </div>
                 <ProgressRing value={progress} />
@@ -290,10 +299,10 @@ function App() {
             <section className="mb-7">
               <SectionHeader title="Today" action="View calendar" onClick={() => setTab("calendar")} />
               <div className="relative ml-9 border-l border-[var(--border)]">
-                {plan.blocks.map((block) => (
+                {visibleBlocks.map((block) => (
                   <BlockRow key={block.id} block={block} onToggle={updateBlock} onDelete={deleteBlock} />
                 ))}
-                {!plan.blocks.length && <Empty title="Nothing planned" text="Add your first block from Calendar." />}
+                {!visibleBlocks.length && <Empty title="Nothing planned" text="Add your first block from Calendar." />}
               </div>
             </section>
 
@@ -334,7 +343,7 @@ function App() {
         {tab === "memory" && <MemoryView plan={plan} note={note} onChange={saveNote} onSave={saveReview} />}
 
         {showSettings && (
-          <SettingsDialog theme={theme} onThemeChange={changeTheme} onClose={() => setShowSettings(false)} />
+          <SettingsDialog onClose={() => setShowSettings(false)} />
         )}
       </div>
 
@@ -356,9 +365,7 @@ function App() {
 }
 
 function applyTheme(theme) {
-  const resolved = theme === "system"
-    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-    : theme;
+  const resolved = "dark";
   document.documentElement.dataset.theme = resolved;
 }
 
@@ -477,54 +484,21 @@ function MemoryView({ plan, note, onChange, onSave }) {
   );
 }
 
-function SettingsDialog({ theme, onThemeChange, onClose }) {
+function SettingsDialog({ onClose }) {
   return (
     <div className="fixed inset-0 z-20 grid place-items-end bg-black/50 p-3 sm:place-items-center" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-2xl">
         <div className="mb-5 flex items-center justify-between">
-          <div>
-            <p className="label">DAYFLOW</p>
-            <h2 id="settings-title" className="mt-1 text-xl font-bold">Settings</h2>
-          </div>
+          <div><p className="label">DAYFLOW</p><h2 id="settings-title" className="mt-1 text-xl font-bold">Settings</h2></div>
           <button onClick={onClose} className="grid size-10 place-items-center rounded-xl bg-[var(--surface-muted)]" aria-label="Close settings">×</button>
         </div>
         <p className="mb-3 text-sm font-semibold">Appearance</p>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            ["system", Settings, "System"],
-            ["light", Sun, "Light"],
-            ["dark", Moon, "Dark"]
-          ].map(([value, Icon, label]) => (
-            <button key={value} onClick={() => onThemeChange(value)} className={`grid min-h-20 place-items-center gap-2 rounded-2xl border p-3 text-xs ${theme === value ? "border-[var(--text)] bg-[var(--surface-muted)]" : "border-[var(--border)]"}`} aria-pressed={theme === value}>
-              <Icon size={19} />{label}
-            </button>
-          ))}
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
+          <div className="flex items-center gap-3"><Moon size={19} /><div><p className="text-sm font-semibold">Dark theme</p><p className="text-xs text-[var(--text-muted)]">DayFlow uses one consistent dark theme.</p></div></div>
         </div>
-        <p className="mt-5 text-xs leading-5 text-[var(--text-muted)]">Theme preference is stored locally and applies across DayFlow without changing task ownership.</p>
         <button onClick={onClose} className="mt-5 min-h-11 w-full rounded-xl bg-[var(--accent)] text-sm font-semibold text-[var(--accent-contrast)]">Done</button>
       </div>
     </div>
   );
 }
 
-function Page({ title, icon, subtitle, children }) {
-  return (
-    <main className="pt-4">
-      <div className="mb-6 flex items-center gap-3">
-        <div className="grid size-11 place-items-center rounded-2xl bg-[var(--surface-muted)]">{icon}</div>
-        <div><h2 className="text-2xl font-bold tracking-tight">{title}</h2><p className="mt-1 text-xs text-[var(--text-muted)]">{subtitle}</p></div>
-      </div>
-      {children}
-    </main>
-  );
-}
-
-function Empty({ title, text }) {
-  return (
-    <div className="grid min-h-40 place-items-center rounded-2xl border border-dashed border-[var(--border)] p-8 text-center">
-      <div><Plus className="mx-auto mb-3 text-[var(--text-faint)]" size={22} /><h3 className="font-semibold">{title}</h3><p className="mt-1 max-w-xs text-xs leading-5 text-[var(--text-muted)]">{text}</p></div>
-    </div>
-  );
-}
-
-export default App;

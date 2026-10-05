@@ -8,16 +8,22 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
-export const APP_IDS = Object.freeze({
-  timetable: "timetable",
-  todo: "todo",
-  dayflow: "dayflow"
+export const APP_IDS = Object.freeze({ dayflow: "dayflow" });
+
+export const DAYFLOW_FEATURES = Object.freeze({
+  tasks: "tasks",
+  schedule: "schedule",
+  calendar: "calendar",
+  reminders: "reminders",
+  memory: "memory"
 });
 
-const DEFAULT_APPS = Object.freeze({
-  timetable: false,
-  todo: false,
-  dayflow: false
+const DEFAULT_FEATURES = Object.freeze({
+  tasks: false,
+  schedule: false,
+  calendar: false,
+  reminders: false,
+  memory: false
 });
 
 function requireDb() {
@@ -26,15 +32,19 @@ function requireDb() {
 }
 
 function normalizeAccess(data, uid) {
+  const legacyDayFlowEnabled = data?.apps?.dayflow === true;
+  const storedFeatures = data?.features;
+  const features = storedFeatures
+    ? Object.fromEntries(Object.keys(DEFAULT_FEATURES).map((key) => [key, storedFeatures[key] === true]))
+    : Object.fromEntries(Object.keys(DEFAULT_FEATURES).map((key) => [key, legacyDayFlowEnabled]));
+
   return {
     uid,
     email: String(data?.email ?? ""),
     role: data?.role === "admin" ? "admin" : "user",
-    apps: {
-      timetable: data?.apps?.timetable === true,
-      todo: data?.apps?.todo === true,
-      dayflow: data?.apps?.dayflow === true
-    }
+    status: data?.status === "suspended" ? "suspended" : data?.status === "pending" ? "pending" : "active",
+    apps: { dayflow: legacyDayFlowEnabled },
+    features
   };
 }
 
@@ -55,14 +65,13 @@ export async function ensureAppAccess(user) {
       uid: user.uid,
       email: user.email ?? "",
       role: "user",
-      apps: { ...DEFAULT_APPS },
+      status: "pending",
+      apps: { dayflow: false },
+      features: { ...DEFAULT_FEATURES },
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
-    return normalizeAccess(
-      { uid: user.uid, email: user.email, role: "user", apps: DEFAULT_APPS },
-      user.uid
-    );
+    return normalizeAccess({ uid: user.uid, email: user.email, role: "user", status: "pending", apps: { dayflow: false }, features: DEFAULT_FEATURES }, user.uid);
   }
 
   return normalizeAccess(snapshot.data(), user.uid);
@@ -81,16 +90,14 @@ export async function listAppAccess() {
     .sort((a, b) => a.email.localeCompare(b.email));
 }
 
-export async function updateAppAccess(uid, apps) {
+export async function updateAccess(uid, { status, features }) {
   if (!uid) throw new Error("A user ID is required.");
   await setDoc(
     doc(requireDb(), "appAccess", uid),
     {
-      apps: {
-        timetable: apps.timetable === true,
-        todo: apps.todo === true,
-        dayflow: apps.dayflow === true
-      },
+      status: ["pending", "active", "suspended"].includes(status) ? status : "pending",
+      apps: { dayflow: status === "active" },
+      features: Object.fromEntries(Object.keys(DEFAULT_FEATURES).map((key) => [key, features?.[key] === true])),
       updatedAt: serverTimestamp()
     },
     { merge: true }
@@ -98,5 +105,11 @@ export async function updateAppAccess(uid, apps) {
 }
 
 export function hasAppAccess(access, appId) {
-  return Boolean(access?.apps?.[appId]);
+  return appId === APP_IDS.dayflow &&
+    access?.status === "active" &&
+    access?.apps?.dayflow === true;
+}
+
+export function hasFeatureAccess(access, featureId) {
+  return hasAppAccess(access, APP_IDS.dayflow) && access?.features?.[featureId] === true;
 }

@@ -8,10 +8,10 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
-const PLANS = "plans";
-const RESULTS = "results";
-const MEMORIES = "memories";
-const REMINDERS = "reminders";
+const PLANS = "dayflowPlans";
+const RESULTS = "dayflowResults";
+const MEMORIES = "dayflowMemories";
+const REMINDERS = "dayflowReminders";
 const REMINDER_DOC = "current";
 
 function requireDb() {
@@ -20,11 +20,11 @@ function requireDb() {
 }
 
 function dayflowCollection(uid, name) {
-  return collection(requireDb(), "users", uid, "dayflow", name);
+  return collection(requireDb(), "users", uid, name);
 }
 
 function dayflowDoc(uid, name, id) {
-  return doc(requireDb(), "users", uid, "dayflow", name, id);
+  return doc(requireDb(), "users", uid, name, id);
 }
 
 function toPlain(data) {

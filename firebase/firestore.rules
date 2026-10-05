@@ -30,6 +30,11 @@ service cloud.firestore {
       return canUseApp("dayflow");
     }
 
+    function canUseDayFlowFeature(featureId) {
+      return canUseUnifiedDayFlow() &&
+        get(/databases/$(database)/documents/appAccess/$(request.auth.uid)).data.features[featureId] == true;
+    }
+
     match /platformAdmins/{uid} {
       allow get: if signedIn() && request.auth.uid == uid;
       allow write: if false;
@@ -58,12 +63,12 @@ service cloud.firestore {
 
     // Unified DayFlow domains. Legacy app access remains valid during migration.
     match /users/{uid}/tasks/{taskId} {
-      allow read, write: if (canUseApp("todo") || canUseUnifiedDayFlow()) &&
+      allow read, write: if (canUseApp("todo") || canUseDayFlowFeature("tasks")) &&
         request.auth.uid == uid;
     }
 
     match /users/{uid}/timetableTemplates/{templateId} {
-      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
+      allow read, write: if (canUseApp("timetable") || canUseDayFlowFeature("schedule")) &&
         request.auth.uid == uid;
     }
 
@@ -82,19 +87,19 @@ service cloud.firestore {
         request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/plans/{dateKey} {
+    match /users/{uid}/dayflowPlans/{dateKey} {
       allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/results/{dateKey} {
+    match /users/{uid}/dayflowResults/{dateKey} {
       allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/memories/{dateKey} {
+    match /users/{uid}/dayflowMemories/{dateKey} {
       allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/reminders/{reminderId} {
+    match /users/{uid}/dayflowReminders/{reminderId} {
       allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
     }
 
