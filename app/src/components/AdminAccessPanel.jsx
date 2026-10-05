@@ -4,7 +4,7 @@ import { listAppAccess, updateAccess } from "../lib/access";
 const FEATURES = [
   ["tasks", "Tasks"],
   ["schedule", "Schedule"],
-  ["calendar", "Google Calendar"],
+  ["calendar", "Imported Calendar"],
   ["reminders", "Reminders"],
   ["memory", "Memory"]
 ];

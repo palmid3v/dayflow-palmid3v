@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Pencil, Plus, Trash2, X } from "lucide-react";
 import { auth } from "../../lib/firebase";
 import { loadSchedules, removeSchedule, saveSchedule } from "./scheduleService";
-import GoogleCalendarModule from "../calendar/GoogleCalendarModule";
+import CalendarImportModule from "../calendar/CalendarImportModule";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -37,6 +37,7 @@ export default function ScheduleModule() {
       await saveSchedule(uid, item);
       const next = editing ? items.map((current) => current.id === editing ? item : current) : [...items, item];
       setItems(next);
+      window.dispatchEvent(new CustomEvent("dayflow:schedule-change"));
       setDraft({ subject: "", weekday: new Date().getDay(), start: "09:00", end: "10:00" });
       setEditing(null);
       setError("");
@@ -49,6 +50,7 @@ export default function ScheduleModule() {
     try {
       await removeSchedule(uid, id);
       setItems(items.filter((item) => item.id !== id));
+      window.dispatchEvent(new CustomEvent("dayflow:schedule-change"));
     } catch {
       setError("Unable to remove this schedule block.");
     }
@@ -96,7 +98,7 @@ export default function ScheduleModule() {
           </div>
         ))}
       </div>
-      <GoogleCalendarModule />
+      <CalendarImportModule />
     </section>
   );
 }

@@ -27,6 +27,7 @@ import TaskModule from "./features/tasks/TaskModule";
 import ScheduleModule from "./features/schedule/ScheduleModule";
 import { loadCachedTasks, loadTasks } from "./features/tasks/taskService";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
+import { calendarEventsToDailyBlocks, loadImportedCalendarEvents } from "./features/calendar/calendarService";
 import { auth } from "./lib/firebase";
 import {
   saveDailyPlanCloud,
@@ -82,7 +83,8 @@ function App() {
 
   const visibleBlocks = [...scheduleBlocks, ...plan.blocks.filter((block) => block.source !== "schedule")].sort((a, b) => a.time.localeCompare(b.time));
   const completed = plan.blocks.filter((block) => block.state === "completed").length;
-  const progress = plan.blocks.length ? Math.round((completed / plan.blocks.length) * 100) : 0;
+  const progressTotal = plan.blocks.length;
+  const progress = progressTotal ? Math.round((completed / progressTotal) * 100) : 0;
   const openReminders = reminders.filter((reminder) => !reminder.completed);
 
   useEffect(() => {
@@ -127,12 +129,35 @@ function App() {
     const uid = auth?.currentUser?.uid;
     if (!uid) return undefined;
     let active = true;
-    loadSchedules(uid)
-      .then((schedules) => {
-        if (active) setScheduleBlocks(scheduleToDailyBlocks(schedules, today));
-      })
-      .catch((error) => console.error("Unable to load DayFlow schedule:", error));
-    return () => { active = false; };
+
+    async function loadCalendarBlocks() {
+      try {
+        const [schedules, importedEvents] = await Promise.all([
+          loadSchedules(uid),
+          loadImportedCalendarEvents(uid)
+        ]);
+        if (!active) return;
+        const currentDate = new Date(`${today}T12:00:00`);
+        setScheduleBlocks([
+          ...scheduleToDailyBlocks(schedules, currentDate),
+          ...calendarEventsToDailyBlocks(importedEvents, currentDate)
+        ]);
+      } catch (error) {
+        console.error("Unable to load DayFlow calendar:", error);
+      }
+    }
+
+    loadCalendarBlocks();
+
+    const refresh = () => loadCalendarBlocks();
+    window.addEventListener("dayflow:calendar-change", refresh);
+    window.addEventListener("dayflow:schedule-change", refresh);
+
+    return () => {
+      active = false;
+      window.removeEventListener("dayflow:calendar-change", refresh);
+      window.removeEventListener("dayflow:schedule-change", refresh);
+    };
   }, [today]);
 
   useEffect(() => {
@@ -269,7 +294,7 @@ function App() {
                   <p className="label">TODAY'S FLOW</p>
                   <strong className="mt-1 block text-5xl tracking-tighter">{progress}%</strong>
                   <p className="mt-1 text-sm text-[var(--text-muted)]">
-                    {completed} of {visibleBlocks.length} planned blocks completed
+                    {completed} of {progressTotal} planned blocks completed
                   </p>
                 </div>
                 <ProgressRing value={progress} />
@@ -394,24 +419,28 @@ function SectionHeader({ title, action, onClick }) {
 
 function BlockRow({ block, onToggle, onDelete }) {
   const nextState = block.state === "completed" ? "planned" : "completed";
+  const external = block.source === "schedule" || block.source === "imported-calendar";
   return (
     <div className="group relative flex w-full gap-3 pb-3 pl-5 text-left">
       <time className="absolute -left-10 top-3 text-[10px] text-[var(--text-faint)]">{block.time}</time>
       <button
-        onClick={() => onToggle(block.id, nextState)}
-        className="flex min-h-[62px] flex-1 items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 text-left transition hover:border-[var(--text-muted)]"
-        aria-label={`${block.title}, currently ${block.state}. Change to ${nextState}`}
+        onClick={() => external ? undefined : onToggle(block.id, nextState)}
+        className={`flex min-h-[62px] flex-1 items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 text-left transition ${external ? "cursor-default" : "hover:border-[var(--text-muted)]"}`}
+        aria-label={external ? `${block.title}, imported calendar event` : `${block.title}, currently ${block.state}. Change to ${nextState}`}
+        type="button"
       >
         <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--surface-muted)] text-lg">{block.emoji}</span>
         <span className="min-w-0 flex-1">
           <b className={`block text-sm ${block.state === "completed" ? "text-[var(--text-muted)] line-through" : ""}`}>{block.title}</b>
-          <small className="mt-1 block text-[11px] text-[var(--text-muted)]">{block.meta} · {block.state}</small>
+          <small className="mt-1 block text-[11px] text-[var(--text-muted)]">{block.meta}{external ? " · read-only" : ` · ${block.state}`}</small>
         </span>
-        {block.state === "completed" ? <CheckCircle2 size={19} /> : <Circle size={19} className="text-[var(--text-muted)]" />}
+        {external ? <CalendarDays size={19} className="text-[var(--text-muted)]" /> : block.state === "completed" ? <CheckCircle2 size={19} /> : <Circle size={19} className="text-[var(--text-muted)]" />}
       </button>
-      <button onClick={() => onDelete(block.id)} className="grid size-9 shrink-0 place-items-center self-center rounded-xl text-[var(--text-faint)] hover:bg-[var(--surface-muted)]" aria-label={`Delete ${block.title}`}>
-        <Trash2 size={15} />
-      </button>
+      {!external && (
+        <button onClick={() => onDelete(block.id)} className="grid size-9 shrink-0 place-items-center self-center rounded-xl text-[var(--text-faint)] hover:bg-[var(--surface-muted)]" aria-label={`Delete ${block.title}`} type="button">
+          <Trash2 size={15} />
+        </button>
+      )}
     </div>
   );
 }
