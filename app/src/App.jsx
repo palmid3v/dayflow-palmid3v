@@ -98,7 +98,6 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    if (selectedDate === today) return undefined;
     setPlan(getDailyPlan(selectedDate));
     setNote(getDayFlowState().notes?.[selectedDate] ?? "");
     setReviewSaved(Boolean(getDailyResult(selectedDate)));
