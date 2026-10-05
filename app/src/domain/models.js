@@ -1,13 +1,15 @@
 export const domainModels = {
   task: "A completable unit owned by the Tasks domain.",
   event: "A scheduled calendar block owned by the Schedule domain.",
-  reminder: "A prompt associated with a future moment or condition.",
+  reminder: "A prompt associated with a future moment or condition, with optional recurrence and occurrence state.",
   dailyPlan: "The planned composition of tasks, events, and reminders for a day.",
   dailyResult: "The recorded outcome of a day: completed, skipped, changed, and actual activity.",
   dailyMemory: "A human-readable record derived from plan, result, and notes."
 };
 
 export const executionStates = ["planned", "completed", "skipped", "changed"];
+export const reminderStates = ["open", "completed", "snoozed"];
+export const reminderRepeats = ["none", "daily", "weekly", "monthly"];
 
 export function createDailyResult(plan, dateKey) {
   const blocks = plan?.blocks ?? [];
