@@ -40,11 +40,23 @@ It combines:
 9. PWA generation and installability.
 10. Responsive behavior.
 11. Production deployment health.
+12. Rollback readiness and release evidence.
 
 ## QA data
 
-Automated E2E data uses `QA ` prefixes and should be removed or neutralized before the run finishes.
+Automated E2E data uses QA prefixes and should be removed or neutralized before the run finishes.
 
 ## Release principle
 
-Do not call DayFlow production-ready because local tests pass. Production readiness requires source validation, deployment validation, Firebase rules alignment, and production E2E evidence.
+Do not call DayFlow production-ready because local tests pass. Production readiness requires source validation, deployment validation, Firebase rules alignment, production E2E evidence, manual smoke testing, and rollback readiness.
+
+## Phase 16 release evidence
+
+A production release should retain:
+
+- CVP automated validation report.
+- GitHub CI result.
+- Vercel production deployment result.
+- Firebase rules deployment confirmation.
+- Manual smoke-test result.
+- Approved release commit SHA.
