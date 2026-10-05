@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { listAppAccess, updateAppAccess } from "../lib/access";
+import { listAppAccess, updateAccess } from "../lib/access";
 
-const APPS = [
-  ["timetable", "TimeTable"],
-  ["todo", "To-Do"],
-  ["dayflow", "DayFlow"]
+const FEATURES = [
+  ["tasks", "Tasks"],
+  ["schedule", "Schedule"],
+  ["calendar", "Google Calendar"],
+  ["reminders", "Reminders"],
+  ["memory", "Memory"]
 ];
+
+const STATUS = ["pending", "active", "suspended"];
 
 export default function AdminAccessPanel() {
   const [open, setOpen] = useState(false);
@@ -26,14 +30,12 @@ export default function AdminAccessPanel() {
     if (open) load();
   }, [open]);
 
-  async function toggle(account, appId) {
-    const apps = { ...account.apps, [appId]: !account.apps[appId] };
-    setAccounts((current) =>
-      current.map((item) => (item.uid === account.uid ? { ...item, apps } : item))
-    );
+  async function save(account, patch) {
+    const next = { ...account, ...patch, features: { ...account.features, ...(patch.features ?? {}) } };
+    setAccounts((current) => current.map((item) => item.uid === account.uid ? next : item));
     setSavingUid(account.uid);
     try {
-      await updateAppAccess(account.uid, apps);
+      await updateAccess(account.uid, { status: next.status, features: next.features });
       setError("");
     } catch (e) {
       setError(e?.message || "Unable to update account access.");
@@ -44,67 +46,56 @@ export default function AdminAccessPanel() {
   }
 
   return (
-    <section className="border-b border-indigo-950 bg-slate-900 text-white">
+    <section className="border-b border-[var(--border)] bg-[var(--surface)] text-[var(--text)]">
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          className="rounded-lg border border-indigo-400/30 px-3 py-2 text-xs font-bold text-indigo-300"
-        >
-          {open ? "Hide app access manager" : "Open app access manager"}
+        <button type="button" onClick={() => setOpen((value) => !value)} className="rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 text-xs font-bold">
+          {open ? "Hide access manager" : "Open access manager"}
         </button>
 
         {open && (
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-800">
-            <table className="w-full min-w-[620px] text-left text-sm">
-              <thead className="bg-slate-950 text-xs uppercase tracking-wider text-slate-500">
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-[var(--border)]">
+            <table className="w-full min-w-[980px] text-left text-sm">
+              <thead className="bg-[var(--surface-muted)] text-[10px] uppercase tracking-wider text-[var(--text-faint)]">
                 <tr>
                   <th className="px-4 py-3">Account</th>
-                  {APPS.map(([, label]) => (
-                    <th key={label} className="px-4 py-3">{label}</th>
-                  ))}
+                  <th className="px-4 py-3">Status</th>
+                  {FEATURES.map(([, label]) => <th key={label} className="px-4 py-3">{label}</th>)}
                 </tr>
               </thead>
               <tbody>
                 {accounts.map((account) => (
-                  <tr key={account.uid} className="border-t border-slate-800">
+                  <tr key={account.uid} className="border-t border-[var(--border)]">
                     <td className="px-4 py-3">{account.email || account.uid}</td>
-                    {APPS.map(([appId, label]) => {
-                      const enabled = account.apps[appId];
-                      return (
-                        <td key={appId} className="px-4 py-3">
-                          <button
-                            type="button"
-                            disabled={savingUid === account.uid}
-                            onClick={() => toggle(account, appId)}
-                            aria-label={`${label} access for ${account.email || account.uid}`}
-                            className={
-                              enabled
-                                ? "rounded-full bg-emerald-500/20 px-3 py-1 text-emerald-300 disabled:opacity-50"
-                                : "rounded-full bg-slate-800 px-3 py-1 text-slate-400 disabled:opacity-50"
-                            }
-                          >
-                            {enabled ? "Enabled" : "Disabled"}
-                          </button>
-                        </td>
-                      );
-                    })}
+                    <td className="px-4 py-3">
+                      <select
+                        value={account.status}
+                        disabled={savingUid === account.uid}
+                        onChange={(event) => save(account, { status: event.target.value })}
+                        className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-xs"
+                      >
+                        {STATUS.map((value) => <option key={value} value={value}>{value}</option>)}
+                      </select>
+                    </td>
+                    {FEATURES.map(([featureId, label]) => (
+                      <td key={featureId} className="px-4 py-3">
+                        <button
+                          type="button"
+                          disabled={savingUid === account.uid || account.status !== "active"}
+                          onClick={() => save(account, { features: { [featureId]: !account.features[featureId] } })}
+                          className={account.features[featureId] && account.status === "active"
+                            ? "rounded-full bg-emerald-500/20 px-3 py-1 text-emerald-300 disabled:opacity-50"
+                            : "rounded-full bg-[var(--surface-muted)] px-3 py-1 text-[var(--text-muted)] disabled:opacity-50"}
+                        >
+                          {account.features[featureId] ? "Enabled" : "Disabled"}
+                        </button>
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
             </table>
-
-            {accounts.length === 0 && !error && (
-              <p className="border-t border-slate-800 px-4 py-4 text-sm text-slate-500">
-                No application access records found.
-              </p>
-            )}
-
-            {error && (
-              <p className="border-t border-rose-900/40 px-4 py-3 text-sm text-rose-300" role="alert">
-                {error}
-              </p>
-            )}
+            {accounts.length === 0 && !error && <p className="border-t border-[var(--border)] px-4 py-4 text-sm text-[var(--text-muted)]">No accounts found.</p>}
+            {error && <p className="border-t border-rose-500/20 px-4 py-3 text-sm text-rose-300" role="alert">{error}</p>}
           </div>
         )}
       </div>
