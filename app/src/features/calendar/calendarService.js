@@ -14,7 +14,32 @@ const IMPORT_COLLECTION = "dayflowCalendarImports";
 const IMPORT_DOC = "current";
 const MAX_BATCH_WRITES = 450;
 
-import { calendarEventsToDailyBlocks, parseIcsCalendar } from "./icsParser.js";
+import { parseIcsCalendar, safeId } from "./icsParser.js";
+
+function requireDb() {
+  if (!db) throw new Error("Firebase Firestore is not configured.");
+  return db;
+}
+
+function eventsRef(uid) {
+  return collection(requireDb(), "users", uid, EVENTS_COLLECTION);
+}
+
+function eventRef(uid, id) {
+  return doc(requireDb(), "users", uid, EVENTS_COLLECTION, id);
+}
+
+function importRef(uid) {
+  return doc(requireDb(), "users", uid, IMPORT_COLLECTION, IMPORT_DOC);
+}
+
+function safeId(value) {
+  return String(value)
+    .replace(/[^a-zA-Z0-9_-]/g, "_")
+    .slice(0, 120);
+}
+
+
 
 export async function loadImportedCalendarEvents(uid) {
   const snapshot = await getDocs(eventsRef(uid));
