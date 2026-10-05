@@ -87,19 +87,19 @@ service cloud.firestore {
         request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/plans/{dateKey} {
+    match /users/{uid}/dayflowPlans/{dateKey} {
       allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/results/{dateKey} {
+    match /users/{uid}/dayflowResults/{dateKey} {
       allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/memories/{dateKey} {
+    match /users/{uid}/dayflowMemories/{dateKey} {
       allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/reminders/{reminderId} {
+    match /users/{uid}/dayflowReminders/{reminderId} {
       allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
     }
 
