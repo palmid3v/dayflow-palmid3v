@@ -2,7 +2,9 @@
 [CmdletBinding()]
 param(
     [string]$AppPath = (Join-Path $PSScriptRoot ".."),
-    [switch]$Strict
+    [switch]$Strict,
+    [ValidateSet("Automatic", "Manual")]
+    [string]$Mode = "Automatic"
 )
 
 $ErrorActionPreference = "Stop"
@@ -185,6 +187,7 @@ Write-Host "PALMI-D3V" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "App:        $AppPath"
 Write-Host "Target URL: $productionUrl"
+Write-Host "Mode:       $Mode"
 Write-Host "Report:     $ReportPath"
 Write-Host ""
 
@@ -237,7 +240,6 @@ $requiredFiles = @(
     (Join-Path $AppPath "e2e/fixtures/validation.ics"),
     (Join-Path $AppPath "playwright.config.mjs"),
     (Join-Path $RepoPath "firebase.json"),
-    (Join-Path $RepoPath "firebase/firestore.rules"),
     (Join-Path $RepoPath "firestore.rules")
 )
 
@@ -255,7 +257,7 @@ Invoke-CheckedCommand "Build" "Production build" $AppPath "npm" @("run", "build"
 
 Write-Section "5. FIREBASE SOURCE VALIDATION"
 
-$rulesPath = Join-Path $RepoPath "firebase/firestore.rules"
+$rulesPath = Join-Path $RepoPath "firestore.rules"
 Test-TextContains "Firebase" $rulesPath 'match /appAccess/\{uid\}' "appAccess rules" | Out-Null
 Test-TextContains "Firebase" $rulesPath 'function canUseDayFlowFeature' "feature permissions" | Out-Null
 Test-TextContains "Firebase" $rulesPath 'dayflowPlans' "Today rules" | Out-Null
@@ -272,7 +274,14 @@ Write-Section "6. PWA VALIDATION"
 Test-RequiredFile "PWA" (Join-Path $AppPath "public/pwa-192.svg") | Out-Null
 Test-RequiredFile "PWA" (Join-Path $AppPath "public/pwa-512.svg") | Out-Null
 Test-TextContains "PWA" (Join-Path $AppPath "vite.config.js") 'VitePWA' "Vite PWA plugin" | Out-Null
-Test-TextContains "PWA" (Join-Path $AppPath "vite.config.js") '"display": "standalone"' "Standalone manifest" | Out-Null
+Test-TextContains "PWA" (Join-Path $AppPath "vite.config.js") 'display:\s*"standalone"' "Standalone manifest configuration" | Out-Null
+
+$generatedManifest = Join-Path $AppPath "dist/manifest.webmanifest"
+Test-RequiredFile "PWA" $generatedManifest | Out-Null
+if (Test-Path $generatedManifest) {
+    Test-TextContains "PWA" $generatedManifest '"display"\s*:\s*"standalone"' "Generated standalone manifest" | Out-Null
+    Test-TextContains "PWA" $generatedManifest '"pwa-192.svg"' "Generated PWA icon manifest" | Out-Null
+}
 
 Write-Section "7. FIREBASE CLI ACCESS"
 
@@ -294,18 +303,22 @@ if (Get-Command firebase -ErrorAction SilentlyContinue) {
 
 Write-Section "8. PRODUCTION E2E"
 
-$authFile = Join-Path $AppPath "playwright/.auth/dayflow.json"
-$hasCredentials = (-not [string]::IsNullOrWhiteSpace($env:DAYFLOW_VALIDATE_EMAIL)) -and (-not [string]::IsNullOrWhiteSpace($env:DAYFLOW_VALIDATE_PASSWORD))
-
-if (-not $hasCredentials -and -not (Test-Path $authFile)) {
-    Add-Result "E2E" "Authentication bootstrap" "FAIL" "Set DAYFLOW_VALIDATE_EMAIL and DAYFLOW_VALIDATE_PASSWORD once, or provide a valid local Playwright auth state"
+if ($Mode -eq "Manual") {
+    Add-Result "E2E" "Production browser flow" "SKIP" "Manual mode selected. Complete docs/QA_MATRIX.md against Preview and Production."
 } else {
-    $browserInstallOk = Invoke-CheckedCommand "E2E" "Playwright Chromium availability" $AppPath "npx" @("--yes", "playwright@1.63.0", "install", "chromium")
+    $authFile = Join-Path $AppPath "playwright/.auth/dayflow.json"
+    $hasCredentials = (-not [string]::IsNullOrWhiteSpace($env:DAYFLOW_VALIDATE_EMAIL)) -and (-not [string]::IsNullOrWhiteSpace($env:DAYFLOW_VALIDATE_PASSWORD))
 
-    if ($browserInstallOk) {
-        Invoke-CheckedCommand "E2E" "Production browser flow" $AppPath "npx" @("--yes", "@playwright/test@1.63.0", "test", "--config=playwright.config.mjs") | Out-Null
-        if (Test-Path $E2EJsonPath) {
-            Add-Result "E2E" "Playwright result artifact" "PASS" $E2EJsonPath
+    if (-not $hasCredentials -and -not (Test-Path $authFile)) {
+        Add-Result "E2E" "Authentication bootstrap" "FAIL" "Set DAYFLOW_VALIDATE_EMAIL and DAYFLOW_VALIDATE_PASSWORD once, or provide a valid local Playwright auth state"
+    } else {
+        $browserInstallOk = Invoke-CheckedCommand "E2E" "Playwright Chromium availability" $AppPath "npx" @("--yes", "playwright@1.63.0", "install", "chromium")
+
+        if ($browserInstallOk) {
+            Invoke-CheckedCommand "E2E" "Production browser flow" $AppPath "npx" @("--yes", "@playwright/test@1.63.0", "test", "--config=playwright.config.mjs") | Out-Null
+            if (Test-Path $E2EJsonPath) {
+                Add-Result "E2E" "Playwright result artifact" "PASS" $E2EJsonPath
+            }
         }
     }
 }

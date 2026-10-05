@@ -176,6 +176,12 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
 
       await goTab(page, "Memory");
       await expect(page.getByText(note, { exact: true })).toBeVisible({ timeout: 30000 });
+
+      // Remove the QA note before the run finishes so repeated validation does not
+      // accumulate test content in the user's daily memory.
+      await goTab(page, "Today");
+      await page.getByPlaceholder("Add a note about today…").fill("");
+      await page.getByRole("button", { name: "Review saved" }).click();
     });
 
     await test.step("Dashboard", async function () {
