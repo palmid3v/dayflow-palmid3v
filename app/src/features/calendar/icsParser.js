@@ -195,7 +195,7 @@ export function parseIcsCalendar(text) {
   return events;
 }
 
-function safeId(value) {
+export function safeId(value) {
   return String(value)
     .replace(/[^a-zA-Z0-9_-]/g, "_")
     .slice(0, 120);
