@@ -14,7 +14,8 @@ const IMPORT_COLLECTION = "dayflowCalendarImports";
 const IMPORT_DOC = "current";
 const MAX_BATCH_WRITES = 450;
 
-import { parseIcsCalendar, safeId } from "./icsParser.js";
+import { calendarEventsToDailyBlocks, parseIcsCalendar, safeId } from "./icsParser.js";
+export { calendarEventsToDailyBlocks } from "./icsParser.js";
 
 function requireDb() {
   if (!db) throw new Error("Firebase Firestore is not configured.");
