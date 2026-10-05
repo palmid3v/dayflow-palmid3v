@@ -11,10 +11,14 @@ The release validation suite covers the highest-risk pure domain behavior withou
 Run locally:
 
     cd app
-    npm install
+    npm ci
     npm run test
     npm run lint
     npm run build
+
+For production-readiness source/configuration checks:
+
+    .\scripts\Validate-ProductionReadiness.ps1
 
 ## Manual release smoke test
 
@@ -72,6 +76,35 @@ Run this against a fresh Vercel Preview and the Production deployment after Fire
 - [ ] A refreshed route loads through the service-worker navigation fallback.
 - [ ] Reduced-motion preference is respected.
 
+## Phase 16 production checks
+
+### Vercel
+
+- [ ] Project Root Directory is app.
+- [ ] Approved main commit is deployed.
+- [ ] Required production environment variables are configured.
+- [ ] Production URL returns a successful HTTP response.
+- [ ] Deployment is healthy and not rate-limited.
+
+### Firebase
+
+- [ ] Firebase CLI is authenticated.
+- [ ] firebase deploy --only firestore:rules completes successfully from the approved release.
+- [ ] Authentication works against Production.
+- [ ] Firestore reads/writes succeed for an authorized user.
+- [ ] Unauthorized feature access is rejected.
+
+### Evidence
+
+Record:
+
+- Production URL.
+- Release commit SHA.
+- Vercel deployment result.
+- Firebase rules deployment result.
+- CVP report.
+- Manual smoke-test result.
+
 ## Release exit criteria
 
 A release is ready when:
@@ -79,7 +112,10 @@ A release is ready when:
 1. npm run test passes.
 2. npm run lint passes.
 3. npm run build passes.
-4. Firebase Firestore rules are deployed from the version-controlled source.
-5. Vercel Preview is manually smoke-tested.
-6. Production is redeployed from the approved main commit.
-7. No P0/P1 defects remain open.
+4. Phase 15 automated validation has no unresolved release blocker.
+5. Firebase Firestore rules are deployed from the version-controlled source.
+6. Vercel Preview is manually smoke-tested.
+7. Production is deployed from the approved main commit.
+8. Production authentication and persistence are verified.
+9. PWA/responsive smoke tests pass.
+10. No P0/P1 defects remain open.
