@@ -8,29 +8,49 @@ service cloud.firestore {
     }
 
     function verified() {
-      return signedIn() &&
-        request.auth.token.email_verified == true;
+      return signedIn() && request.auth.token.email_verified == true;
     }
 
     function isAdmin() {
       return signedIn() &&
-        exists(
-          /databases/$(database)/documents/platformAdmins/$(request.auth.uid)
-        );
+        exists(/databases/$(database)/documents/platformAdmins/$(request.auth.uid));
     }
 
     function hasAppAccess(appId) {
       return verified() &&
-        exists(
-          /databases/$(database)/documents/appAccess/$(request.auth.uid)
-        ) &&
-        get(
-          /databases/$(database)/documents/appAccess/$(request.auth.uid)
-        ).data.apps[appId] == true;
+        exists(/databases/$(database)/documents/appAccess/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/appAccess/$(request.auth.uid)).data.apps[appId] == true;
     }
 
     function canUseApp(appId) {
       return isAdmin() || hasAppAccess(appId);
+    }
+
+    function canUseUnifiedDayFlow() {
+      return canUseApp("dayflow");
+    }
+
+    function canUseDayFlowFeature(featureId) {
+      return isAdmin() || (
+        canUseUnifiedDayFlow() &&
+        get(/databases/$(database)/documents/appAccess/$(request.auth.uid)).data.features[featureId] == true
+      );
+    }
+
+    function validFeatureMap(features) {
+      return features.keys().hasOnly([
+          "tasks", "schedule", "calendar", "reminders", "memory"
+        ]) &&
+        features.tasks is bool &&
+        features.schedule is bool &&
+        features.calendar is bool &&
+        features.reminders is bool &&
+        features.memory is bool;
+    }
+
+    function validAppMap(apps) {
+      return apps.keys().hasOnly(["dayflow"]) &&
+        apps.dayflow is bool;
     }
 
     match /platformAdmins/{uid} {
@@ -39,80 +59,107 @@ service cloud.firestore {
     }
 
     match /appAccess/{uid} {
-      allow get: if signedIn() &&
-        (request.auth.uid == uid || isAdmin());
-
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow list: if isAdmin();
 
-      // Self-provisioning is intentionally limited to a locked default record.
-      // A user cannot grant themselves access to any application.
       allow create: if signedIn()
         && request.auth.uid == uid
         && request.resource.data.keys().hasOnly([
-          "uid",
-          "email",
-          "role",
-          "apps",
-          "createdAt",
-          "updatedAt"
+          "uid", "email", "role", "status", "apps", "features", "createdAt", "updatedAt"
         ])
         && request.resource.data.uid == uid
         && request.resource.data.role == "user"
-        && request.resource.data.apps.keys().hasOnly([
-          "timetable",
-          "todo",
-          "dayflow"
-        ])
-        && request.resource.data.apps.timetable == false
-        && request.resource.data.apps.todo == false
-        && request.resource.data.apps.dayflow == false;
+        && request.resource.data.status == "pending"
+        && validAppMap(request.resource.data.apps)
+        && request.resource.data.apps.dayflow == false
+        && validFeatureMap(request.resource.data.features);
 
-      allow update, delete: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "status", "apps", "features", "updatedAt"
+        ])
+        && (
+          request.resource.data.status == "pending" ||
+          request.resource.data.status == "active" ||
+          request.resource.data.status == "suspended"
+        )
+        && validAppMap(request.resource.data.apps)
+        && request.resource.data.apps.dayflow == (request.resource.data.status == "active")
+        && validFeatureMap(request.resource.data.features);
+
+      allow delete: if isAdmin();
     }
 
+    match /accessAudit/{auditId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          "actorUid", "targetUid", "action", "before", "after", "createdAt"
+        ])
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.targetUid is string
+        && request.resource.data.action == "access.update"
+        && request.resource.data.before.keys().hasOnly(["status", "features"])
+        && request.resource.data.after.keys().hasOnly(["status", "features"])
+        && request.resource.data.before.features is map
+        && request.resource.data.after.features is map
+        && validFeatureMap(request.resource.data.before.features)
+        && validFeatureMap(request.resource.data.after.features);
+      allow update, delete: if false;
+    }
+
+    // Unified DayFlow domains. Legacy app access remains valid during migration.
     match /users/{uid}/tasks/{taskId} {
-      allow read, write: if canUseApp("todo") &&
+      allow read, write: if (canUseApp("todo") || canUseDayFlowFeature("tasks")) &&
         request.auth.uid == uid;
     }
 
     match /users/{uid}/timetableTemplates/{templateId} {
-      allow read, write: if canUseApp("timetable") &&
+      allow read, write: if (canUseApp("timetable") || canUseDayFlowFeature("schedule")) &&
         request.auth.uid == uid;
     }
 
     match /users/{uid}/timetableOccurrences/{occurrenceId} {
-      allow read, write: if canUseApp("timetable") &&
+      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
         request.auth.uid == uid;
     }
 
     match /users/{uid}/timetableSettings/{document} {
-      allow read, write: if canUseApp("timetable") &&
+      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
         request.auth.uid == uid;
     }
 
     match /users/{uid}/timetableExternalLinks/{document} {
-      allow read, write: if canUseApp("timetable") &&
+      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
         request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/plans/{dateKey} {
-      allow read, write: if canUseApp("dayflow") &&
-        request.auth.uid == uid;
+    match /users/{uid}/dayflowPlans/{dateKey} {
+      allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/results/{dateKey} {
-      allow read, write: if canUseApp("dayflow") &&
-        request.auth.uid == uid;
+    match /users/{uid}/dayflowResults/{dateKey} {
+      allow read, write: if canUseUnifiedDayFlow() && request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/memories/{dateKey} {
-      allow read, write: if canUseApp("dayflow") &&
-        request.auth.uid == uid;
+    match /users/{uid}/dayflowMemories/{dateKey} {
+      allow read, write: if canUseDayFlowFeature("memory") && request.auth.uid == uid;
     }
 
-    match /users/{uid}/dayflow/reminders/{reminderId} {
-      allow read, write: if canUseApp("dayflow") &&
-        request.auth.uid == uid;
+    match /users/{uid}/dayflowReminders/{reminderId} {
+      allow read, write: if canUseDayFlowFeature("reminders") && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/dayflowImportedCalendarEvents/{eventId} {
+      allow read, write: if canUseDayFlowFeature("calendar") && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/dayflowCalendarImports/{document} {
+      allow read, write: if canUseDayFlowFeature("calendar") && request.auth.uid == uid;
     }
 
     match /{document=**} {
