@@ -599,34 +599,6 @@ function MemoryCard({ note, saved, onChange, onSave, summary }) {
   );
 }
 
-function MemoryView({ plan, note, onChange, onSave }) {
-  const state = getDayFlowState();
-  const memories = Object.values(state.memories ?? {}).sort((a, b) => b.date.localeCompare(a.date));
-  const result = createDailyResult(plan, dateKey());
-  return (
-    <Page title="Memory" icon={<BookOpen />} subtitle="A record of what the day became.">
-      <div className="mb-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <p className="label">TODAY · {formatDate(dateKey()).toUpperCase()}</p>
-        <h2 className="mt-2 text-lg font-semibold">The day in progress</h2>
-        <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{result.completed} completed · {result.skipped} skipped · {result.changed} changed · {result.planned} still planned.</p>
-        <textarea value={note} onChange={(event) => onChange(event.target.value)} placeholder="Write what mattered today…" className="mt-4 min-h-36 w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-soft)] p-3 text-sm outline-none placeholder:text-[var(--text-faint)]" />
-        <button onClick={onSave} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--accent-contrast)]"><BookOpen size={15} /> Save memory</button>
-      </div>
-      <h3 className="mb-3 text-sm font-semibold">History</h3>
-      <div className="grid gap-2">
-        {memories.map((memory) => (
-          <article key={memory.date} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-            <p className="label">{formatDate(memory.date).toUpperCase()}</p>
-            <p className="mt-2 text-sm">{memory.summary}</p>
-            {memory.note && <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">{memory.note}</p>}
-          </article>
-        ))}
-        {!memories.length && <Empty title="No memories yet" text="Save today's review and DayFlow will start your history." />}
-      </div>
-    </Page>
-  );
-}
-
 function SettingsDialog({ onClose }) {
   return (
     <div className="fixed inset-0 z-20 grid place-items-end bg-black/50 p-3 sm:place-items-center" role="dialog" aria-modal="true" aria-labelledby="settings-title">
