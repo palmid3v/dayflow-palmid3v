@@ -476,18 +476,6 @@ function Empty({ title, text }) {
   );
 }
 
-function Page({ title, icon, subtitle, children }) {
-  return (
-    <section>
-      <div className="mb-5 flex items-start gap-3">
-        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface-muted)]">{icon}</div>
-        <div><p className="label">DAYFLOW</p><h1 className="mt-1 text-2xl font-bold">{title}</h1><p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p></div>
-      </div>
-      {children}
-    </section>
-  );
-}
-
 function ProgressRing({ value }) {
   return (
     <div className="grid size-20 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(var(--accent) 0 ${value}%, var(--surface-muted) ${value}% 100%)` }}>
