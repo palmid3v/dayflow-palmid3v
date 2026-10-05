@@ -1,4 +1,5 @@
 import { cloneElement, useEffect, useState } from "react";
+import { Shield } from "lucide-react";
 import { isFirebaseConfigured } from "../lib/backendConfig";
 import { getAuthErrorMessage, signOut, subscribeAuth } from "../lib/auth";
 import { APP_IDS, ensureAppAccess, hasAppAccess, isPlatformAdmin } from "../lib/access";
@@ -13,6 +14,7 @@ export default function AuthGate({ children }) {
   const [admin, setAdmin] = useState(false);
   const [loading, setLoading] = useState(isFirebaseConfigured());
   const [error, setError] = useState("");
+  const [adminPanelOpen, setAdminPanelOpen] = useState(false);
 
   useEffect(() => {
     if (!isFirebaseConfigured()) { setLoading(false); return undefined; }
@@ -68,23 +70,37 @@ export default function AuthGate({ children }) {
 
   return (
     <>
-      <div className="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/95 px-4 py-2.5 text-white shadow-sm backdrop-blur sm:px-6">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-          <span className="min-w-0 truncate text-xs font-medium text-slate-300">
-            {user.email}{admin ? " · Admin" : ""}
-          </span>
-          <button
-            type="button"
-            onClick={() => signOut()}
-            aria-label="Sign out"
-            className="shrink-0 rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-bold text-slate-100 shadow-sm transition hover:border-slate-500 hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-indigo-400"
-          >
-            Sign out
-          </button>
+      <div className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--surface)]/95 px-4 py-2.5 text-[var(--text)] shadow-sm backdrop-blur sm:px-6">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="label">DAYFLOW</p>
+            <p className="mt-0.5 truncate text-[11px] text-[var(--text-muted)]">{user.email}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {admin && (
+              <button
+                type="button"
+                onClick={() => setAdminPanelOpen(true)}
+                className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-3 text-xs font-semibold"
+                aria-label="Open admin access manager"
+              >
+                <Shield size={14} />
+                Admin
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => signOut()}
+              aria-label="Sign out"
+              className="min-h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-bold transition hover:bg-[var(--surface-muted)]"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
-      {error && <p className="mx-auto max-w-5xl px-4 py-2 text-xs text-red-400" role="alert">{error}</p>}
-      {admin && <AdminAccessPanel />}
+      {error && <p className="mx-auto max-w-3xl px-4 py-2 text-xs text-red-400" role="alert">{error}</p>}
+      {admin && <AdminAccessPanel open={adminPanelOpen} onClose={() => setAdminPanelOpen(false)} />}
       {cloneElement(children, { access, admin })}
     </>
   );
