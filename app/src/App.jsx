@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  BarChart3,
   BookOpen,
   CalendarDays,
   Check,
@@ -29,6 +30,7 @@ import ScheduleModule from "./features/schedule/ScheduleModule";
 import { loadCachedTasks, loadTasks } from "./features/tasks/taskService";
 import { createReminder, isReminderCompletedForDate, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
 import MemoryModule from "./features/memory/MemoryModule";
+import DashboardModule from "./features/dashboard/DashboardModule";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
 import { calendarEventsToDailyBlocks, loadImportedCalendarEvents } from "./features/calendar/calendarService";
 import { auth } from "./lib/firebase";
@@ -42,6 +44,7 @@ import {
 
 const navItems = [
   [Home, "today", "Today"],
+  [BarChart3, "dashboard", "Dashboard"],
   [CalendarDays, "calendar", "Schedule"],
   [CheckCircle2, "tasks", "Tasks"],
   [BookOpen, "memory", "Memory"]
@@ -93,7 +96,7 @@ function App() {
   const changed = plan.blocks.filter((block) => block.state === "changed").length;
   const progress = progressTotal ? Math.round((completed / progressTotal) * 100) : 0;
   const todayReminders = remindersForDate(reminders, selectedDate);
-  const openReminders = todayReminders.filter((reminder) => !reminder.completed);
+  const openReminders = todayReminders.filter((reminder) => !reminder.occurrenceCompleted);
 
   useEffect(() => {
     applyTheme();
@@ -227,7 +230,6 @@ function App() {
     setReminders(sortReminders(next));
     saveDayFlowState({ reminders: sortReminders(next) });
     saveCachedReminders(auth?.currentUser?.uid, sortReminders(next));
-    saveCachedReminders(auth?.currentUser?.uid, next);
     void saveRemindersCloud(auth?.currentUser?.uid, next).catch((error) => {
       console.error("Unable to save DayFlow reminders to Firebase:", error);
     });
@@ -385,6 +387,7 @@ function App() {
           </>
         )}
 
+        {tab === "dashboard" && <DashboardModule />}
         {tab === "calendar" && <ScheduleModule />}
         {tab === "tasks" && <TaskModule onTasksChange={setTasks} />}
         {tab === "memory" && <MemoryModule />}
@@ -394,7 +397,7 @@ function App() {
         )}
       </div>
 
-      <nav className="fixed bottom-3 left-1/2 z-10 grid w-[calc(100%-24px)] max-w-[720px] -translate-x-1/2 grid-cols-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
+      <nav className="fixed bottom-3 left-1/2 z-10 grid w-[calc(100%-24px)] max-w-[720px] -translate-x-1/2 grid-cols-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
         {navItems.map(([Icon, key, label]) => (
           <button
             key={key}
@@ -494,7 +497,7 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd }) {
       <div className="mb-3 grid gap-2">
         {reminders.map((item) => (
           <div key={item.id} className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2">
-            <button onClick={() => onToggle(item.id)} aria-label={`${item.completed ? "Reopen" : "Complete"} reminder: ${item.title}`}>
+            <button onClick={() => onToggle(item.id)} aria-label={`${item.occurrenceCompleted ? "Reopen" : "Complete"} reminder: ${item.title}`}>
               {item.occurrenceCompleted ? <CheckCircle2 size={18} /> : <Circle size={18} className="text-[var(--text-muted)]" />}
             </button>
             <span className={`flex-1 text-sm ${item.occurrenceCompleted ? "text-[var(--text-muted)] line-through" : ""}`}>{item.title}</span>
@@ -504,7 +507,7 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd }) {
         ))}
         {!reminders.length && <p className="px-2 py-2 text-xs text-[var(--text-muted)]">Nothing waiting. Add a reminder below.</p>}
       </div>
-      <form onSubmit={onAdd} className="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[1fr_auto_auto]">
+      <form onSubmit={onAdd} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
         <input name="title" required placeholder="Remember to…" aria-label="Reminder title" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm outline-none" />
         <input name="time" type="time" defaultValue="18:00" aria-label="Reminder time" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-2 text-sm" />
         <select name="repeat" aria-label="Reminder repeat" className="min-h-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-2 text-xs"><option value="none">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select><button className="grid min-h-10 place-items-center rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-contrast)]" aria-label="Add reminder"><Plus size={17} /></button>
