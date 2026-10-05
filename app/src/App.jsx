@@ -27,6 +27,8 @@ import { createDailyMemory, createDailyResult } from "./domain/models";
 import TaskModule from "./features/tasks/TaskModule";
 import ScheduleModule from "./features/schedule/ScheduleModule";
 import { loadCachedTasks, loadTasks } from "./features/tasks/taskService";
+import { createReminder, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
+import MemoryModule from "./features/memory/MemoryModule";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
 import { calendarEventsToDailyBlocks, loadImportedCalendarEvents } from "./features/calendar/calendarService";
 import { auth } from "./lib/firebase";
@@ -75,7 +77,7 @@ function App() {
   const [tab, setTab] = useState("today");
   const [plan, setPlan] = useState(() => getInitialPlan(today));
   const [note, setNote] = useState(() => getDayFlowState().notes?.[today] ?? "");
-  const [reminders, setReminders] = useState(() => getDayFlowState().reminders ?? []);
+  const [reminders, setReminders] = useState(() => loadCachedReminders(auth?.currentUser?.uid).length ? loadCachedReminders(auth?.currentUser?.uid) : (getDayFlowState().reminders ?? []));
   const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid));
   const theme = "dark";
   const [scheduleBlocks, setScheduleBlocks] = useState([]);
@@ -90,7 +92,7 @@ function App() {
   const skipped = plan.blocks.filter((block) => block.state === "skipped").length;
   const changed = plan.blocks.filter((block) => block.state === "changed").length;
   const progress = progressTotal ? Math.round((completed / progressTotal) * 100) : 0;
-  const todayReminders = reminders.filter((reminder) => reminder.date === selectedDate);
+  const todayReminders = remindersForDate(reminders, selectedDate).filter((reminder) => reminder.status !== "completed");
   const openReminders = todayReminders.filter((reminder) => !reminder.completed);
 
   useEffect(() => {
@@ -119,7 +121,8 @@ function App() {
         saveDayFlowState(state);
         setPlan(state.dailyPlans?.[today] ?? { date: today, blocks: [] });
         setNote(state.notes?.[today] ?? "");
-        setReminders(state.reminders ?? []);
+        setReminders(sortReminders(state.reminders ?? []));
+        saveCachedReminders(uid, state.reminders ?? []);
         setReviewSaved(Boolean(state.dailyResults?.[today]));
         setCloudError("");
         setCloudReady(true);
@@ -212,9 +215,11 @@ function App() {
   }
 
   function toggleReminder(id) {
-    const next = reminders.map((item) => item.id === id ? { ...item, completed: !item.completed } : item);
-    setReminders(next);
-    saveDayFlowState({ reminders: next });
+    const next = reminders.map((item) => item.id === id ? updateReminder(item, { completed: !item.completed, status: item.completed ? "open" : "completed" }) : item);
+    setReminders(sortReminders(next));
+    saveDayFlowState({ reminders: sortReminders(next) });
+    saveCachedReminders(auth?.currentUser?.uid, sortReminders(next));
+    saveCachedReminders(auth?.currentUser?.uid, next);
     void saveRemindersCloud(auth?.currentUser?.uid, next).catch((error) => {
       console.error("Unable to save DayFlow reminders to Firebase:", error);
     });
@@ -226,11 +231,7 @@ function App() {
     const title = String(form.get("title") ?? "").trim();
     if (!title) return;
     const next = [...reminders, {
-      id: `reminder-${Date.now()}`,
-      title,
-      time: String(form.get("time") || "18:00"),
-      date: selectedDate,
-      completed: false
+      ...createReminder(title, { time: String(form.get("time") || "18:00"), date: selectedDate, repeat: String(form.get("repeat") || "none") })
     }].sort((a, b) => a.time.localeCompare(b.time));
     setReminders(next);
     saveDayFlowState({ reminders: next });
@@ -378,7 +379,7 @@ function App() {
 
         {tab === "calendar" && <ScheduleModule />}
         {tab === "tasks" && <TaskModule onTasksChange={setTasks} />}
-        {tab === "memory" && <MemoryView plan={plan} note={note} onChange={saveNote} onSave={saveReview} />}
+        {tab === "memory" && <MemoryModule />}
 
         {showSettings && (
           <SettingsDialog onClose={() => setShowSettings(false)} />
@@ -498,7 +499,7 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd }) {
       <form onSubmit={onAdd} className="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[1fr_auto_auto]">
         <input name="title" required placeholder="Remember to…" aria-label="Reminder title" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm outline-none" />
         <input name="time" type="time" defaultValue="18:00" aria-label="Reminder time" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-2 text-sm" />
-        <button className="grid min-h-10 place-items-center rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-contrast)]" aria-label="Add reminder"><Plus size={17} /></button>
+        <select name="repeat" aria-label="Reminder repeat" className="min-h-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-2 text-xs"><option value="none">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select><button className="grid min-h-10 place-items-center rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-contrast)]" aria-label="Add reminder"><Plus size={17} /></button>
       </form>
     </div>
   );
