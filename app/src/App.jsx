@@ -84,8 +84,7 @@ function App() {
   const [cloudReady, setCloudReady] = useState(false);
   const [cloudError, setCloudError] = useState("");
 
-  const selectedPlan = selectedDate === today ? plan : getDailyPlan(selectedDate);
-  const visibleBlocks = = [...scheduleBlocks, ...plan.blocks.filter((block) => block.source !== "schedule")].sort((a, b) => a.time.localeCompare(b.time));
+  const visibleBlocks = [...scheduleBlocks, ...plan.blocks.filter((block) => block.source !== "schedule")].sort((a, b) => a.time.localeCompare(b.time));
   const completed = plan.blocks.filter((block) => block.state === "completed").length;
   const progressTotal = plan.blocks.length;
   const skipped = plan.blocks.filter((block) => block.state === "skipped").length;
@@ -137,7 +136,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate]);
+  }, [today]);
 
   useEffect(() => {
     const uid = auth?.currentUser?.uid;
@@ -172,7 +171,7 @@ function App() {
       window.removeEventListener("dayflow:calendar-change", refresh);
       window.removeEventListener("dayflow:schedule-change", refresh);
     };
-  }, [today]);
+  }, [selectedDate]);
 
   useEffect(() => {
     const uid = auth?.currentUser?.uid;
