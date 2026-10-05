@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   calendarEventsToDailyBlocks,
   parseIcsCalendar
-} from "../src/features/calendar/calendarService.js";
+} from "../src/features/calendar/icsParser.js";
 
 test("parseIcsCalendar handles folded and escaped event text", () => {
   const ics = [
