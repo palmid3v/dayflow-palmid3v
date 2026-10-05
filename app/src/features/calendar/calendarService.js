@@ -311,7 +311,6 @@ function ruleMatchesDate(event, target) {
             if (match[1]) {
               const ordinal = Number(match[1]);
               if (target.getDay() !== weekday) return false;
-              const first = new Date(target.getFullYear(), target.getMonth(), 1);
               const occurrence = Math.floor((target.getDate() - 1) / 7) + 1;
               if (ordinal > 0) return occurrence === ordinal;
               const last = new Date(target.getFullYear(), target.getMonth() + 1, 0);
