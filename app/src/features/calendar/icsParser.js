@@ -2,23 +2,6 @@ const WEEKDAY_INDEX = {
   SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6
 };
 
-function requireDb() {
-  if (!db) throw new Error("Firebase Firestore is not configured.");
-  return db;
-}
-
-function eventsRef(uid) {
-  return collection(requireDb(), "users", uid, EVENTS_COLLECTION);
-}
-
-function eventRef(uid, id) {
-  return doc(requireDb(), "users", uid, EVENTS_COLLECTION, id);
-}
-
-function importRef(uid) {
-  return doc(requireDb(), "users", uid, IMPORT_COLLECTION, IMPORT_DOC);
-}
-
 function unfoldLines(text) {
   return String(text ?? "")
     .replace(/\r\n/g, "\n")
