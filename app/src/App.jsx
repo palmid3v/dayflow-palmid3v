@@ -27,7 +27,7 @@ import { createDailyMemory, createDailyResult } from "./domain/models";
 import TaskModule from "./features/tasks/TaskModule";
 import ScheduleModule from "./features/schedule/ScheduleModule";
 import { loadCachedTasks, loadTasks } from "./features/tasks/taskService";
-import { createReminder, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
+import { createReminder, isReminderCompletedForDate, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
 import MemoryModule from "./features/memory/MemoryModule";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
 import { calendarEventsToDailyBlocks, loadImportedCalendarEvents } from "./features/calendar/calendarService";
@@ -92,7 +92,7 @@ function App() {
   const skipped = plan.blocks.filter((block) => block.state === "skipped").length;
   const changed = plan.blocks.filter((block) => block.state === "changed").length;
   const progress = progressTotal ? Math.round((completed / progressTotal) * 100) : 0;
-  const todayReminders = remindersForDate(reminders, selectedDate).filter((reminder) => reminder.status !== "completed");
+  const todayReminders = remindersForDate(reminders, selectedDate);
   const openReminders = todayReminders.filter((reminder) => !reminder.completed);
 
   useEffect(() => {
@@ -215,7 +215,15 @@ function App() {
   }
 
   function toggleReminder(id) {
-    const next = reminders.map((item) => item.id === id ? updateReminder(item, { completed: !item.completed, status: item.completed ? "open" : "completed" }) : item);
+    const occurrenceDate = selectedDate;
+    const next = reminders.map((item) => {
+      if (item.id !== id) return item;
+      const completed = isReminderCompletedForDate(item, occurrenceDate);
+      const completedDates = completed
+        ? (item.completedDates ?? []).filter((date) => date !== occurrenceDate)
+        : [...new Set([...(item.completedDates ?? []), occurrenceDate])];
+      return updateReminder(item, { completedDates, completed: item.repeat === "none" ? !completed : false, status: completed ? "open" : "completed" });
+    });
     setReminders(sortReminders(next));
     saveDayFlowState({ reminders: sortReminders(next) });
     saveCachedReminders(auth?.currentUser?.uid, sortReminders(next));
@@ -487,10 +495,10 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd }) {
         {reminders.map((item) => (
           <div key={item.id} className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2">
             <button onClick={() => onToggle(item.id)} aria-label={`${item.completed ? "Reopen" : "Complete"} reminder: ${item.title}`}>
-              {item.completed ? <CheckCircle2 size={18} /> : <Circle size={18} className="text-[var(--text-muted)]" />}
+              {item.occurrenceCompleted ? <CheckCircle2 size={18} /> : <Circle size={18} className="text-[var(--text-muted)]" />}
             </button>
-            <span className={`flex-1 text-sm ${item.completed ? "text-[var(--text-muted)] line-through" : ""}`}>{item.title}</span>
-            <time className="text-xs text-[var(--text-muted)]">{item.time}</time>
+            <span className={`flex-1 text-sm ${item.occurrenceCompleted ? "text-[var(--text-muted)] line-through" : ""}`}>{item.title}</span>
+            <time className={`text-xs ${item.overdue ? "text-amber-300" : "text-[var(--text-muted)]"}`}>{item.overdue ? "Overdue · " : ""}{item.time}</time>
             <button onClick={() => onDelete(item.id)} className="text-[var(--text-faint)]" aria-label={`Delete reminder: ${item.title}`}><Trash2 size={15} /></button>
           </div>
         ))}
