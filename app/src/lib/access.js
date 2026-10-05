@@ -44,7 +44,9 @@ function normalizeAccess(data, uid) {
     role: data?.role === "admin" ? "admin" : "user",
     status: data?.status === "suspended" ? "suspended" : data?.status === "pending" ? "pending" : "active",
     apps: { dayflow: legacyDayFlowEnabled },
-    features
+    features,
+    createdAt: data?.createdAt ?? null,
+    updatedAt: data?.updatedAt ?? null
   };
 }
 

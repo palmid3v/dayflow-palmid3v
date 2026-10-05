@@ -31,12 +31,27 @@
 - [x] No-duplicate-ownership rule
 - [x] Local preservation/migration rule
 
+## Phase 7 — Dashboard / Analytics
+- [x] Completion rate
+- [x] Plan adherence
+- [x] Days completed
+- [x] Current streak
+- [x] Weekly consistency
+
+## Phase 8 — Admin / Access Manager 2.0
+- [x] Unified DayFlow account list
+- [x] Pending / active / suspended status
+- [x] Per-feature access controls
+- [x] Account search and status filtering
+- [x] Admin account totals
+- [x] Admin bypass for feature authorization
+
 ## Phase 4 — Ecosystem integration
 - [x] Shared Firebase identity + verified email
 - [x] App-level access gate
 - [ ] Replace browser bridge with authenticated references
 - [ ] Connect Timetable occurrences
-- [ ] Persist DayFlow plans/results/memory/reminders in Firestore
+- [x] Persist DayFlow plans/results/memory/reminders in Firestore
 - [ ] Add cross-app recovery/export
 - [ ] Add Google Calendar adapter where DayFlow needs it
 - [ ] Add email delivery adapter where DayFlow needs it
