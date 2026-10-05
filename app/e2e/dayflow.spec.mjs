@@ -54,7 +54,7 @@ async function ensureAuthenticated(browser, baseURL) {
 
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password").fill(password);
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.locator("form").getByRole("button", { name: "Sign in" }).click();
 
     await waitForApp(page);
     fs.mkdirSync(path.dirname(authFile), { recursive: true });
