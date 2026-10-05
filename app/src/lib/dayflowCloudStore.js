@@ -46,24 +46,29 @@ function toRecordMap(snapshot) {
   );
 }
 
-export async function loadDayFlowCloud(uid) {
+export async function loadDayFlowCloud(uid, permissions = {}) {
   if (!uid) throw new Error("A Firebase user ID is required.");
 
-  const [plansSnapshot, resultsSnapshot, memoriesSnapshot, remindersSnapshot] = await Promise.all([
+  const canUseMemory = permissions.memory !== false;
+  const canUseReminders = permissions.reminders !== false;
+
+  const reads = [
     getDocs(dayflowCollection(uid, PLANS)),
     getDocs(dayflowCollection(uid, RESULTS)),
-    getDocs(dayflowCollection(uid, MEMORIES)),
-    getDoc(dayflowDoc(uid, REMINDERS, REMINDER_DOC))
-  ]);
+    canUseMemory ? getDocs(dayflowCollection(uid, MEMORIES)) : Promise.resolve(null),
+    canUseReminders ? getDoc(dayflowDoc(uid, REMINDERS, REMINDER_DOC)) : Promise.resolve(null)
+  ];
 
-  const reminders = remindersSnapshot.exists()
+  const [plansSnapshot, resultsSnapshot, memoriesSnapshot, remindersSnapshot] = await Promise.all(reads);
+
+  const reminders = remindersSnapshot?.exists()
     ? (Array.isArray(remindersSnapshot.data()?.items) ? remindersSnapshot.data().items : [])
     : [];
 
   return {
     dailyPlans: toRecordMap(plansSnapshot),
     dailyResults: toRecordMap(resultsSnapshot),
-    memories: toRecordMap(memoriesSnapshot),
+    memories: memoriesSnapshot ? toRecordMap(memoriesSnapshot) : {},
     reminders
   };
 }
@@ -141,28 +146,45 @@ async function uploadMissingOrNewerRecords(uid, localMap, cloudMap, saveRecord) 
   );
 }
 
-export async function synchronizeDayFlow(uid, localState) {
+export async function synchronizeDayFlow(uid, localState, permissions = {}) {
   if (!uid) return localState;
 
-  const cloudState = await loadDayFlowCloud(uid);
+  const canUseMemory = permissions.memory !== false;
+  const canUseReminders = permissions.reminders !== false;
+  const cloudState = await loadDayFlowCloud(uid, permissions);
   const dailyPlans = mergeRecordMaps(localState.dailyPlans, cloudState.dailyPlans);
   const dailyResults = mergeRecordMaps(localState.dailyResults, cloudState.dailyResults);
-  const memories = mergeRecordMaps(localState.memories, cloudState.memories);
+  const memories = canUseMemory
+    ? mergeRecordMaps(localState.memories, cloudState.memories)
+    : localState.memories;
 
-  await Promise.all([
+  const uploads = [
     uploadMissingOrNewerRecords(uid, localState.dailyPlans, cloudState.dailyPlans, saveDailyPlanCloud),
-    uploadMissingOrNewerRecords(uid, localState.dailyResults, cloudState.dailyResults, saveDailyResultCloud),
-    uploadMissingOrNewerRecords(uid, localState.memories, cloudState.memories, saveMemoryCloud)
-  ]);
+    uploadMissingOrNewerRecords(uid, localState.dailyResults, cloudState.dailyResults, saveDailyResultCloud)
+  ];
+
+  if (canUseMemory) {
+    uploads.push(
+      uploadMissingOrNewerRecords(uid, localState.memories, cloudState.memories, saveMemoryCloud)
+    );
+  }
+
+  await Promise.all(uploads);
 
   const localReminders = Array.isArray(localState.reminders) ? localState.reminders : [];
   const cloudReminders = Array.isArray(cloudState.reminders) ? cloudState.reminders : [];
-  const remindersById = new Map(cloudReminders.map((item) => [String(item.id), item]));
-  localReminders.forEach((item) => remindersById.set(String(item.id), item));
-  const reminders = [...remindersById.values()].sort((a, b) => String(a.time ?? "").localeCompare(String(b.time ?? "")));
+  let reminders = canUseReminders ? localReminders : [];
 
-  if (JSON.stringify(reminders) !== JSON.stringify(cloudReminders)) {
-    await saveRemindersCloud(uid, reminders);
+  if (canUseReminders) {
+    const remindersById = new Map(cloudReminders.map((item) => [String(item.id), item]));
+    localReminders.forEach((item) => remindersById.set(String(item.id), item));
+    reminders = [...remindersById.values()].sort((a, b) =>
+      String(a.time ?? "").localeCompare(String(b.time ?? ""))
+    );
+
+    if (JSON.stringify(reminders) !== JSON.stringify(cloudReminders)) {
+      await saveRemindersCloud(uid, reminders);
+    }
   }
 
   return {
