@@ -4,7 +4,7 @@ DayFlow is the **single productivity application** for the PALMI-D3V ecosystem.
 
 Tasks, recurring schedules, daily planning, reminders, review, and memory live inside one React/Vite application backed by one Firebase Authentication identity and one Cloud Firestore database.
 
-> **Current status:** Unified product architecture is implemented. To-Do and Timetable remain separate repositories only as migration/rollback sources; they are no longer runtime dependencies of DayFlow.
+> **Current status:** Unified product architecture is implemented through Phases 1–10. DayFlow now includes admin analytics, an audited access manager, feature-aware cloud permissions, and browser reminder notifications while keeping local-first fallback behavior. To-Do and Timetable remain separate repositories only as migration/rollback sources; they are no longer runtime dependencies of DayFlow.
 
 ## Product modules
 
@@ -12,7 +12,7 @@ Tasks, recurring schedules, daily planning, reminders, review, and memory live i
 - ✅ Tasks — task creation, editing, completion, and lifecycle
 - 🗓️ Schedule — recurring weekly timetable and imported calendar events
 - 📥 Calendar Import — import standard `.ics` calendar snapshots without Google OAuth or Calendar API
-- 🔔 Reminders — daily prompts
+- 🔔 Reminders — daily prompts, recurrence, overdue state, and optional browser notifications
 - 🧠 Memory — daily review and history
 - ⚙️ Settings — shared application configuration
 
@@ -46,7 +46,7 @@ users/{uid}/dayflowResults/
 users/{uid}/dayflowMemories/
 users/{uid}/dayflowReminders/
 users/{uid}/dayflowImportedCalendarEvents/
-users/{uid}/dayflowCalendarImports/
+users/{uid}/dayflowCalendarImports/\naccessAudit/ — immutable admin access-change audit records
 ```
 
 There is one database, but each domain retains a clear responsibility.
@@ -82,7 +82,7 @@ dayflow-palmid3v/
 7. No duplicated authoritative records.
 8. New productivity features become DayFlow modules.
 9. Keep the file structure small and responsibility-driven.
-10. External integrations are adapters, not sources of truth.
+10. External integrations are adapters, not sources of truth.\n11. Admin access changes are audited and feature permissions are enforced at the Firestore boundary.\n12. Vercel deployments should only run when the app directory changes.
 
 ## Development
 
