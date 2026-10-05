@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BookOpen,
   CalendarDays,
@@ -23,8 +23,10 @@ import {
   saveDayFlowState,
   saveMemory
 } from "./lib/dayflowStore";
-import { connectToDoProvider, getTodoTasksFromStorage } from "./lib/todoAdapter";
 import { createDailyMemory, createDailyResult } from "./domain/models";
+import TaskModule from "./features/tasks/TaskModule";
+import ScheduleModule from "./features/schedule/ScheduleModule";
+import { loadCachedTasks, loadTasks } from "./features/tasks/taskService";
 import { auth } from "./lib/firebase";
 import {
   saveDailyPlanCloud,
@@ -36,7 +38,7 @@ import {
 
 const navItems = [
   [Home, "today", "Today"],
-  [CalendarDays, "calendar", "Calendar"],
+  [CalendarDays, "calendar", "Schedule"],
   [CheckCircle2, "tasks", "Tasks"],
   [BookOpen, "memory", "Memory"]
 ];
@@ -70,15 +72,12 @@ function App() {
   const [plan, setPlan] = useState(() => getInitialPlan(today));
   const [note, setNote] = useState(() => getDayFlowState().notes?.[today] ?? "");
   const [reminders, setReminders] = useState(() => getDayFlowState().reminders ?? []);
-  const [tasks, setTasks] = useState(() => getTodoTasksFromStorage());
+  const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid));
   const [theme, setTheme] = useState(() => getDayFlowState().settings?.theme ?? "system");
   const [showSettings, setShowSettings] = useState(false);
   const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));
   const [cloudReady, setCloudReady] = useState(false);
   const [cloudError, setCloudError] = useState("");
-  const [todoConnected, setTodoConnected] = useState(false);
-  const [todoError, setTodoError] = useState("");
-  const todoConnectionRef = useRef(null);
 
   const completed = plan.blocks.filter((block) => block.state === "completed").length;
   const progress = plan.blocks.length ? Math.round((completed / plan.blocks.length) * 100) : 0;
@@ -121,13 +120,19 @@ function App() {
     };
   }, [today]);
 
+
   useEffect(() => {
-    const refresh = () => setTasks(getTodoTasksFromStorage());
-    window.addEventListener("storage", refresh);
-    window.addEventListener("dayflow:todo-provider", refresh);
+    const uid = auth?.currentUser?.uid;
+    if (!uid) return undefined;
+    let active = true;
+    loadTasks(uid)
+      .then((next) => active && setTasks(next))
+      .catch((error) => console.error("Unable to load DayFlow tasks:", error));
+    const refresh = () => setTasks(loadCachedTasks(uid));
+    window.addEventListener("dayflow:tasks-change", refresh);
     return () => {
-      window.removeEventListener("storage", refresh);
-      window.removeEventListener("dayflow:todo-provider", refresh);
+      active = false;
+      window.removeEventListener("dayflow:tasks-change", refresh);
     };
   }, []);
 
@@ -224,23 +229,6 @@ function App() {
     setReviewSaved(true);
   }
 
-  useEffect(() => () => todoConnectionRef.current?.disconnect(), []);
-
-  function connectTodo() {
-    try {
-      todoConnectionRef.current?.disconnect();
-      setTodoError("");
-      const connection = connectToDoProvider();
-      todoConnectionRef.current = connection;
-      setTodoConnected(true);
-      window.setTimeout(() => setTasks(getTodoTasksFromStorage()), 1000);
-    } catch (error) {
-      setTodoConnected(false);
-      setTodoError(error instanceof Error ? error.message : "Unable to connect To-Do.");
-      return null;
-    }
-  }
-
   function changeTheme(value) {
     setTheme(value);
     saveDayFlowState({ settings: { theme: value } });
@@ -321,8 +309,7 @@ function App() {
                   <div className="flex items-center gap-3 px-2 py-3">
                     <Target size={19} className="text-[var(--text-muted)]" />
                     <div>
-                      <b className="text-sm">No connected tasks yet</b>
-                      <p className="text-xs text-[var(--text-muted)]">DayFlow reads tasks from PALMI-D3V To-Do and never owns them.</p>
+                      <b className="text-sm">No tasks yet</b><p className="text-xs text-[var(--text-muted)]">Tasks now live directly inside DayFlow and sync to the shared Firestore account.</p>
                     </div>
                   </div>
                 ) : (
@@ -342,15 +329,8 @@ function App() {
           </>
         )}
 
-        {tab === "calendar" && <CalendarView plan={plan} onToggle={updateBlock} onDelete={deleteBlock} onAdd={addBlock} />}
-        {tab === "tasks" && (
-          <TasksView
-            tasks={tasks}
-            connected={todoConnected}
-            error={todoError}
-            onConnect={connectTodo}
-          />
-        )}
+        {tab === "calendar" && <ScheduleModule />}
+        {tab === "tasks" && <TaskModule onTasksChange={setTasks} />}
         {tab === "memory" && <MemoryView plan={plan} note={note} onChange={saveNote} onSave={saveReview} />}
 
         {showSettings && (
@@ -466,47 +446,6 @@ function MemoryCard({ note, saved, onChange, onSave }) {
         </div>
       </div>
     </section>
-  );
-}
-
-function CalendarView({ plan, onToggle, onDelete, onAdd }) {
-  return (
-    <Page title="Calendar" icon={<CalendarDays />} subtitle="Scheduled blocks are owned by DayFlow.">
-      <form onSubmit={onAdd} className="mb-4 grid gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:grid-cols-[auto_auto_1fr_auto_auto]">
-        <input name="time" type="time" defaultValue="18:00" aria-label="Block time" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-2 text-sm" />
-        <input name="emoji" defaultValue="📌" maxLength="2" aria-label="Block emoji" className="min-h-10 w-16 rounded-xl border border-[var(--border)] bg-transparent text-center text-lg" />
-        <input name="title" required placeholder="New calendar block" aria-label="Block title" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm" />
-        <input name="meta" placeholder="Duration / context" aria-label="Block metadata" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm" />
-        <button className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-contrast)]"><Plus size={16} /> Add</button>
-      </form>
-      <div className="grid gap-2">{plan.blocks.map((block) => <BlockRow key={block.id} block={block} onToggle={onToggle} onDelete={onDelete} />)}</div>
-    </Page>
-  );
-}
-
-function TasksView({ tasks, connected, error, onConnect }) {
-  return (
-    <Page title="Tasks" icon={<CheckCircle2 />} subtitle="Tasks remain authoritative in PALMI-D3V To-Do.">
-      <div className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <div className="flex items-start gap-2 text-xs text-[var(--text-muted)]">
-          <Target size={17} className="mt-0.5 shrink-0" />
-          <span>Read-only integration surface — DayFlow references tasks but never duplicates or mutates them.</span>
-        </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button onClick={onConnect} className="min-h-10 rounded-xl bg-[var(--accent)] px-4 text-xs font-semibold text-[var(--accent-contrast)]">
-            {connected ? "Reconnect To-Do" : "Connect To-Do"}
-          </button>
-          <span className="text-xs text-[var(--text-muted)]">{connected ? "Connected" : "Not connected"}</span>
-        </div>
-        {error && <p className="mt-3 text-xs text-[var(--text-muted)]">{error}</p>}
-        <p className="mt-3 text-[11px] leading-5 text-[var(--text-muted)]">
-          The connection opens the PALMI-D3V To-Do app and exchanges read-only task snapshots through a browser message bridge.
-        </p>
-      </div>
-      {tasks.length
-        ? tasks.map((task) => <div key={task.id} className="mb-2 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">{task.completed ? <CheckCircle2 size={18} /> : <Circle size={18} className="text-[var(--text-muted)]" />}<span className={task.completed ? "text-[var(--text-muted)] line-through" : ""}>{task.title}</span></div>)
-        : <Empty title="No connected tasks" text="Connect To-Do to expose its current tasks here." />}
-    </Page>
   );
 }
 

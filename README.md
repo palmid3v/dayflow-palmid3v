@@ -1,86 +1,104 @@
-# 🌊 DayFlow — Daily Orchestration
+# 🌊 DayFlow — PALMI-D3V Productivity
 
-DayFlow is the daily-orchestration layer of the PALMI-D3V productivity ecosystem. It combines daily plans, execution tracking, reminders, review, and memory while referencing tasks and schedules owned by the other ecosystem applications.
+DayFlow is the **single productivity application** for the PALMI-D3V ecosystem.
 
-> **Current status:** Phase 1 product, Phase 2 UX/UI, and Phase 3 architecture/data are complete. Shared Firebase identity, email verification, and app-level access are implemented. External integrations remain the next phase.
+Tasks, recurring schedules, daily planning, reminders, review, and memory live inside one React/Vite application backed by one Firebase Authentication identity and one Cloud Firestore database.
 
-## 🎯 Product scope
+> **Current status:** Unified product architecture is implemented. To-Do and Timetable remain separate repositories only as migration/rollback sources; they are no longer runtime dependencies of DayFlow.
 
-DayFlow owns daily plans, execution tracking, reminders, daily review, and memory. It references identifiers from To-Do and Timetable instead of creating duplicate authoritative records.
+## Product modules
 
-## ✨ Current capabilities
+- 🏠 Today — daily orchestration
+- ✅ Tasks — task creation, editing, completion, and lifecycle
+- 🗓️ Schedule — recurring weekly timetable
+- 🔔 Reminders — daily prompts
+- 🧠 Memory — daily review and history
+- ⚙️ Settings — shared application configuration
 
-- 🌊 Daily orchestration UI
-- ✅ Execution/result tracking
-- 🔔 Reminder model
-- 🧠 Daily memory
-- 🔥 Firestore persistence and synchronization
-- 💾 Local recovery/cache layer
-- 🔐 Firebase Authentication and email verification
-- 🛡️ Shared PALMI-D3V app-access gate
-- 🔗 Read-only To-Do bridge
-- ✉️ Shared weekly-summary backend source
-- 🚪 Consistent Sign out UX
+## Architecture
 
-## 🛠️ Technology
+```text
+                         DAYFLOW
+                            │
+          ┌─────────────────┼─────────────────┐
+          ▼                 ▼                 ▼
+        TASKS            SCHEDULE          DAILY FLOW
+          │                 │                 │
+          └─────────────────┼─────────────────┘
+                            ▼
+                    Firebase / Firestore
+                            │
+                        users/{uid}
+```
 
-| Technology | Role |
-| --- | --- |
-| React | UI/application layer |
-| Vite | Development/build tooling |
-| Tailwind CSS | Styling |
-| Firebase Auth | Identity |
-| Cloud Firestore | Cloud persistence |
-| Vitest | Tests |
-| ESLint | Code quality |
+### Firestore domains
 
-## 🧱 Data ownership
+```text
+users/{uid}/tasks/
+users/{uid}/timetableTemplates/
+users/{uid}/timetableOccurrences/
+users/{uid}/timetableSettings/
+users/{uid}/timetableExternalLinks/
 
-~~~text
-users/{uid}/dayflow/plans/{dateKey}
-users/{uid}/dayflow/results/{dateKey}
-users/{uid}/dayflow/memories/{dateKey}
-users/{uid}/dayflow/reminders/{id}
-~~~
+users/{uid}/dayflow/plans/
+users/{uid}/dayflow/results/
+users/{uid}/dayflow/memories/
+users/{uid}/dayflow/reminders/
+```
 
-To-Do remains authoritative for tasks. Timetable remains authoritative for recurring schedules and occurrences.
+There is one database, but each domain retains a clear responsibility.
 
-## 📁 Repository structure
+## Repository structure
 
-~~~text
+```text
 dayflow-palmid3v/
-├── .github/              # CI
 ├── app/
-│   ├── src/              # Active DayFlow application
-│   ├── docs/             # Product/architecture documentation
-│   ├── CONTEXT.md        # Existing app-level context
-│   └── README.md         # App-level implementation notes
-├── CONTEXT.md            # Repository-level source context
-└── README.md             # Project entry point
-~~~
+│   ├── src/
+│   │   ├── components/      # shared UI and authentication
+│   │   ├── features/
+│   │   │   ├── tasks/        # Tasks domain
+│   │   │   └── schedule/     # Schedule domain
+│   │   ├── domain/           # DayFlow daily models
+│   │   └── lib/              # shared Firebase + persistence
+│   ├── docs/
+│   └── package.json
+├── firebase/
+│   └── firestore.rules
+├── CONTEXT.md
+└── README.md
+```
 
-## 📚 Documentation
+## Unified architecture rules
 
-Key documentation remains under app/docs/, including phases, access control, Firebase architecture, integrations, roadmap, tasks, and release notes.
+1. DayFlow is the only active frontend.
+2. One Firebase project and one Firestore database.
+3. One authentication system.
+4. Tasks and schedules are internal DayFlow domains.
+5. No popup or `postMessage` bridges between PALMI-D3V apps.
+6. No duplicated authoritative records.
+7. New productivity features become DayFlow modules.
+8. Keep the file structure small and responsibility-driven.
+9. External integrations are adapters, not sources of truth.
 
-## 🚀 Development
+## Development
 
-~~~bash
+```bash
 cd app
 npm install
 npm run dev
 npm run lint
 npm run build
-~~~
+```
 
-## 📌 Project boundary
+## Migration repositories
 
-DayFlow does not own task persistence or recurring timetable persistence. External calendar and email delivery remain integration concerns.
+The previous repositories remain untouched for now:
 
-## 📚 Project context
+- `palmid3v/to-do-palmid3v`
+- `palmid3v/timetable-palmid3v`
 
-See CONTEXT.md for the consolidated project context and current architectural rules.
+They are migration references and rollback sources until the unified DayFlow implementation is validated.
 
 ---
 
-**PALMI-D3V** · DayFlow · 2026
+**PALMI-D3V · DayFlow · 2026**

@@ -1,6 +1,6 @@
 export const domainModels = {
-  task: "A completable unit owned by To-Do.",
-  event: "A scheduled calendar block owned by DayFlow.",
+  task: "A completable unit owned by the Tasks domain.",
+  event: "A scheduled calendar block owned by the Schedule domain.",
   reminder: "A prompt associated with a future moment or condition.",
   dailyPlan: "The planned composition of tasks, events, and reminders for a day.",
   dailyResult: "The recorded outcome of a day: completed, skipped, changed, and actual activity.",
