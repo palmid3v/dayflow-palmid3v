@@ -237,7 +237,6 @@ $requiredFiles = @(
     (Join-Path $AppPath "e2e/fixtures/validation.ics"),
     (Join-Path $AppPath "playwright.config.mjs"),
     (Join-Path $RepoPath "firebase.json"),
-    (Join-Path $RepoPath "firebase/firestore.rules"),
     (Join-Path $RepoPath "firestore.rules")
 )
 
@@ -255,7 +254,7 @@ Invoke-CheckedCommand "Build" "Production build" $AppPath "npm" @("run", "build"
 
 Write-Section "5. FIREBASE SOURCE VALIDATION"
 
-$rulesPath = Join-Path $RepoPath "firebase/firestore.rules"
+$rulesPath = Join-Path $RepoPath "firestore.rules"
 Test-TextContains "Firebase" $rulesPath 'match /appAccess/\{uid\}' "appAccess rules" | Out-Null
 Test-TextContains "Firebase" $rulesPath 'function canUseDayFlowFeature' "feature permissions" | Out-Null
 Test-TextContains "Firebase" $rulesPath 'dayflowPlans' "Today rules" | Out-Null
@@ -272,7 +271,14 @@ Write-Section "6. PWA VALIDATION"
 Test-RequiredFile "PWA" (Join-Path $AppPath "public/pwa-192.svg") | Out-Null
 Test-RequiredFile "PWA" (Join-Path $AppPath "public/pwa-512.svg") | Out-Null
 Test-TextContains "PWA" (Join-Path $AppPath "vite.config.js") 'VitePWA' "Vite PWA plugin" | Out-Null
-Test-TextContains "PWA" (Join-Path $AppPath "vite.config.js") '"display": "standalone"' "Standalone manifest" | Out-Null
+Test-TextContains "PWA" (Join-Path $AppPath "vite.config.js") 'display:\s*"standalone"' "Standalone manifest configuration" | Out-Null
+
+$generatedManifest = Join-Path $AppPath "dist/manifest.webmanifest"
+Test-RequiredFile "PWA" $generatedManifest | Out-Null
+if (Test-Path $generatedManifest) {
+    Test-TextContains "PWA" $generatedManifest '"display"\s*:\s*"standalone"' "Generated standalone manifest" | Out-Null
+    Test-TextContains "PWA" $generatedManifest '"pwa-192.svg"' "Generated PWA icon manifest" | Out-Null
+}
 
 Write-Section "7. FIREBASE CLI ACCESS"
 
