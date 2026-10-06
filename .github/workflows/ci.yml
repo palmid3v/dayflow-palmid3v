@@ -12,6 +12,10 @@ jobs:
     defaults:
       run:
         working-directory: app
+    env:
+      DAYFLOW_VALIDATE_EMAIL: ${{ secrets.DAYFLOW_VALIDATE_EMAIL }}
+      DAYFLOW_VALIDATE_PASSWORD: ${{ secrets.DAYFLOW_VALIDATE_PASSWORD }}
+      DAYFLOW_VALIDATE_URL: https://dayflow-palmid3v.vercel.app
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,15 +24,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
 
       - name: Install
-        run: npm install
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Test
-        run: npm run test
+      - name: Install Playwright Chromium
+        if: ${{ env.DAYFLOW_VALIDATE_EMAIL != '' && env.DAYFLOW_VALIDATE_PASSWORD != '' }}
+        run: npx playwright install --with-deps chromium
 
-      - name: Lint
-        run: npm run lint
+      - name: Static validation
+        run: npm run validate:static
 
-      - name: Build
-        run: npm run build
+      - name: CVP and production E2E
+        if: ${{ env.DAYFLOW_VALIDATE_EMAIL != '' && env.DAYFLOW_VALIDATE_PASSWORD != '' }}
+        run: npm run validate
+
+      - name: E2E configuration notice
+        if: ${{ env.DAYFLOW_VALIDATE_EMAIL == '' || env.DAYFLOW_VALIDATE_PASSWORD == '' }}
+        run: echo "Full CVP/E2E validation skipped because DAYFLOW_VALIDATE_EMAIL/DAYFLOW_VALIDATE_PASSWORD GitHub secrets are not configured."
