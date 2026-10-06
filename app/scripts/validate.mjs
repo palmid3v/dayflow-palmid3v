@@ -21,7 +21,8 @@ function run(label, command, commandArgs, env = {}) {
 
     const child = spawn(command, commandArgs, {
       stdio: "inherit",
-      env: { ...process.env, ...env }
+      env: { ...process.env, ...env },
+      shell: isWindows
     });
 
     child.on("error", (error) => {
