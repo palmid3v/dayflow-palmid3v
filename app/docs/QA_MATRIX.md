@@ -1,100 +1,120 @@
 # DayFlow QA Matrix
 
-## Automated coverage
+## Validation model
 
-The release validation suite covers the highest-risk pure domain behavior without requiring Firebase credentials:
+| Level | DayFlow implementation |
+|---|---|
+| V0 Repository Contract | Validate-CVPProfile.ps1 |
+| V1 Domain Validation | npm test |
+| V2 Static Quality | npm run lint |
+| V3 Build / Artifact | npm run build + PWA generation |
+| V4 Integration | Firebase/auth/access checks |
+| V5 CVP | npm run test:cvp |
+| V6 E2E | npm run test:e2e |
+| V7 IPV / IST | Human or agent interactive UI verification |
+| V8 Production Acceptance | deployment + smoke + PWA/responsive + rollback evidence |
 
-- Daily result counters and memory summaries.
-- Reminder creation, normalization, recurrence projection, completion dates, and sorting.
-- ICS parsing, escaped text, recurrence COUNT, EXDATE, and all-day projection.
+## Automated validation
 
-Run locally:
+Run:
 
     cd app
     npm ci
-    npm run test
-    npm run lint
-    npm run build
+    npm run validate:static
 
-For production-readiness source/configuration checks:
+With a dedicated QA account:
 
-    .\scripts\Validate-ProductionReadiness.ps1
+    npm run validate
 
-## Manual release smoke test
+Current automated suite:
 
-Run this against a fresh Vercel Preview and the Production deployment after Firebase configuration is available.
+- Unit: 11/11 tests.
+- Lint: 0 errors; warnings are reported.
+- Production build: PASS.
+- PWA generation: PASS.
+- CVP: PASS.
+- Full production E2E: PASS.
+
+## Critical Value Path
+
+The DayFlow CVP protects the highest-value flows:
+
+- authentication/session access;
+- Today block lifecycle;
+- Tasks lifecycle;
+- Dashboard visibility.
+
+The automated scenarios live in app/e2e/cvp.spec.mjs.
+
+## Full production E2E
+
+The production E2E covers:
+
+- authentication and Today;
+- Today block CRUD;
+- Tasks CRUD;
+- Schedule CRUD;
+- calendar .ics import/clear;
+- reminders and notification behavior;
+- Daily Memory;
+- Dashboard;
+- Admin Access Manager;
+- Settings/session controls;
+- browser/runtime error collection.
+
+The scenarios live in app/e2e/dayflow.spec.mjs.
+
+## Interactive Product Verification (IPV)
+
+IPV is the process used when automated assertions cannot fully prove the user experience.
+
+A focused IPV run is an Interactive Smoke Test (IST).
+
+For DayFlow:
 
 ### Authentication
 
-- [ ] Sign up with a new test account.
-- [ ] Verification email is sent.
-- [ ] Unverified users remain on the verification screen.
-- [ ] Verified users with no active DayFlow access see Access Denied.
-- [ ] Admin users can open Access Manager.
-- [ ] Sign out returns to the authentication screen.
+- [ ] Open the approved Preview.
+- [ ] Open the approved Production deployment.
+- [ ] Authenticate with the dedicated QA account.
+- [ ] Confirm expected access/verification state.
+- [ ] Sign out and confirm the authentication screen returns.
 
-### Access Manager
+### Primary interaction
 
-- [ ] User list loads.
-- [ ] Search and status filters work.
-- [ ] Status changes persist.
-- [ ] Feature toggles persist.
-- [ ] Audit activity is created for access changes.
-- [ ] Non-admin users cannot access admin data.
+- [ ] Open Today.
+- [ ] Press the primary Play/start action when present.
+- [ ] Confirm the expected active state appears.
+- [ ] Perform a representative block interaction.
+- [ ] Confirm the visible state changes.
+- [ ] Refresh when persistence is part of the scenario.
 
-### Today / Tasks / Schedule
+### Tasks / Schedule
 
-- [ ] Today loads with empty-state content.
-- [ ] A task can be created, edited, completed, and deleted.
-- [ ] A recurring schedule block can be created, edited, duplicated, and deleted.
-- [ ] Schedule blocks appear in the correct weekday.
-- [ ] Task and schedule changes survive refresh.
+- [ ] Create, edit, complete, and delete a representative task.
+- [ ] Create, edit, duplicate, and delete a representative schedule block.
+- [ ] Confirm controls remain usable at narrow/mobile widths.
 
-### Calendar Import
+### Calendar / Reminders / Memory
 
-- [ ] A valid .ics file imports.
-- [ ] Recurring events project to the expected dates.
-- [ ] Re-import replaces the previous snapshot.
-- [ ] Clear removes imported events.
-- [ ] Invalid .ics content produces a readable error.
-- [ ] Calendar feature access blocks the import UI when disabled.
-
-### Reminders / Memory / Dashboard
-
-- [ ] A reminder can be created and completed.
-- [ ] Reminder recurrence projects correctly.
-- [ ] Browser notification permission can be requested.
-- [ ] Memory can be saved and loaded.
-- [ ] Dashboard metrics update from current DayFlow state.
+- [ ] Import a valid .ics fixture.
+- [ ] Confirm imported events appear correctly.
+- [ ] Clear the imported snapshot.
+- [ ] Create/complete a reminder.
+- [ ] Verify notification behavior when supported.
+- [ ] Save and reload Memory.
+- [ ] Confirm Dashboard reflects the current state.
 
 ### PWA / responsive
 
-- [ ] Desktop layout remains usable.
-- [ ] Mobile navigation is reachable without horizontal overflow.
-- [ ] Task and schedule controls fit narrow screens.
-- [ ] App can be installed as a PWA in a supported browser.
-- [ ] A refreshed route loads through the service-worker navigation fallback.
-- [ ] Reduced-motion preference is respected.
+- [ ] Verify desktop layout.
+- [ ] Verify mobile layout without horizontal overflow.
+- [ ] Verify touch-friendly controls.
+- [ ] Verify PWA installation/runtime.
+- [ ] Verify refreshed routes use the expected service-worker fallback.
+- [ ] Verify reduced-motion behavior where relevant.
 
-## Phase 16 production checks
-
-### Vercel
-
-- [ ] Project Root Directory is app.
-- [ ] Approved main commit is deployed.
-- [ ] Required production environment variables are configured.
-- [ ] Production URL returns a successful HTTP response.
-- [ ] Deployment is healthy and not rate-limited.
-
-### Firebase
-
-- [ ] Firebase CLI is authenticated.
-- [ ] firebase deploy --only firestore:rules completes successfully from the approved release.
-- [ ] Authentication works against Production.
-- [ ] Firestore reads/writes succeed for an authorized user.
-- [ ] Unauthorized feature access is rejected.
-
-### Evidence
+## Production evidence
 
 Record:
 
@@ -102,20 +122,11 @@ Record:
 - Release commit SHA.
 - Vercel deployment result.
 - Firebase rules deployment result.
-- CVP report.
-- Manual smoke-test result.
+- Automated validation result.
+- CVP/E2E result.
+- IPV/IST result.
+- Known warnings/exceptions.
 
 ## Release exit criteria
 
-A release is ready when:
-
-1. npm run test passes.
-2. npm run lint passes.
-3. npm run build passes.
-4. Phase 15 automated validation has no unresolved release blocker.
-5. Firebase Firestore rules are deployed from the version-controlled source.
-6. Vercel Preview is manually smoke-tested.
-7. Production is deployed from the approved main commit.
-8. Production authentication and persistence are verified.
-9. PWA/responsive smoke tests pass.
-10. No P0/P1 defects remain open.
+A release is ready when required automated checks, CVP/E2E, IPV/IST, deployment evidence, security/configuration checks, and rollback evidence are complete.
