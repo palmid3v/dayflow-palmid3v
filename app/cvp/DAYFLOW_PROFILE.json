@@ -1,5 +1,10 @@
 {
   "schemaVersion": 1,
+  "framework": {
+    "name": "PALMI-D3V Validation Framework",
+    "version": 1,
+    "profileTemplate": "validation/PROJECT_VALIDATION_PROFILE.template.json"
+  },
   "project": {
     "id": "dayflow-palmid3v",
     "name": "DayFlow",
@@ -13,13 +18,17 @@
     "install": {"command": "npm", "arguments": ["ci", "--ignore-scripts", "--no-audit", "--no-fund"]},
     "test": {"command": "npm", "arguments": ["test"]},
     "lint": {"command": "npm", "arguments": ["run", "lint"]},
-    "build": {"command": "npm", "arguments": ["run", "build"]}
+    "build": {"command": "npm", "arguments": ["run", "build"]},
+    "validateStatic": {"command": "npm", "arguments": ["run", "validate:static"]},
+    "cvp": {"command": "npm", "arguments": ["run", "test:cvp"]},
+    "e2e": {"command": "npm", "arguments": ["run", "test:e2e"]},
+    "validate": {"command": "npm", "arguments": ["run", "validate"]}
   },
   "requiredPaths": {
     "files": [
       "app/package.json", "app/package-lock.json", "app/vite.config.js",
       "app/src/App.jsx", "app/src/lib/dayflowCloudStore.js", "app/src/lib/access.js",
-      "app/playwright.config.mjs", "app/e2e/dayflow.spec.mjs",
+      "app/playwright.config.mjs", "app/e2e/dayflow.spec.mjs", "app/e2e/cvp.spec.mjs",
       "app/e2e/fixtures/validation.ics", "firebase.json", "firestore.rules"
     ],
     "directories": [
@@ -32,8 +41,33 @@
     {"path": "firestore.rules", "pattern": "function canUseDayFlowFeature", "description": "Feature-aware Firestore permissions"},
     {"path": "app/vite.config.js", "pattern": "VitePWA", "description": "PWA plugin"}
   ],
+  "validationLevels": {
+    "required": ["V0", "V1", "V2", "V3", "V5", "V6"],
+    "releaseRequired": ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8"]
+  },
+  "criticalJourneys": [
+    "Authentication and Today access",
+    "Today block lifecycle",
+    "Tasks lifecycle",
+    "Dashboard visibility"
+  ],
+  "interactiveSmokeScenarios": [
+    "Primary Play/start interaction",
+    "Representative Today block interaction",
+    "Representative Tasks CRUD interaction",
+    "Representative Schedule CRUD interaction",
+    "Calendar import and clear",
+    "Reminder interaction",
+    "Memory persistence",
+    "Responsive mobile interaction",
+    "PWA runtime interaction"
+  ],
   "releaseGates": [
-    "automated validation", "Firebase rules deployment confirmation", "production E2E",
-    "manual smoke test", "PWA and responsive verification", "rollback evidence"
+    "automated validation",
+    "Firebase rules deployment confirmation",
+    "production E2E",
+    "Interactive Product Verification",
+    "PWA and responsive verification",
+    "rollback evidence"
   ]
 }
