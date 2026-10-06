@@ -1,61 +1,52 @@
 # Roadmap — DayFlow
 
-## Phase 0 — Audit
+## Completed foundation
+
 - [x] Repository baseline
 - [x] Domain ownership
-- [x] Existing To-Do bridge documented
-
-## Phase 1 — Product
 - [x] Today flow
-- [x] Daily planning
-- [x] Execution states
+- [x] Daily planning and execution states
+- [x] Tasks
+- [x] Schedule
+- [x] Calendar .ics import
 - [x] Reminders
-- [x] Daily review
 - [x] Memory
-- [x] To-Do read-only context
-
-## Phase 2 — UX/UI
-- [x] Today-first navigation
-- [x] Calendar planning view
-- [x] Tasks view
-- [x] Memory/review view
-- [x] Responsive layout
-- [x] Theme persistence
+- [x] Dashboard / Analytics
+- [x] Admin / Access Manager
+- [x] Responsive UI
 - [x] PWA foundation
+- [x] DayFlow-owned Firestore model
+- [x] Feature-aware Firestore permissions
+- [x] Production readiness tooling
+- [x] CVP and production E2E
 
-## Phase 3 — Architecture & data
-- [x] DayFlow-owned data model
-- [x] User-scoped Firestore target
-- [x] taskId reference contract
-- [x] occurrenceId reference contract
-- [x] No-duplicate-ownership rule
-- [x] Local preservation/migration rule
+## Phase 17 — CVP Platform Foundation
 
-## Phase 7 — Dashboard / Analytics
-- [x] Completion rate
-- [x] Plan adherence
-- [x] Days completed
-- [x] Current streak
-- [x] Weekly consistency
+- [x] Machine-readable DayFlow validation profile
+- [x] Profile validator
+- [x] Structural source checks
+- [x] Command validation mode
+- [x] Release gate declaration
 
-## Phase 8 — Admin / Access Manager 2.0
-- [x] Unified DayFlow account list
-- [x] Pending / active / suspended status
-- [x] Per-feature access controls
-- [x] Account search and status filtering
-- [x] Admin account totals
-- [x] Admin bypass for feature authorization
+## Phase 18 — PALMI-D3V Validation Framework
 
-## Phase 4 — Ecosystem integration
-- [x] Shared Firebase identity + verified email
-- [x] App-level access gate
-- [ ] Replace browser bridge with authenticated references
-- [ ] Connect Timetable occurrences
-- [x] Persist DayFlow plans/results/memory/reminders in Firestore
-- [ ] Add cross-app recovery/export
-- [ ] Add Google Calendar adapter where DayFlow needs it
-- [ ] Add email delivery adapter where DayFlow needs it
-- [ ] End-to-end integrity tests
+- [x] Shared validation terminology
+- [x] V0–V8 validation model
+- [x] Reusable project profile template
+- [x] Agent implementation workflow
+- [x] CVP vs E2E distinction
+- [x] Interactive Product Verification (IPV)
+- [x] Interactive Smoke Test (IST)
+- [x] DayFlow mapped to shared validation contract
+- [x] Legacy repository retirement procedure documented
+
+## Next validation improvements
+
+- [ ] Remove Node DEP0190 warning from the Windows validation runner without weakening process isolation.
+- [ ] Resolve or intentionally document the four existing react-hooks/exhaustive-deps warnings in App.jsx.
+- [ ] Add durable validation report artifacts for local/CI runs.
+- [ ] Add project-specific IPV scenarios to other PALMI-D3V repositories.
+- [ ] Extract shared runner code only when at least two projects need the same implementation rather than only the same contract.
 
 ## Product principle
 
