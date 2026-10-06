@@ -1,71 +1,66 @@
 # CVP — Continuous Validation Process
 
-CVP is the PALMI-D3V validation methodology for proving that a product is ready before production.
+CVP is the PALMI-D3V methodology for proving that a product's critical value works before production.
+
+The broader contract is documented in:
+
+- validation/PALMI-D3V_VALIDATION_FRAMEWORK.md
+- validation/PALMI-D3V_AGENT_WORKFLOW.md
 
 ## Core rule
 
-> A feature is not done until the product can automatically prove that it works.
+> A feature is not done until the product can demonstrate that the intended behavior works.
 
-## DayFlow v0.1
+## DayFlow implementation
 
-The first CVP implementation is project-specific and learns from:
+DayFlow uses app/cvp/DAYFLOW_PROFILE.json and app/scripts/validate.mjs.
 
-- README.md
-- docs/
-- app/package.json
-- application source
-- tests
-- E2E scenarios
-- Firebase configuration and rules
-- PWA configuration
-- production deployment
+The profile describes product identity, stack, commands, repository contract, source checks, validation levels, critical journeys, interactive smoke scenarios, and release gates.
 
-### Validation modes
+## Validation layers
 
-#### Automatic
+### Automatic
 
-The DayFlow runner discovers the DayFlow structure, validates source/configuration, runs tests, lint, build, PWA checks, Firebase source checks, and production E2E when authentication state is available.
+The DayFlow runner executes:
 
-#### Manual
+1. Unit/domain tests.
+2. Lint.
+3. Production build and PWA generation.
+4. Critical Value Path.
+5. Full production E2E.
 
-Manual validation remains the human release layer described in docs/QA_MATRIX.md. It is used for checks that require real-world judgment, visual inspection, deployment confirmation, or credentials that should not be automated by default.
+### Interactive
 
-## Phase 17 — project-aware profile
+Interactive Product Verification (IPV) is the human/agent layer for UI behavior automated assertions cannot fully prove.
 
-DayFlow now has a machine-readable validation profile at app/cvp/DAYFLOW_PROFILE.json.
+A focused run is an Interactive Smoke Test (IST).
 
-The profile declares:
+Use IPV for primary interaction, Play/start actions, visible state transitions, loading/empty/error/disabled states, responsive behavior, PWA interaction, and refresh/persistence behavior.
 
-- product identity;
-- stack;
-- install/test/lint/build commands;
-- required files and directories;
-- source configuration checks;
-- release gates.
+### Production acceptance
 
-Validate the profile with:
+Production acceptance additionally requires deployment evidence, Firebase/Vercel verification, manual smoke evidence, and rollback readiness.
 
-    .\app\scripts\Validate-CVPProfile.ps1
+## Commands
 
-Run the declared local commands as well with:
+From app:
 
-    .\app\scripts\Validate-CVPProfile.ps1 -RunCommands
+    npm run validate:static
+    npm run test:cvp
+    npm run test:e2e
+    npm run validate
 
-The profile is not a replacement for the DayFlow release runner. It is a reusable description layer that makes the validation contract explicit and portable.
+Profile validation:
+
+    .\scripts\Validate-CVPProfile.ps1
+    .\scripts\Validate-CVPProfile.ps1 -RunCommands
 
 ## Exit criteria
 
-CVP is green only when:
+CVP is green when declared critical journeys pass.
 
-- automated failures = 0;
-- warnings/skips are either resolved or explicitly accepted;
-- source configuration matches deployment configuration;
-- production E2E passes;
-- Firebase rules are deployed from the canonical version-controlled source;
-- manual release checks are complete.
+Overall project validation is green only when all required validation levels pass and required IPV/production gates are complete.
 
-The Phase 17 profile validator adds a structural contract check, but it cannot prove deployment, credentials, or manual smoke-test results.
+## Future direction
 
-## Future CVP direction
-
-The long-term CVP should become project-aware instead of DayFlow-specific. Phase 17 establishes that direction with a machine-readable project profile. Future PALMI-D3V projects can adopt the same profile contract without copying DayFlow's feature-specific validation logic.
+DayFlow is the reference implementation. Other PALMI-D3V projects should adopt the shared profile contract and agent workflow while keeping their own application-specific journeys and integrations.
