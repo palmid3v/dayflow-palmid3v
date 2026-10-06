@@ -41,6 +41,19 @@ It combines:
 10. Responsive behavior.
 11. Production deployment health.
 12. Rollback readiness and release evidence.
+13. Interactive Product Verification for important UI behavior.
+
+## Validation contract
+
+DayFlow follows validation/PALMI-D3V_VALIDATION_FRAMEWORK.md.
+
+Key distinctions:
+
+- CVP = critical journeys.
+- E2E = complete application workflows.
+- IPV = human/agent-driven UI verification.
+- IST = focused interactive smoke test.
+- Production Acceptance = deployment and release evidence.
 
 ## QA data
 
@@ -48,15 +61,17 @@ Automated E2E data uses QA prefixes and should be removed or neutralized before 
 
 ## Release principle
 
-Do not call DayFlow production-ready because local tests pass. Production readiness requires source validation, deployment validation, Firebase rules alignment, production E2E evidence, manual smoke testing, and rollback readiness.
+Do not call DayFlow production-ready because local tests pass. Production readiness requires source validation, deployment validation, Firebase rules alignment, production E2E evidence, IPV/IST evidence, manual smoke testing, and rollback readiness.
 
-## Phase 16 release evidence
+## Release evidence
 
 A production release should retain:
 
-- CVP automated validation report.
-- GitHub CI result.
-- Vercel production deployment result.
-- Firebase rules deployment confirmation.
-- Manual smoke-test result.
-- Approved release commit SHA.
+- automated validation result;
+- GitHub CI result;
+- Vercel production deployment result;
+- Firebase rules deployment confirmation;
+- CVP/E2E result;
+- IPV/IST result;
+- approved release commit SHA;
+- rollback evidence.
