@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "id": "project-id",
+    "name": "Project Name",
+    "version": "0.1.0",
+    "appPath": "app",
+    "productionUrlEnv": "PROJECT_VALIDATE_URL",
+    "defaultProductionUrl": ""
+  },
+  "stack": [],
+  "commands": {
+    "install": {
+      "command": "npm",
+      "arguments": ["ci", "--ignore-scripts", "--no-audit", "--no-fund"]
+    },
+    "test": {
+      "command": "npm",
+      "arguments": ["test"]
+    },
+    "lint": {
+      "command": "npm",
+      "arguments": ["run", "lint"]
+    },
+    "build": {
+      "command": "npm",
+      "arguments": ["run", "build"]
+    },
+    "validate": {
+      "command": "npm",
+      "arguments": ["run", "validate"]
+    }
+  },
+  "requiredPaths": {
+    "files": [],
+    "directories": []
+  },
+  "sourceChecks": [],
+  "validationLevels": {
+    "required": ["V0", "V1", "V2", "V3", "V5"],
+    "releaseRequired": ["V0", "V1", "V2", "V3", "V5", "V6", "V7", "V8"]
+  },
+  "criticalJourneys": [],
+  "interactiveSmokeScenarios": [],
+  "releaseGates": [
+    "automated validation",
+    "deployment confirmation",
+    "interactive product verification",
+    "rollback evidence"
+  ]
+}

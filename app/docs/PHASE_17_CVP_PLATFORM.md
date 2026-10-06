@@ -2,81 +2,57 @@
 
 ## Objective
 
-Phase 17 turns the DayFlow validation knowledge into a reusable, project-aware CVP foundation.
-
-The existing DayFlow validator remains the authoritative release runner for DayFlow. Phase 17 adds a machine-readable project profile so validation requirements are no longer represented only as hard-coded PowerShell assumptions.
+Phase 17 turns DayFlow validation knowledge into a reusable, project-aware CVP foundation.
 
 ## What is built
 
-### 1. Project profile
+### Project profile
 
-app/cvp/DAYFLOW_PROFILE.json describes:
+app/cvp/DAYFLOW_PROFILE.json describes product identity, stack, commands, repository paths, source checks, validation levels, critical journeys, interactive smoke scenarios, and release gates.
 
-- product identity and application path;
-- technology stack;
-- install/test/lint/build commands;
-- required repository files and directories;
-- source-level configuration checks;
-- production release gates.
+The profile is descriptive. It contains no credentials, Firebase secrets, or user data.
 
-The profile is intentionally descriptive. It does not contain credentials, Firebase secrets, or user data.
+### Profile validator
 
-### 2. Profile validator
+app/scripts/Validate-CVPProfile.ps1 validates the profile and repository contract.
 
-app/scripts/Validate-CVPProfile.ps1 validates the profile itself and verifies that the repository still satisfies its declared structure and source checks.
-
-Default mode is structural and fast:
+Default:
 
     .\app\scripts\Validate-CVPProfile.ps1
 
-Command execution can be requested explicitly:
+With command execution:
 
     .\app\scripts\Validate-CVPProfile.ps1 -RunCommands
 
-The command mode runs the profile's declared install, test, lint, and build commands from app.
+### DayFlow validation runner
 
-### 3. Existing DayFlow release validation remains intact
+app/scripts/validate.mjs orchestrates Unit → Lint → Build → CVP → Full Production E2E.
 
-Phase 17 does not replace:
+## Relationship to the PALMI-D3V framework
 
-- Validate-DayFlow.ps1;
-- Validate-ProductionReadiness.ps1;
-- Firebase deployment evidence;
-- production E2E;
-- manual smoke testing.
+The reusable framework is now documented outside the DayFlow-specific implementation:
 
-Those remain release gates.
+- validation/PALMI-D3V_VALIDATION_FRAMEWORK.md
+- validation/PALMI-D3V_AGENT_WORKFLOW.md
+- validation/PROJECT_VALIDATION_PROFILE.template.json
 
-## Design rules
+DayFlow remains the reference implementation. Other projects must provide their own profile, journeys, integrations, and release gates.
 
-1. The profile is configuration, not a second source of truth for application behavior.
-2. No credentials or secrets are stored in the profile.
-3. The existing DayFlow validator remains responsible for DayFlow-specific E2E and release behavior.
-4. New projects can adopt the same profile shape without copying DayFlow's feature implementation.
-5. A profile must describe real repository paths and commands.
-6. Production readiness still requires deployment evidence; local profile validation is not deployment proof.
+## Terminology
 
-## Validation
-
-Phase 17 validation target:
-
-- profile parses successfully;
-- all declared required paths exist;
-- all declared source checks pass;
-- optional command execution passes;
-- existing DayFlow test/lint/build validation remains green.
+- CVP — Critical Value Path: minimum critical journeys proving core value.
+- E2E — End-to-End: complete application workflows.
+- IPV — Interactive Product Verification: human/agent-driven UI verification with visible-result checks.
+- IST — Interactive Smoke Test: focused IPV run for high-risk UI flows.
+- Production Acceptance — deployed-release verification and evidence.
 
 ## Exit criteria
 
-- [ ] Profile committed to main.
-- [ ] Profile validator passes.
-- [ ] npm test passes.
-- [ ] npm run lint passes.
-- [ ] npm run build passes.
-- [ ] Existing CVP/release validator remains unchanged and functional.
-- [ ] No secrets are introduced.
-- [ ] PR review confirms the profile reflects the current DayFlow architecture.
-
-## Why this phase exists
-
-The CVP documentation already identifies project-aware validation as the long-term direction. Phase 17 implements that foundation without changing DayFlow runtime behavior.
+- [x] Machine-readable DayFlow profile.
+- [x] Profile validator.
+- [x] Unit/lint/build validation.
+- [x] CVP.
+- [x] Production E2E.
+- [x] Reusable PALMI-D3V validation contract.
+- [x] Agent workflow.
+- [ ] Production acceptance evidence completed for each release.
