@@ -110,6 +110,23 @@ function parseRule(value) {
   );
 }
 
+export function classifyCalendarEvent(event = {}) {
+  const text = [
+    event.title,
+    event.summary,
+    event.description,
+    ...(Array.isArray(event.categories) ? event.categories : [])
+  ].filter(Boolean).join(" ").toLocaleLowerCase();
+
+  if (/\b(birthday|birthdays|cumpleaños|cumpleanos|aniversario)\b/.test(text)) return "birthday";
+  if (/\b(appointment|appt|cita|doctor|dentist|consulta|entrevista)\b/.test(text)) return "appointment";
+  if (/\b(meeting|reunión|reunion|junta|sync|stand.?up|call|llamada)\b/.test(text)) return "meeting";
+  if (/\b(holiday|festivo|feriado|vacation|vacaciones|día libre|dia libre)\b/.test(text)) return "holiday";
+  if (/\b(flight|vuelo|travel|viaje|hotel|check.?in|check.?out)\b/.test(text)) return "travel";
+  if (/\b(reminder|recordatorio|due date|vencimiento|pago)\b/.test(text)) return "reminder";
+  return "event";
+}
+
 function parseEventBlock(lines) {
   const fields = {};
   const rrules = [];
@@ -155,6 +172,12 @@ function parseEventBlock(lines) {
     title: unescapeText(fields.SUMMARY?.value || "Untitled event"),
     description: unescapeText(fields.DESCRIPTION?.value || ""),
     location: unescapeText(fields.LOCATION?.value || ""),
+    categories: fields.CATEGORIES ? splitValues(fields.CATEGORIES.value).map(unescapeText) : [],
+    category: classifyCalendarEvent({
+      title: unescapeText(fields.SUMMARY?.value || "Untitled event"),
+      description: unescapeText(fields.DESCRIPTION?.value || ""),
+      categories: fields.CATEGORIES ? splitValues(fields.CATEGORIES.value).map(unescapeText) : []
+    }),
     start: start.date.toISOString(),
     startDateKey: start.dateKey,
     end: end?.date?.toISOString() || new Date(start.date.getTime() + durationMs).toISOString(),
@@ -375,6 +398,7 @@ export function calendarEventsToDailyBlocks(events, date = new Date()) {
           : occurrenceStart.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         emoji: "📅",
         title: event.title,
+        category: event.category || classifyCalendarEvent(event),
         meta: event.allDay ? "Imported calendar · All day" : "Imported calendar",
         state: "planned",
         location: event.location || "",
