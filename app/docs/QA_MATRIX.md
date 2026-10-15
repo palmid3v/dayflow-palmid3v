@@ -27,7 +27,7 @@ With a dedicated QA account, or a valid local Playwright auth state:
 
 ## Current status — consolidation branch
 
-GitHub Actions run [38810853829](https://github.com/palmid3v/dayflow-palmid3v/actions/runs/38810853829) validated commit `0a04d0e15970975dd004ee48ab9ec95b375648ba`: Unit **26/26 PASS**, Lint **PASS**, production build **PASS**, and PWA generation **PASS**. That build still warned about an application chunk over 500 kB. The branch now tests Firebase vendor-chunk splitting, so use the newest CI result before release.
+GitHub Actions run [38811104010](https://github.com/palmid3v/dayflow-palmid3v/actions/runs/38811104010) validated commit `111e7744e160a04d8ac174f3b36d820f4789588a`: Unit **26/26 PASS**, Lint **PASS**, production build **PASS**, and PWA generation **PASS**. Firebase vendor splitting passed without the previous oversized-chunk warning: app entry 295.78 kB, Firestore 391.66 kB, Auth 78.76 kB and shared Firebase 79.48 kB (minified sizes).
 
 - CVP: **SKIP** when QA credentials are not configured.
 - Authenticated production E2E: **SKIP** when QA credentials are not configured.

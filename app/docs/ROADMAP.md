@@ -42,7 +42,7 @@
 
 ## Quality follow-ups
 
-- [ ] Verify Firebase vendor chunk splitting builds without circular-chunk warnings and keeps the application entry within the agreed size budget.
+- [x] Split Firebase vendor chunks and verify build output: app entry 295.78 kB, Firestore 391.66 kB, Auth 78.76 kB and shared Firebase 79.48 kB; no oversized-chunk warning.
 - [ ] Remove Node DEP0190 warning from Windows validation runner without weakening process isolation.
 - [ ] Resolve or explicitly document existing React Hooks dependency warnings.
 - [ ] Add durable validation report artifacts for local and CI runs.
