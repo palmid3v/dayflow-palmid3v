@@ -27,7 +27,7 @@ With a dedicated QA account, or a valid local Playwright auth state:
 
 ## Current status — consolidation branch
 
-Use the linked GitHub Actions run as the source of truth for the commit being evaluated. The previously recorded static validation at commit 086ae30854e52b3a2770ba4b5028d4b80c6602b6 passed unit tests (20/20), lint, production build, and PWA generation. Subsequent changes added task ID normalization tests and minor UI/accessibility refinements; confirm the newest run before using a test count for release evidence.
+GitHub Actions run [38810853829](https://github.com/palmid3v/dayflow-palmid3v/actions/runs/38810853829) validated commit `0a04d0e15970975dd004ee48ab9ec95b375648ba`: Unit **26/26 PASS**, Lint **PASS**, production build **PASS**, and PWA generation **PASS**. That build still warned about an application chunk over 500 kB. The branch now tests Firebase vendor-chunk splitting, so use the newest CI result before release.
 
 - CVP: **SKIP** when QA credentials are not configured.
 - Authenticated production E2E: **SKIP** when QA credentials are not configured.

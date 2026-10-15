@@ -42,6 +42,7 @@
 
 ## Quality follow-ups
 
+- [ ] Verify Firebase vendor chunk splitting builds without circular-chunk warnings and keeps the application entry within the agreed size budget.
 - [ ] Remove Node DEP0190 warning from Windows validation runner without weakening process isolation.
 - [ ] Resolve or explicitly document existing React Hooks dependency warnings.
 - [ ] Add durable validation report artifacts for local and CI runs.
