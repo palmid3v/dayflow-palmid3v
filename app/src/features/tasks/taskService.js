@@ -1,6 +1,7 @@
 import { collection, deleteDoc, doc, getDocs, writeBatch } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { normalizeTaskDocument, normalizeTaskRecord, parseLegacyTaskList } from "./taskModel.js";
+import { isDemoUser } from "../../lib/demoMode";
 
 const COLLECTION = "tasks";
 const CACHE_PREFIX = "DAYFLOW_TASKS:";
@@ -57,6 +58,7 @@ export function createTask(title, details = {}) {
 }
 
 export async function loadTasks(uid) {
+  if (isDemoUser(uid)) return loadCachedTasks(uid);
   const snapshot = await getDocs(collectionRef(uid));
   const tasks = snapshot.docs
     .map((item) => normalizeTaskDocument(item.id, item.data()))
@@ -66,6 +68,10 @@ export async function loadTasks(uid) {
 }
 
 export async function saveTasks(uid, nextTasks, previousTasks = []) {
+  if (isDemoUser(uid)) {
+    writeCache(uid, nextTasks);
+    return nextTasks;
+  }
   const userId = requireUser(uid);
   const previous = new Map(previousTasks.map((task) => [task.id, task]));
   const next = new Map(nextTasks.map((task) => [task.id, task]));
@@ -106,6 +112,11 @@ export async function saveTasks(uid, nextTasks, previousTasks = []) {
 }
 
 export async function deleteTask(uid, taskId) {
+  if (isDemoUser(uid)) {
+    const next = readCache(uid).filter((task) => task.id !== taskId);
+    writeCache(uid, next);
+    return next;
+  }
   await deleteDoc(doc(collectionRef(uid), encodeURIComponent(taskId)));
   const next = readCache(uid).filter((task) => task.id !== taskId);
   writeCache(uid, next);
