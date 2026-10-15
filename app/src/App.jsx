@@ -238,6 +238,42 @@ function App({ access, admin = false }) {
     };
   }, [canUse]);
 
+  async function persistTasks(nextTasks) {
+    const uid = auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null);
+    if (!uid) {
+      setTaskActionError("Your session is not ready. Refresh the page and try again.");
+      return false;
+    }
+    const previousTasks = tasks;
+    setTasks(nextTasks);
+    setTaskActionError("");
+    try {
+      await saveTasks(uid, nextTasks, previousTasks);
+      return true;
+    } catch (error) {
+      console.error("Unable to save Today task:", error);
+      setTasks(previousTasks);
+      setTaskActionError("The task was not saved. Your previous list has been restored; try again.");
+      return false;
+    }
+  }
+
+  async function addQuickTask(event) {
+    event.preventDefault();
+    const title = quickTaskTitle.trim();
+    if (!title) return;
+    const next = [createTask(title, { dueDate: selectedDate }), ...tasks];
+    if (await persistTasks(next)) setQuickTaskTitle("");
+  }
+
+  async function toggleQuickTask(task) {
+    const completed = !task.completed;
+    const next = tasks.map((item) => item.id === task.id
+      ? { ...item, completed, status: completed ? "completed" : "active", updatedAt: new Date().toISOString() }
+      : item);
+    await persistTasks(next);
+  }
+
   function updatePlan(nextBlocks) {
     const nextPlan = { ...plan, blocks: nextBlocks, updatedAt: new Date().toISOString() };
     setPlan(nextPlan);
