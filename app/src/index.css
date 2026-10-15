@@ -4,32 +4,33 @@
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #090a0d;
-  --bg-soft: #0d0f13;
-  --surface: #121419;
-  --surface-raised: #17191f;
-  --surface-muted: #1e2128;
-  --border: #2a2d35;
-  --border-strong: #3a3e48;
-  --text: #f4f4f5;
-  --text-muted: #8a8f9b;
-  --text-faint: #626773;
-  --accent: #f4f4f5;
-  --accent-contrast: #090a0d;
-  --danger: #fb7185;
-  --warning: #fbbf24;
-  --success: #34d399;
+  --bg: #0A0C10;
+  --bg-soft: #0D1015;
+  --surface: #12161D;
+  --surface-raised: #171B23;
+  --surface-muted: #202530;
+  --border: #2B313D;
+  --border-strong: #434B5B;
+  --text: #ECECF0;
+  --text-muted: #9BA2B0;
+  --text-faint: #778091;
+  --accent: #B8A3FF;
+  --accent-contrast: #0A0C10;
+  --danger: #FF8795;
+  --warning: #E7C47A;
+  --success: #9AD7AD;
   --radius-sm: 0.625rem;
   --radius-md: 0.875rem;
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
-  --content-max: 48rem;
+  --content-max: 56rem;
 }
 
 :root[data-theme="light"] {
@@ -43,12 +44,12 @@
   --border-strong: #b9bdc6;
   --text: #17181c;
   --text-muted: #626873;
-  --text-faint: #8a909a;
-  --accent: #17181c;
+  --text-faint: #777e89;
+  --accent: #5B46A8;
   --accent-contrast: #ffffff;
   --danger: #e11d48;
-  --warning: #b45309;
-  --success: #059669;
+  --warning: #8A5A08;
+  --success: #176B46;
 }
 
 * { box-sizing: border-box; }
@@ -64,8 +65,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 50% -10%, color-mix(in srgb, var(--surface-muted) 75%, transparent) 0, var(--bg-soft) 35%, var(--bg) 72%);
+  background: var(--bg);
   color: var(--text);
   overflow-x: hidden;
 }
@@ -73,17 +73,29 @@ body {
 button, textarea, input, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
-button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
+button, a, textarea, input, select {
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease,
+    transform 150ms ease;
 }
-::selection { background: var(--surface-muted); color: var(--text); }
+button:active:not(:disabled) { transform: translateY(1px); }
+
+button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+::selection { background: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--text); }
 
 .label {
+  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: .14em;
-  color: var(--text-faint);
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 
 .app-shell {
@@ -92,6 +104,12 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-
   padding-inline: 1rem;
   padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   padding-top: 1.5rem;
+  animation: dayflow-enter 180ms ease-out both;
+}
+
+@keyframes dayflow-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .surface {
@@ -112,11 +130,9 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-
   border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--text);
-  transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
 }
 
 .control:hover { border-color: var(--border-strong); }
-.control:active { transform: translateY(1px); }
 
 .primary-action {
   min-height: 2.75rem;
@@ -124,10 +140,8 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-
   background: var(--accent);
   color: var(--accent-contrast);
   font-weight: 700;
-  transition: transform .15s ease, opacity .15s ease;
 }
 .primary-action:hover { opacity: .92; }
-.primary-action:active { transform: translateY(1px); }
 
 .mobile-nav {
   padding-bottom: max(.5rem, env(safe-area-inset-bottom));
@@ -158,6 +172,7 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-
     scroll-behavior: auto !important;
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 
