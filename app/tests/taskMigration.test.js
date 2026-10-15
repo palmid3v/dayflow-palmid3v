@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import {
   normalizeTaskDocument,
   normalizeTaskRecord,
-  parseLegacyTaskList
+  parseLegacyTaskList,
+  setTaskCompletion
 } from "../src/features/tasks/taskModel.js";
 
 test("preserves IDs stored by the legacy To-Do serializer", () => {
@@ -66,4 +67,19 @@ test("refuses to silently discard malformed legacy records", () => {
 
 test("accepts an empty legacy task list", () => {
   assert.deepEqual(parseLegacyTaskList("[]"), []);
+});
+
+
+test("task completion transition keeps completed and status fields consistent", () => {
+  const task = normalizeTaskRecord({ id: "task-1", title: "Review release" });
+  const completed = setTaskCompletion(task, true, "2026-10-15T12:00:00.000Z");
+  assert.equal(completed.completed, true);
+  assert.equal(completed.status, "completed");
+  assert.equal(completed.updatedAt, "2026-10-15T12:00:00.000Z");
+
+  const reopened = setTaskCompletion(completed, false, "2026-10-15T12:05:00.000Z");
+  assert.equal(reopened.completed, false);
+  assert.equal(reopened.status, "active");
+  assert.equal(reopened.id, task.id);
+  assert.equal(reopened.title, task.title);
 });
