@@ -1,4 +1,7 @@
-const STORAGE_KEY = "DAYFLOW";
+const STORAGE_KEY = import.meta.env.VITE_DAYFLOW_DEMO_MODE === "true" &&
+  (import.meta.env.DEV || import.meta.env.VITE_VERCEL_ENV === "preview")
+  ? "DAYFLOW_DEMO_LOCAL"
+  : "DAYFLOW";
 
 const defaultState = {
   dailyPlans: {},
