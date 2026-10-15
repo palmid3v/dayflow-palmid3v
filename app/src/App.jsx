@@ -486,7 +486,9 @@ function App({ access, admin = false }) {
                           {task.completed ? <CheckCircle2 size={17} className="text-[var(--success)]" /> : <Circle size={17} className="text-[var(--text-muted)]" />}
                         </button>
                         <span className={`min-w-0 flex-1 break-words ${task.completed ? "text-[var(--text-muted)] line-through" : ""}`}>{task.title}</span>
+                        {task.priority === "high" && !task.completed && <span className="label shrink-0 text-[var(--warning)]">HIGH</span>}
                         {task.dueDate === selectedDate && <span className="label shrink-0">TODAY</span>}
+                        {task.dueDate && task.dueDate < today && !task.completed && <span className="label shrink-0 text-[var(--danger)]">OVERDUE</span>}
                       </div>
                     ))}
                     {tasks.length > visibleTasks.length && <button type="button" onClick={() => setTab("tasks")} className="min-h-10 rounded-xl border border-dashed border-[var(--border)] text-xs text-[var(--text-muted)]">View all {tasks.length} tasks</button>}
