@@ -31,6 +31,7 @@ import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/schedu
 import { getNotificationSupport, notifyDueReminders, requestReminderNotificationPermission, showReminderNotification } from "./features/reminders/notificationService";
 import { calendarEventsToDailyBlocks, loadImportedCalendarEvents } from "./features/calendar/calendarService";
 import { auth } from "./lib/firebase";
+import { DEMO_MODE, DEMO_UID } from "./lib/demoMode";
 import {
   saveDailyPlanCloud,
   saveDailyResultCloud,
@@ -185,7 +186,7 @@ function App({ access, admin = false }) {
   }
 
   useEffect(() => {
-    const uid = auth?.currentUser?.uid;
+    const uid = auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null);
     if (!uid || (!canUse("schedule") && !canUse("calendar"))) return undefined;
     let active = true;
 
@@ -193,7 +194,7 @@ function App({ access, admin = false }) {
       try {
         const [schedules, importedEvents] = await Promise.all([
           canUse("schedule") ? loadSchedules(uid) : Promise.resolve([]),
-          canUse("calendar") ? loadImportedCalendarEvents(uid) : Promise.resolve([])
+          canUse("calendar") && !DEMO_MODE ? loadImportedCalendarEvents(uid) : Promise.resolve([])
         ]);
         if (!active) return;
         const currentDate = new Date(`${selectedDate}T12:00:00`);
