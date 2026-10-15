@@ -7,8 +7,23 @@ import {
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { isValidSchedule, normalizeSchedule } from "./scheduleModel.js";
+import { isDemoUser } from "../../lib/demoMode";
 
 const COLLECTION = "timetableTemplates";
+const DEMO_STORAGE_KEY = "DAYFLOW_DEMO_SCHEDULES";
+
+function loadDemoSchedules() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(DEMO_STORAGE_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed.map(normalizeSchedule).filter((item) => item?.subject && isValidSchedule(item)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveDemoSchedules(items) {
+  localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(items));
+}
 
 function ref(uid) {
   if (!db || !uid) throw new Error("Firebase Firestore requires an authenticated user.");
@@ -16,6 +31,7 @@ function ref(uid) {
 }
 
 export async function loadSchedules(uid) {
+  if (isDemoUser(uid)) return loadDemoSchedules();
   const snapshot = await getDocs(ref(uid));
   return snapshot.docs
     .map((entry) => normalizeSchedule({ ...entry.data(), id: entry.id }))
@@ -29,11 +45,22 @@ export async function saveSchedule(uid, schedule) {
   }
 
   const saved = { ...item, updatedAt: new Date().toISOString() };
+  if (isDemoUser(uid)) {
+    const items = loadDemoSchedules();
+    saveDemoSchedules(items.some((entry) => entry.id === saved.id)
+      ? items.map((entry) => entry.id === saved.id ? saved : entry)
+      : [...items, saved]);
+    return saved;
+  }
   await setDoc(doc(ref(uid), saved.id), saved, { merge: true });
   return saved;
 }
 
 export async function removeSchedule(uid, id) {
+  if (isDemoUser(uid)) {
+    saveDemoSchedules(loadDemoSchedules().filter((item) => item.id !== id));
+    return;
+  }
   await deleteDoc(doc(ref(uid), id));
 }
 

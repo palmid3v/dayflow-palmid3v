@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Copy, Download, Pencil, Plus, Trash2, X } from "lucide-react";
 import { auth } from "../../lib/firebase";
+import { DEMO_MODE, DEMO_UID } from "../../lib/demoMode";
 import { loadSchedules, removeSchedule, saveSchedule } from "./scheduleService";
 import { findOverlappingSchedules } from "./scheduleModel.js";
 import CalendarImportModule from "../calendar/CalendarImportModule";
@@ -8,7 +9,7 @@ import { downloadScheduleCalendar } from "./scheduleCalendarExport.js";
 const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const emptyDraft=()=>({subject:"",weekday:new Date().getDay(),start:"09:00",end:"10:00"});
 export default function ScheduleModule({ canUseCalendar = true }){
- const uid=auth?.currentUser?.uid; const [items,setItems]=useState([]); const [draft,setDraft]=useState(emptyDraft); const [editing,setEditing]=useState(null); const [view,setView]=useState("week"); const [selectedDay,setSelectedDay]=useState(new Date().getDay()); const [error,setError]=useState(""); const [pendingConflict,setPendingConflict]=useState(null);
+ const uid=auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null); const [items,setItems]=useState([]); const [draft,setDraft]=useState(emptyDraft); const [editing,setEditing]=useState(null); const [view,setView]=useState("week"); const [selectedDay,setSelectedDay]=useState(new Date().getDay()); const [error,setError]=useState(""); const [pendingConflict,setPendingConflict]=useState(null);
  useEffect(()=>{if(!uid)return undefined;loadSchedules(uid).then(setItems).catch(()=>setError("Unable to load your schedule."));return undefined;},[uid]);
  const grouped=useMemo(()=>DAYS.map((day,weekday)=>({day,weekday,items:items.filter(item=>item.weekday===weekday).sort((a,b)=>a.start.localeCompare(b.start))})),[items]);
  const visible=view==="week"?grouped:grouped.filter(group=>group.weekday===selectedDay);

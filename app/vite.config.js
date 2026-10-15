@@ -4,6 +4,11 @@ import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  // Vercel sets VERCEL_ENV to preview/production. Expose only this non-secret
+  // environment label so the local demo cannot be enabled on Production by mistake.
+  define: {
+    "import.meta.env.VITE_VERCEL_ENV": JSON.stringify(process.env.VERCEL_ENV ?? "")
+  },
   plugins: [
     react(),
     tailwindcss(),
