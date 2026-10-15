@@ -25,7 +25,7 @@ import {
   saveMemory
 } from "./lib/dayflowStore";
 import { createDailyMemory, createDailyResult } from "./domain/models";
-import { loadCachedTasks, loadTasks } from "./features/tasks/taskService";
+import { createTask, loadCachedTasks, loadTasks, saveTasks } from "./features/tasks/taskService";
 import { createReminder, isReminderCompletedForDate, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
 import { getNotificationSupport, notifyDueReminders, requestReminderNotificationPermission, showReminderNotification } from "./features/reminders/notificationService";
@@ -84,7 +84,9 @@ function App({ access, admin = false }) {
   const [plan, setPlan] = useState(() => getInitialPlan(today));
   const [note, setNote] = useState(() => getDayFlowState().notes?.[today] ?? "");
   const [reminders, setReminders] = useState(() => loadCachedReminders(auth?.currentUser?.uid).length ? loadCachedReminders(auth?.currentUser?.uid) : (getDayFlowState().reminders ?? []));
-  const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid));
+  const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null)));
+  const [quickTaskTitle, setQuickTaskTitle] = useState("");
+  const [taskActionError, setTaskActionError] = useState("");
   const theme = "dark";
   const canUse = useCallback((feature) => admin || access?.features?.[feature] === true, [admin, access?.features]);
   const [scheduleBlocks, setScheduleBlocks] = useState([]);
@@ -102,6 +104,7 @@ function App({ access, admin = false }) {
   const progress = progressTotal ? Math.round((completed / progressTotal) * 100) : 0;
   const todayReminders = remindersForDate(reminders, selectedDate);
   const openReminders = todayReminders.filter((reminder) => !reminder.occurrenceCompleted);
+  const visibleTasks = [...tasks].sort((a, b) => Number(a.completed) - Number(b.completed)).slice(0, 5);
 
   useEffect(() => {
     applyTheme();
