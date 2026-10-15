@@ -43,6 +43,7 @@ A skipped test is not a pass. A green static CI run is not production acceptance
 - [ ] Complete and reopen a task from Today; confirm the status is consistent in Tasks.
 - [ ] Simulate a task save failure and confirm the previous task list is restored with a visible error.
 - [ ] Confirm Dashboard reports total, open and overdue tasks from the current user's task cache.
+- [ ] Confirm high-priority and overdue labels are shown only when their conditions are true.
 - [ ] Verify the quick-add task field and completion buttons with keyboard navigation and narrow viewport.
 
 ## Critical Value Path
