@@ -44,6 +44,10 @@ A skipped test is not a pass. A green static CI run is not production acceptance
 - [ ] Confirm invalid files and files without events show a useful error without replacing the previous import.
 - [ ] Confirm clearing the import removes only imported calendar events, not recurring Schedule templates.
 - [ ] With Calendar access disabled, show an explicit access message rather than a missing/blank import area.
+- [ ] Confirm the imported-events month grid shows all-day birthdays on the correct date and repeats yearly events.
+- [ ] Confirm imported events are categorized from their title/description (birthday, appointment, meeting, holiday, travel, reminder, or general event).
+- [ ] Confirm month navigation, selected-day details, locations and descriptions work at desktop and mobile widths.
+- [ ] Confirm imported calendar view has no horizontal overflow at 320px, 768px, 1024px and wide desktop.
 
 ## Recent Today/Tasks/Dashboard usability checks
 
