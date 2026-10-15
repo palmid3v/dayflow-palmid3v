@@ -25,7 +25,8 @@ import {
   saveMemory
 } from "./lib/dayflowStore";
 import { createDailyMemory, createDailyResult } from "./domain/models";
-import { loadCachedTasks, loadTasks } from "./features/tasks/taskService";
+import { createTask, loadCachedTasks, loadTasks, saveTasks } from "./features/tasks/taskService";
+import { setTaskCompletion } from "./features/tasks/taskModel.js";
 import { createReminder, isReminderCompletedForDate, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
 import { getNotificationSupport, notifyDueReminders, requestReminderNotificationPermission, showReminderNotification } from "./features/reminders/notificationService";
@@ -84,7 +85,9 @@ function App({ access, admin = false }) {
   const [plan, setPlan] = useState(() => getInitialPlan(today));
   const [note, setNote] = useState(() => getDayFlowState().notes?.[today] ?? "");
   const [reminders, setReminders] = useState(() => loadCachedReminders(auth?.currentUser?.uid).length ? loadCachedReminders(auth?.currentUser?.uid) : (getDayFlowState().reminders ?? []));
-  const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid));
+  const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null)));
+  const [quickTaskTitle, setQuickTaskTitle] = useState("");
+  const [taskActionError, setTaskActionError] = useState("");
   const theme = "dark";
   const canUse = useCallback((feature) => admin || access?.features?.[feature] === true, [admin, access?.features]);
   const [scheduleBlocks, setScheduleBlocks] = useState([]);
@@ -102,6 +105,7 @@ function App({ access, admin = false }) {
   const progress = progressTotal ? Math.round((completed / progressTotal) * 100) : 0;
   const todayReminders = remindersForDate(reminders, selectedDate);
   const openReminders = todayReminders.filter((reminder) => !reminder.occurrenceCompleted);
+  const visibleTasks = [...tasks].sort((a, b) => Number(a.completed) - Number(b.completed)).slice(0, 5);
 
   useEffect(() => {
     applyTheme();
@@ -221,7 +225,7 @@ function App({ access, admin = false }) {
   }, [selectedDate, canUse]);
 
   useEffect(() => {
-    const uid = auth?.currentUser?.uid;
+    const uid = auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null);
     if (!uid || !canUse("tasks")) return undefined;
     let active = true;
     loadTasks(uid)
@@ -234,6 +238,42 @@ function App({ access, admin = false }) {
       window.removeEventListener("dayflow:tasks-change", refresh);
     };
   }, [canUse]);
+
+  async function persistTasks(nextTasks) {
+    const uid = auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null);
+    if (!uid) {
+      setTaskActionError("Your session is not ready. Refresh the page and try again.");
+      return false;
+    }
+    const previousTasks = tasks;
+    setTasks(nextTasks);
+    setTaskActionError("");
+    try {
+      await saveTasks(uid, nextTasks, previousTasks);
+      return true;
+    } catch (error) {
+      console.error("Unable to save Today task:", error);
+      setTasks(previousTasks);
+      setTaskActionError("The task was not saved. Your previous list has been restored; try again.");
+      return false;
+    }
+  }
+
+  async function addQuickTask(event) {
+    event.preventDefault();
+    const title = quickTaskTitle.trim();
+    if (!title) return;
+    const next = [createTask(title, { dueDate: selectedDate }), ...tasks];
+    if (await persistTasks(next)) setQuickTaskTitle("");
+  }
+
+  async function toggleQuickTask(task) {
+    const completed = !task.completed;
+    const next = tasks.map((item) => item.id === task.id
+      ? setTaskCompletion(item, completed)
+      : item);
+    await persistTasks(next);
+  }
 
   function updatePlan(nextBlocks) {
     const nextPlan = { ...plan, blocks: nextBlocks, updatedAt: new Date().toISOString() };
@@ -413,6 +453,18 @@ function App({ access, admin = false }) {
             <section className="mb-7 dayflow-task-queue">
               <SectionHeader title="To-Do" action="Open tasks" onClick={() => setTab("tasks")} />
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
+                {taskActionError && <p role="alert" className="mb-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-100">{taskActionError}</p>}
+                <form onSubmit={addQuickTask} className="mb-3 flex gap-2">
+                  <input
+                    value={quickTaskTitle}
+                    onChange={(event) => setQuickTaskTitle(event.target.value)}
+                    placeholder="Add a task for this day…"
+                    aria-label="New task title"
+                    required
+                    className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  />
+                  <button type="submit" className="grid min-h-10 min-w-10 place-items-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)]" aria-label="Create task"><Plus size={17}/></button>
+                </form>
                 {tasks.length === 0 ? (
                   <div className="flex items-center gap-3 px-2 py-3">
                     <Target size={19} className="text-[var(--text-muted)]" />
@@ -422,12 +474,24 @@ function App({ access, admin = false }) {
                   </div>
                 ) : (
                   <div className="grid gap-2">
-                    {tasks.slice(0, 5).map((task) => (
+                    {visibleTasks.map((task) => (
                       <div key={task.id} className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-sm">
-                        {task.completed ? <CheckCircle2 size={17} /> : <Circle size={17} className="text-[var(--text-muted)]" />}
-                        <span className={task.completed ? "text-[var(--text-muted)] line-through" : ""}>{task.title}</span>
+                        <button
+                          type="button"
+                          onClick={() => void toggleQuickTask(task)}
+                          className="grid size-8 shrink-0 place-items-center rounded-lg hover:bg-[var(--surface-muted)]"
+                          aria-label={task.completed ? `Reopen ${task.title}` : `Complete ${task.title}`}
+                          aria-pressed={task.completed}
+                        >
+                          {task.completed ? <CheckCircle2 size={17} className="text-[var(--success)]" /> : <Circle size={17} className="text-[var(--text-muted)]" />}
+                        </button>
+                        <span className={`min-w-0 flex-1 break-words ${task.completed ? "text-[var(--text-muted)] line-through" : ""}`}>{task.title}</span>
+                        {task.priority === "high" && !task.completed && <span className="label shrink-0 text-[var(--warning)]">HIGH</span>}
+                        {task.dueDate === selectedDate && <span className="label shrink-0">TODAY</span>}
+                        {task.dueDate && task.dueDate < today && !task.completed && <span className="label shrink-0 text-[var(--danger)]">OVERDUE</span>}
                       </div>
                     ))}
+                    {tasks.length > visibleTasks.length && <button type="button" onClick={() => setTab("tasks")} className="min-h-10 rounded-xl border border-dashed border-[var(--border)] text-xs text-[var(--text-muted)]">View all {tasks.length} tasks</button>}
                   </div>
                 )}
               </div>

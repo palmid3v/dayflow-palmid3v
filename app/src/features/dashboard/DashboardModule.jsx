@@ -1,4 +1,7 @@
-import { BarChart3, CheckCircle2, Flame, Target, TrendingUp } from "lucide-react";
+import { AlertCircle, BarChart3, CheckCircle2, Flame, ListTodo, Target, TrendingUp } from "lucide-react";
+import { auth } from "../../lib/firebase";
+import { DEMO_MODE, DEMO_UID } from "../../lib/demoMode";
+import { loadCachedTasks } from "../tasks/taskService";
 import { getDayFlowState } from "../../lib/dayflowStore";
 
 function dateKey(date) { return date.toLocaleDateString("en-CA"); }
@@ -60,6 +63,10 @@ function Metric({ icon, label, value, detail }) {
 
 export default function DashboardModule() {
   const state = getDayFlowState();
+  const tasks = loadCachedTasks(auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null));
+  const today = new Date().toLocaleDateString("en-CA");
+  const openTasks = tasks.filter((task) => !task.completed);
+  const overdueTasks = openTasks.filter((task) => task.dueDate && task.dueDate < today);
   const keys = daysBack(7).reverse();
   const summary = summarize(state, keys);
   const streak = calculateStreak(state);
@@ -80,6 +87,14 @@ export default function DashboardModule() {
         <Metric icon={<CheckCircle2 size={18} />} label="DAYS COMPLETED" value={summary.daysCompleted} detail="Fully completed days in the last 7" />
         <Metric icon={<Flame size={18} />} label="CURRENT STREAK" value={streak + "d"} detail="Consecutive fully completed days" />
       </div>
+      <section className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        <div className="mb-3"><p className="label">TASK LOAD</p><p className="mt-1 text-sm text-[var(--text-muted)]">Work still in front of you, alongside your daily execution.</p></div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Metric icon={<ListTodo size={18} />} label="TOTAL TASKS" value={tasks.length} detail="Across your task list" />
+          <Metric icon={<Target size={18} />} label="OPEN TASKS" value={openTasks.length} detail="Still to complete" />
+          <Metric icon={<AlertCircle size={18} />} label="OVERDUE" value={overdueTasks.length} detail="Open tasks past their due date" />
+        </div>
+      </section>
       <section className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
         <div className="flex items-center justify-between">
           <div><p className="label">WEEKLY CONSISTENCY</p><p className="mt-1 text-sm text-[var(--text-muted)]">Days with meaningful execution</p></div>

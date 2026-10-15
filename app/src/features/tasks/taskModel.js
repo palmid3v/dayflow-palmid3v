@@ -37,6 +37,15 @@ export function normalizeTaskRecord(task, fallbackId = "") {
  * Keep the task's canonical ID consistent with its Firestore document path.
  * Existing To-Do writes URL-encode IDs for use as document IDs.
  */
+export function setTaskCompletion(task, completed, updatedAt = new Date().toISOString()) {
+  return normalizeTaskRecord({
+    ...task,
+    completed: Boolean(completed),
+    status: completed ? "completed" : "active",
+    updatedAt
+  });
+}
+
 export function normalizeTaskDocument(documentId, data) {
   const docId = String(documentId ?? "");
   const decodedId = decodeDocumentId(docId);
