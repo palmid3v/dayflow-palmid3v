@@ -67,7 +67,7 @@ export default function AuthGate({ children }) {
     const demoAccess = {
       status: "active",
       apps: { dayflow: true },
-      features: { tasks: true, schedule: true, calendar: true, reminders: true, memory: true }
+      features: { tasks: true, schedule: true, calendar: false, reminders: true, memory: true }
     };
     return (
       <>
