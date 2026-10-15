@@ -181,13 +181,30 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 /* Desktop retro workstation layout; mobile keeps the floating bottom bar. */
 @media (min-width: 1024px) {
   .mobile-nav {
-    position: fixed !important; inset: 0 auto 0 0 !important;
-    width: 224px !important; max-width: 224px !important; height: 100dvh;
-    transform: none !important; display: flex !important; flex-direction: column;
-    align-items: stretch; gap: .45rem; border-radius: 0 !important;
+    position: fixed !important;
+    inset-block: 0 !important;
+    inset-inline-start: 0 !important;
+    inset-inline-end: auto !important;
+    width: 224px !important;
+    min-width: 224px !important;
+    max-width: 224px !important;
+    height: 100dvh;
+    box-sizing: border-box !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transform: none !important;
+    translate: 0 0 !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .45rem;
+    border-radius: 0 !important;
     border-top: 0; border-bottom: 0; border-left: 0;
-    padding: 1.25rem 1rem !important; background: var(--bg-soft) !important;
-    box-shadow: none !important; backdrop-filter: none !important;
+    padding: 1.25rem 1rem !important;
+    background: var(--bg-soft) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    z-index: 50 !important;
   }
   .mobile-nav::before {
     content: "DAYFLOW_\A PALMI-D3V"; display: block; white-space: pre;
@@ -214,12 +231,26 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
     color: var(--accent);
   }
   .app-shell {
-    width: auto !important; max-width: none !important; margin-left: 224px !important;
-    margin-right: 0 !important; padding: 34px clamp(20px, 2.5vw, 44px) 42px !important;
+    width: calc(100% - 224px) !important;
+    max-width: none !important;
+    margin-left: 224px !important;
+    margin-right: 0 !important;
+    padding: 34px clamp(20px, 2.5vw, 44px) 42px !important;
+    min-width: 0;
   }
   .app-shell[data-active-tab="today"] {
-    display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(330px, .9fr);
-    column-gap: 18px; align-content: start;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(320px, .9fr);
+    column-gap: 18px;
+    align-content: start;
+    align-items: start;
+    grid-auto-flow: row;
+  }
+  .app-shell[data-active-tab="today"] > * { min-width: 0; }
+  .app-shell[data-active-tab="today"] .dayflow-quick-block {
+    align-self: start;
+    height: fit-content;
+    min-height: 0;
   }
   .app-shell[data-active-tab="today"] > header { grid-column: 1 / -1; }
   .app-shell[data-active-tab="today"] .dayflow-progress { grid-column: 1 / -1; }
@@ -235,7 +266,8 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 }
 @media (min-width: 1440px) {
   .app-shell[data-active-tab="today"] {
-    grid-template-columns: minmax(0, 1.35fr) minmax(360px, .9fr); column-gap: 22px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(360px, .9fr);
+    column-gap: 22px;
   }
 }
 
