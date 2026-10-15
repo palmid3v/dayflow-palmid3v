@@ -190,13 +190,13 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
     box-shadow: none !important; backdrop-filter: none !important;
   }
   .mobile-nav::before {
-    content: "DAYFLOW_\\A PALMI-D3V"; display: block; white-space: pre;
+    content: "DAYFLOW_\A PALMI-D3V"; display: block; white-space: pre;
     margin: 1rem .25rem 1.25rem; padding-bottom: 1.25rem;
     border-bottom: 1px solid var(--border); color: var(--text);
     font: 700 15px/1.8 var(--font-mono); letter-spacing: .12em;
   }
   .mobile-nav::after {
-    content: "PLAN · FOCUS · GROW\\A WORKSPACE READY"; display: block; white-space: pre;
+    content: "PLAN · FOCUS · GROW\A WORKSPACE READY"; display: block; white-space: pre;
     margin-top: auto; border: 1px solid var(--border); border-radius: 12px;
     padding: 14px 10px; color: var(--text-muted); font: 10px/1.8 var(--font-mono);
     letter-spacing: .07em;
