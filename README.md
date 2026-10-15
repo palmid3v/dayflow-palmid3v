@@ -1,89 +1,68 @@
-# 🌊 DayFlow — PALMI-D3V Productivity
+# DayFlow — PALMI-D3V Productivity
 
-DayFlow is the single productivity application for the PALMI-D3V ecosystem.
+DayFlow is the canonical application for the PALMI-D3V productivity suite. Tasks, recurring schedules, daily planning, reminders, review, calendar imports, dashboard and memory belong in one React/Vite/PWA frontend using Firebase Authentication and Cloud Firestore.
 
-Tasks, recurring schedules, daily planning, reminders, review, and memory live inside one React/Vite application backed by one Firebase Authentication identity and one Cloud Firestore database.
+## Current direction
 
-> Current status: unified product architecture and production-readiness tooling are implemented through Phase 18. DayFlow includes automated validation, Critical Value Path (CVP), production E2E, Interactive Product Verification (IPV) guidance, PWA/responsive checks, and release evidence requirements. To-Do and Timetable are migration/rollback sources only; they are no longer runtime dependencies of DayFlow.
+- DayFlow is the application users launch.
+- To-Do and Timetable remain migration/rollback sources until their stored data, permissions, integrations, deployments and history are verified.
+- Their functions are being consolidated into DayFlow feature modules; their separate frontends are not runtime dependencies.
+- Keep the Firebase JS SDK and current host toolchain stable during migration. Do not add paid infrastructure as a requirement.
+- $0 is a hard operating constraint: avoid mandatory paid services and do not assume Cloud Functions email delivery can remain active without an approved free alternative.
 
-## PALMI-D3V Validation Framework
+The architecture and much of the feature structure are already present. Unification is **not considered complete** until the migration risks and release gates documented in app/docs/audits/UNIFICATION-AUDIT-2026-10.md are closed.
 
-DayFlow is the reference implementation of the reusable PALMI-D3V Validation Framework.
+## Architecture
 
-Canonical framework documents:
+    DayFlow
+    ├── Today / daily execution
+    ├── Tasks
+    ├── Schedule / recurring blocks
+    ├── Calendar (ICS)
+    ├── Reminders
+    ├── Memory / daily review
+    ├── Dashboard
+    └── Shared Firebase Auth, Firestore repositories and access policy
 
-- validation/PALMI-D3V_VALIDATION_FRAMEWORK.md — validation levels, terminology, gates, and evidence.
-- validation/PALMI-D3V_AGENT_WORKFLOW.md — implementation-agent workflow.
-- validation/PROJECT_VALIDATION_PROFILE.template.json — reusable project profile contract.
-- validation/README.md — framework entry point.
+Canonical data is user-scoped. Keep users/{uid}/tasks/{taskId} as the task collection and use task IDs for references instead of duplicating task documents. Schedule records remain in their own collections. DayFlow currently uses dayflowPlans, dayflowResults, dayflowMemories, dayflowReminders and calendar import/event paths; legacy nested paths must be inventoried before migration or retirement.
 
-The framework separates:
+## Validation
 
-- CVP — critical journeys that prove core product value.
-- E2E — complete workflows across the application boundary.
-- IPV — Interactive Product Verification, where a human or agent operates the UI and verifies visible behavior.
-- Production Acceptance — deployed-release verification, evidence, and rollback readiness.
+From app/:
 
-### DayFlow validation commands
-
-From app:
-
+    npm ci
     npm run validate:static
     npm run test:cvp
     npm run test:e2e
     npm run validate
 
-npm run validate is the main automated release runner: Unit → Lint → Build → CVP → Full Production E2E.
+npm run validate:static covers unit tests, lint and production build. The full npm run validate additionally requires a dedicated QA account or a stored Playwright authentication state for CVP and full E2E. A CI run that skips those tests is not evidence that the complete user journeys passed.
 
-IPV remains an explicit release gate for UI/UX behavior that automated assertions cannot fully prove.
-
-## Production readiness
-
-Key validation tooling:
-
-- app/scripts/Validate-ProductionReadiness.ps1
-- app/scripts/Validate-CVPProfile.ps1
-- app/scripts/validate.mjs
-- app/cvp/DAYFLOW_PROFILE.json
-- app/docs/QA_MATRIX.md
-- app/docs/RELEASE_CHECKLIST.md
-
-Validators do not store or print secrets and do not claim Firebase deployment without deployment evidence.
+Release acceptance also requires Firebase Rules tests, manual Interactive Product Verification, responsive/keyboard/reduced-motion checks, deployment evidence and a rollback procedure.
 
 ## Development
 
     cd app
     npm install
     npm run dev
-
-### Validation
-
-    npm run validate:static
-
-For the complete automated suite, configure a dedicated QA account and run:
-
-    npm run validate
-
-For profile validation:
-
-    .\scripts\Validate-CVPProfile.ps1
-    .\scripts\Validate-CVPProfile.ps1 -RunCommands
+    npm run lint
+    npm run build
 
 ## Migration repositories
 
-The previous repositories remain migration/rollback sources until retirement is explicitly approved:
+- [To-Do](https://github.com/palmid3v/to-do-palmid3v)
+- [Timetable](https://github.com/palmid3v/timetable-palmid3v)
 
-- palmid3v/to-do-palmid3v
-- palmid3v/timetable-palmid3v
+Do not delete or archive these until functionality, data, history, active deployments and integrations have been verified. Preserve rollback capability during consolidation.
 
-They are not runtime dependencies of DayFlow. Retirement requires dependency/reference/deployment verification and preservation of required history before deletion.
+## Core documents
 
-## Phases 15–18
-
-- Phase 15 — CVP: automated validation, E2E coverage, production validation prerequisites, and release hardening.
-- Phase 16 — Production Readiness: deployment gates, smoke evidence, PWA/runtime checks, Firebase/Vercel verification, and rollback readiness.
-- Phase 17 — CVP Platform Foundation: machine-readable DayFlow validation profile and profile-driven structural validation.
-- Phase 18 — PALMI-D3V Validation Framework: reusable validation contract, agent workflow, explicit IPV terminology, profile template, and DayFlow reference implementation.
+- app/docs/audits/UNIFICATION-AUDIT-2026-10.md — source-level findings and migration sequence.
+- app/docs/design/RETRO-DARK-DESIGN-SYSTEM.md — visual system and interaction rules.
+- app/docs/DEVELOPMENT-WORKFLOW.md — single-owner implementation and release process.
+- app/docs/QA_MATRIX.md — automated and manual verification.
+- app/docs/RELEASE_CHECKLIST.md — deployment and rollback acceptance.
+- validation/PALMI-D3V_VALIDATION_FRAMEWORK.md — validation levels and evidence contract.
 
 ---
 

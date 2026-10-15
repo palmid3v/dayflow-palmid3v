@@ -6,83 +6,52 @@
 - Ecosystem: PALMI-D3V productivity suite
 - Role: Single productivity application and center of operations
 - Developer: PALMI-D3V
+- Last context review: 2026-10-15
 
 ## Product architecture
 
-DayFlow is the only active PALMI-D3V productivity application.
+DayFlow is the only intended runtime productivity application. Tasks, recurring schedule, daily planning, calendar imports, reminders, review, dashboard and memory are internal modules in one React/Vite/PWA application.
 
-Internal domains:
-- Tasks
-- Schedule
-- Daily Flow
-- Reminders
-- Review
-- Memory
+To-Do and Timetable remain migration/rollback sources until functionality, actual Firestore data, permissions, deployed functions, domains and history have been reconciled. Do not delete them during feature integration.
 
-To-Do and Timetable repositories remain migration sources during the transition. They are not active application dependencies.
+## Canonical data model
 
-## Data ownership
+One Firebase Authentication identity and one Cloud Firestore project. User data must remain scoped to users/{uid}.
 
-One Firebase project, one authenticated user, one Firestore database.
+    users/{uid}/tasks/{taskId}
+    users/{uid}/timetableTemplates/{templateId}
+    users/{uid}/timetableOccurrences/{occurrenceId}   # legacy inventory required
+    users/{uid}/timetableSettings/{document}           # legacy inventory required
+    users/{uid}/timetableExternalLinks/{document}      # legacy inventory required
+    users/{uid}/dayflowPlans/{dateKey}
+    users/{uid}/dayflowResults/{dateKey}
+    users/{uid}/dayflowMemories/{dateKey}
+    users/{uid}/dayflowReminders/current
+    users/{uid}/dayflowCalendarImports/current
+    users/{uid}/dayflowImportedCalendarEvents/{eventId}
 
-```text
-users/{uid}/tasks/{taskId}
-users/{uid}/timetableTemplates/{templateId}
-users/{uid}/timetableOccurrences/{occurrenceId}
-users/{uid}/timetableSettings/{document}
-users/{uid}/timetableExternalLinks/{document}
+Firestore is the cloud source of truth. LocalStorage is a cache/recovery layer. Tasks remain in one canonical collection and other domains reference task IDs instead of duplicating task documents.
 
-users/{uid}/dayflow/plans/{dateKey}
-users/{uid}/dayflow/results/{dateKey}
-users/{uid}/dayflow/memories/{dateKey}
-users/{uid}/dayflow/reminders/{reminderId}
-```
+## Engineering constraints
 
-Tasks and recurring schedules are now consumed directly by DayFlow. No popup, postMessage bridge, duplicate authoritative store, or second frontend is required.
+- Budget target: $0 mandatory service spend.
+- Firebase Auth and Cloud Firestore remain the identity/persistence backend.
+- Do not depend on scheduled Cloud Functions/Resend email delivery under the strict $0 requirement; prefer an on-demand in-app summary.
+- Do not add libraries for animations that simple CSS transitions can provide.
+- Respect reduced-motion preferences, visible keyboard focus, mobile-safe touch targets and readable contrast.
+- Treat production Firestore migration and Rules deployment as controlled changes with backups, emulator tests and rollback.
+- Keep legacy repositories available until the new release has passed data, security, E2E, PWA and production acceptance.
 
-## Current state
+## Branch/release note
 
-- Unified DayFlow frontend: implemented
-- Native Tasks domain: implemented
-- Native Schedule domain: implemented
-- Shared Firestore access: implemented
-- Legacy To-Do bridge: removed
-- Legacy repositories: preserved externally for migration/rollback
-- Shared authentication: implemented
-- Email verification: implemented
-- App access control: implemented
-- PWA foundation: implemented
-
-## Structure rule
-
-Prefer the smallest useful structure.
-
-```text
-app/src/
-├── components/       # shared app/auth UI
-├── features/
-│   ├── tasks/        # task domain
-│   └── schedule/     # recurring schedule domain
-├── domain/           # DayFlow daily models
-└── lib/              # shared Firebase + DayFlow persistence
-```
-
-Do not create another application for a new productivity capability when it can be an internal DayFlow feature.
+PR #30 is an unmerged draft proposing consolidation hardening and retro-dark UI work. The default branch remains canonical until the PR is accepted. Its static CI has passed, but authenticated CVP/E2E were skipped because QA credentials were not configured.
 
 ## Development
 
-```bash
-cd app
-npm install
-npm run dev
-npm run lint
-npm run build
-```
-
-## Migration rule
-
-Existing To-Do and Timetable repositories are migration sources only. Do not delete them as part of this codebase change. The owner will remove/archive them after the unified DayFlow application has been validated.
-
-## Future integrations
-
-Google Calendar, email, notifications, and other external services belong behind DayFlow integration adapters. External providers are never the source of truth for PALMI-D3V productivity data.
+    cd app
+    npm ci
+    npm run dev
+    npm run test
+    npm run lint
+    npm run build
+    npm run validate:static

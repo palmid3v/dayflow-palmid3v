@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import {
   BarChart3,
   BookOpen,
@@ -25,12 +25,8 @@ import {
   saveMemory
 } from "./lib/dayflowStore";
 import { createDailyMemory, createDailyResult } from "./domain/models";
-import TaskModule from "./features/tasks/TaskModule";
-import ScheduleModule from "./features/schedule/ScheduleModule";
 import { loadCachedTasks, loadTasks } from "./features/tasks/taskService";
 import { createReminder, isReminderCompletedForDate, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
-import MemoryModule from "./features/memory/MemoryModule";
-import DashboardModule from "./features/dashboard/DashboardModule";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
 import { getNotificationSupport, notifyDueReminders, requestReminderNotificationPermission, showReminderNotification } from "./features/reminders/notificationService";
 import { calendarEventsToDailyBlocks, loadImportedCalendarEvents } from "./features/calendar/calendarService";
@@ -42,6 +38,11 @@ import {
   saveRemindersCloud,
   synchronizeDayFlow
 } from "./lib/dayflowCloudStore";
+
+const TaskModule = lazy(() => import("./features/tasks/TaskModule.jsx"));
+const ScheduleModule = lazy(() => import("./features/schedule/ScheduleModule.jsx"));
+const MemoryModule = lazy(() => import("./features/memory/MemoryModule.jsx"));
+const DashboardModule = lazy(() => import("./features/dashboard/DashboardModule.jsx"));
 
 const navItems = [
   [Home, "today", "Today"],
@@ -84,7 +85,7 @@ function App({ access, admin = false }) {
   const [reminders, setReminders] = useState(() => loadCachedReminders(auth?.currentUser?.uid).length ? loadCachedReminders(auth?.currentUser?.uid) : (getDayFlowState().reminders ?? []));
   const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid));
   const theme = "dark";
-  const canUse = (feature) => admin || access?.features?.[feature] === true;
+  const canUse = useCallback((feature) => admin || access?.features?.[feature] === true, [admin, access?.features]);
   const [scheduleBlocks, setScheduleBlocks] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));
@@ -147,7 +148,7 @@ function App({ access, admin = false }) {
     return () => {
       cancelled = true;
     };
-  }, [today]);
+  }, [today, canUse]);
 
   useEffect(() => {
     if (!canUse("reminders")) return undefined;
@@ -159,7 +160,7 @@ function App({ access, admin = false }) {
     checkDueReminders();
     const interval = window.setInterval(checkDueReminders, 15000);
     return () => window.clearInterval(interval);
-  }, [reminders, admin, access]);
+  }, [reminders, canUse]);
 
   async function enableReminderNotifications() {
     const permission = await requestReminderNotificationPermission();
@@ -216,7 +217,7 @@ function App({ access, admin = false }) {
       window.removeEventListener("dayflow:calendar-change", refresh);
       window.removeEventListener("dayflow:schedule-change", refresh);
     };
-  }, [selectedDate]);
+  }, [selectedDate, canUse]);
 
   useEffect(() => {
     const uid = auth?.currentUser?.uid;
@@ -231,7 +232,7 @@ function App({ access, admin = false }) {
       active = false;
       window.removeEventListener("dayflow:tasks-change", refresh);
     };
-  }, []);
+  }, [canUse]);
 
   function updatePlan(nextBlocks) {
     const nextPlan = { ...plan, blocks: nextBlocks, updatedAt: new Date().toISOString() };
@@ -327,7 +328,7 @@ function App({ access, admin = false }) {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <div className="app-shell min-h-screen text-[var(--text)]">
+      <div className="app-shell min-h-screen text-[var(--text)]" data-active-tab={tab}>
         {cloudError && (
           <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200" role="status">
             {cloudError}
@@ -356,7 +357,7 @@ function App({ access, admin = false }) {
 
         {tab === "today" && (
           <>
-            <section className="mb-7 rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+            <section className="mb-7 dayflow-progress rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="label">TODAY'S FLOW</p>
@@ -372,7 +373,7 @@ function App({ access, admin = false }) {
               </div>
             </section>
 
-            <section className="mb-7">
+            <section className="mb-7 dayflow-runsheet">
               <SectionHeader title={selectedDate === today ? "Today" : formatDate(selectedDate)} action="View calendar" onClick={() => setTab("calendar")} />
               <div className="relative ml-9 border-l border-[var(--border)]">
                 {visibleBlocks.map((block) => (
@@ -382,7 +383,7 @@ function App({ access, admin = false }) {
               </div>
             </section>
 
-            <section className="mb-7 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
+            <section className="mb-7 dayflow-quick-block rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
               <form onSubmit={(event) => {
                 event.preventDefault();
                 const title = quickBlockTitle.trim();
@@ -395,7 +396,7 @@ function App({ access, admin = false }) {
               </form>
             </section>
 
-            {canUse("reminders") && <section id="dayflow-reminders" className="mb-7">
+            {canUse("reminders") && <section id="dayflow-reminders" className="mb-7 dayflow-reminders">
               <SectionHeader title="Reminders" action={`${openReminders.length} open`} onClick={() => document.getElementById("dayflow-reminders")?.scrollIntoView({ behavior: "smooth", block: "start" })} />
               <ReminderPanel
                 reminders={todayReminders}
@@ -408,7 +409,7 @@ function App({ access, admin = false }) {
               />
             </section>}
 
-            <section className="mb-7">
+            <section className="mb-7 dayflow-task-queue">
               <SectionHeader title="To-Do" action="Open tasks" onClick={() => setTab("tasks")} />
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
                 {tasks.length === 0 ? (
@@ -435,10 +436,12 @@ function App({ access, admin = false }) {
           </>
         )}
 
-        {tab === "dashboard" && <DashboardModule />}
-        {tab === "calendar" && canUse("schedule") && <ScheduleModule canUseCalendar={canUse("calendar")} />}
-        {tab === "tasks" && canUse("tasks") && <TaskModule onTasksChange={setTasks} />}
-        {tab === "memory" && canUse("memory") && <MemoryModule />}
+        <Suspense fallback={<div className="surface p-5 text-sm text-[var(--text-muted)]" role="status">Loading module…</div>}>
+          {tab === "dashboard" && <DashboardModule />}
+          {tab === "calendar" && canUse("schedule") && <ScheduleModule canUseCalendar={canUse("calendar")} />}
+          {tab === "tasks" && canUse("tasks") && <TaskModule onTasksChange={setTasks} />}
+          {tab === "memory" && canUse("memory") && <MemoryModule />}
+        </Suspense>
 
         {showSettings && (
           <SettingsDialog onClose={() => setShowSettings(false)} />
@@ -570,7 +573,7 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd, notificationPermi
 
 function MemoryCard({ note, saved, onChange, onSave, summary }) {
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
+    <section className="dayflow-memory-card rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
       <div className="flex gap-3">
         <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface-muted)]"><BookOpen size={19} /></div>
         <div className="flex-1">
@@ -589,7 +592,7 @@ function MemoryCard({ note, saved, onChange, onSave, summary }) {
 
 function SettingsDialog({ onClose }) {
   return (
-    <div className="fixed inset-0 z-20 grid place-items-end bg-black/50 p-3 sm:place-items-center" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div className="fixed inset-0 z-50 grid place-items-end bg-black/50 p-3 sm:place-items-center" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-2xl">
         <div className="mb-5 flex items-center justify-between">
           <div><p className="label">DAYFLOW</p><h2 id="settings-title" className="mt-1 text-xl font-bold">Settings</h2></div>

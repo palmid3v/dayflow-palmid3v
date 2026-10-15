@@ -124,17 +124,17 @@ service cloud.firestore {
     }
 
     match /users/{uid}/timetableOccurrences/{occurrenceId} {
-      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
+      allow read, write: if (canUseApp("timetable") || canUseDayFlowFeature("schedule")) &&
         request.auth.uid == uid;
     }
 
     match /users/{uid}/timetableSettings/{document} {
-      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
+      allow read, write: if (canUseApp("timetable") || canUseDayFlowFeature("schedule")) &&
         request.auth.uid == uid;
     }
 
     match /users/{uid}/timetableExternalLinks/{document} {
-      allow read, write: if (canUseApp("timetable") || canUseUnifiedDayFlow()) &&
+      allow read, write: if (canUseApp("timetable") || canUseDayFlowFeature("schedule")) &&
         request.auth.uid == uid;
     }
 

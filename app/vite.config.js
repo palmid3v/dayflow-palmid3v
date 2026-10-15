@@ -21,8 +21,8 @@ export default defineConfig({
         start_url: "/",
         scope: "/",
         description: "Plan, do, track, remember.",
-        theme_color: "#090a0d",
-        background_color: "#090a0d",
+        theme_color: "#0A0C10",
+        background_color: "#0A0C10",
         display: "standalone",
         orientation: "portrait-primary",
         icons: [
@@ -31,5 +31,18 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Keep Firebase's SDK surface in cacheable vendor chunks rather than
+        // merging it into the DayFlow application entry.
+        manualChunks(id) {
+          if (id.includes("/node_modules/@firebase/firestore/")) return "firebase-firestore";
+          if (id.includes("/node_modules/@firebase/auth/")) return "firebase-auth";
+          if (id.includes("/node_modules/@firebase/")) return "firebase-shared";
+        }
+      }
+    }
+  }
 });

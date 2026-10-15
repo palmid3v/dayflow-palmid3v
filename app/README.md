@@ -1,75 +1,62 @@
-# 🌊 DayFlow — App
+# DayFlow — Application
 
-Active PALMI-D3V daily-orchestration application.
+DayFlow is the single application for PALMI-D3V productivity. To-Do and Timetable are legacy migration/rollback sources, not runtime applications.
 
-## 🎨 Mini mockup
+## Product modules
 
-~~~text
-┌──────────────────────────────────────┐
-│ 🌊 Thursday · Your day, in one flow │
-├──────────────────────────────────────┤
-│ 72%  TODAY'S FLOW                    │
-│ 08:00 🏋️ Training          ✓         │
-│ 10:00 💻 Deep work         ✓         │
-│ 13:00 🍽️ Lunch             →         │
-│ 16:00 🚀 Project            →         │
-│                                      │
-│ 🔔 Reminders   📝 Memory   ✅ Tasks  │
-└──────────────────────────────────────┘
-~~~
+- **Today:** daily plan, chronological blocks, execution state and review.
+- **Tasks:** task lifecycle, priorities, due dates, completion and filters.
+- **Schedule:** recurring templates, time blocks and schedule-to-day conversion.
+- **Calendar:** ICS import and event display.
+- **Reminders:** browser notifications while the application is open.
+- **Memory:** daily result and note.
+- **Dashboard:** summary of personal activity.
+- **Settings / access:** Firebase session and feature-level access.
 
-## Phase status
+## Data ownership
 
-- Product / Phase 1: ✅
-- UX/UI / Phase 2: ✅
-- Architecture & data / Phase 3: ✅
-- Shared Firebase identity + email verification: ✅
-- App-level access gate: ✅
-- Shared backend/external integrations: ⏸️ next phase
+Firebase Authentication is the identity boundary. Cloud Firestore is the cloud source of truth, scoped by user ID. LocalStorage is a cache/recovery layer and must not become a competing authoritative database.
 
-See docs/PHASES_1_3.md.
+Canonical collections currently used by DayFlow include:
 
-## Ownership
+    users/{uid}/tasks/{taskId}
+    users/{uid}/timetableTemplates/{templateId}
+    users/{uid}/timetableOccurrences/{occurrenceId}
+    users/{uid}/timetableSettings/{document}
+    users/{uid}/timetableExternalLinks/{document}
+    users/{uid}/dayflowPlans/{dateKey}
+    users/{uid}/dayflowResults/{dateKey}
+    users/{uid}/dayflowMemories/{dateKey}
+    users/{uid}/dayflowReminders/{documentId}
+    users/{uid}/dayflowCalendarImports/{documentId}
+    users/{uid}/dayflowImportedCalendarEvents/{eventId}
 
-DayFlow owns daily plans, reminders, execution tracking, daily review and memory.
+Do not rename or delete legacy paths until the deployed backend and actual stored records have been inventoried. Reconcile schema differences explicitly and keep migrations idempotent.
 
-To-Do owns tasks. Timetable owns recurring schedules and occurrences.
+## Architecture
 
-## Data model
+    src/
+    ├── components/    # auth and shared access UI
+    ├── features/
+    │   ├── calendar/
+    │   ├── dashboard/
+    │   ├── memory/
+    │   ├── reminders/
+    │   ├── schedule/
+    │   └── tasks/
+    ├── domain/        # daily plan/result/memory models
+    └── lib/           # Firebase, access and DayFlow persistence
 
-~~~text
-users/{uid}/dayflow/plans/{dateKey}
-users/{uid}/dayflow/results/{dateKey}
-users/{uid}/dayflow/memories/{dateKey}
-users/{uid}/dayflow/reminders/{id}
-~~~
+## Development
 
-References use taskId and future occurrenceId; source applications remain authoritative.
+    npm install
+    npm run dev
+    npm run lint
+    npm test
+    npm run build
 
-## Current modules
+## Current release status
 
-- src/App.jsx — daily orchestration UI
-- src/lib/dayflowStore.js — local state persistence/recovery
-- src/lib/dayflowCloudStore.js — Firestore persistence and synchronization
-- src/lib/todoAdapter.js — read-only To-Do bridge
-- src/domain/models.js — execution/result/memory models
-- src/lib/firebase.js — Firebase boundary
-- src/lib/access.js — shared PALMI-D3V app access
-- Authentication UX includes visible Sign out in all relevant auth states
+The unification target is DayFlow. Before retiring the legacy repositories, verify real Firestore data, feature-level security rules, the former weekly-summary function, production environment configuration, authenticated E2E, PWA update behavior and rollback evidence. A successful static CI run alone is not production acceptance.
 
-## Persistence
-
-Authenticated DayFlow sessions restore cloud data before the main UI becomes interactive. Local `DAYFLOW` storage remains the recovery/cache layer if cloud synchronization fails.
-
-## Weekly summary
-
-DayFlow records are consumed by the shared weekly summary backend in the Timetable repository.
-
-## Commands
-
-~~~bash
-npm install
-npm run dev
-npm run lint
-npm run build
-~~~
+See docs/audits/UNIFICATION-AUDIT-2026-10.md, docs/design/RETRO-DARK-DESIGN-SYSTEM.md, docs/QA_MATRIX.md and docs/RELEASE_CHECKLIST.md.
