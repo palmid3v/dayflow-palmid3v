@@ -118,7 +118,7 @@ export function classifyCalendarEvent(event = {}) {
     ...(Array.isArray(event.categories) ? event.categories : [])
   ].filter(Boolean).join(" ").toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-  if (/\b(birthday|birthdays|cumpleaños|cumpleanos|aniversario)\b/.test(text)) return "birthday";
+  if (/\b(birthday|birthdays|cumpleanos|aniversario)\b/.test(text)) return "birthday";
   if (/\b(appointment|appt|cita|doctor|dentist|consulta|entrevista)\b/.test(text)) return "appointment";
   if (/\b(meeting|reunión|reunion|junta|sync|stand.?up|call|llamada)\b/.test(text)) return "meeting";
   if (/\b(holiday|festivo|feriado|vacation|vacaciones|día libre|dia libre)\b/.test(text)) return "holiday";
