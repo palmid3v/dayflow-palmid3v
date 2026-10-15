@@ -1,11 +1,11 @@
-# PALMI-D3V Validation Workflow
+# PALMI-D3V Single-owner Validation Workflow
 
-Use validation/PALMI-D3V_VALIDATION_FRAMEWORK.md as the canonical validation contract and validation/PALMI-D3V_AGENT_WORKFLOW.md as the implementation workflow.
+Use validation/PALMI-D3V_VALIDATION_FRAMEWORK.md as the canonical validation contract and validation/PALMI-D3V_SOLO_WORKFLOW.md as the implementation workflow.
 
-Before changing code, read the project validation profile and identify affected validation levels.
+One responsible maintainer owns implementation, tests and release sign-off. Do not establish a multi-agent team.
 
-Before release, execute the required automated validation, CVP, E2E, Interactive Product Verification (IPV), production acceptance, and rollback evidence gates declared by the project profile.
+Before implementation, inspect the project profile, current branch and affected code. Add tests for deterministic changes. Before release, run static validation, build, Firestore Rules Emulator tests, CVP, authenticated E2E, manual IPV/IST and deployment/rollback checks.
 
-Never claim PASS without execution or explicit CI evidence. Keep secrets out of source, profiles, logs, and reports.
+Never claim PASS without execution or explicit CI evidence. A SKIP is not a PASS. Keep secrets and production user data out of source, logs and reports.
 
-Never retire a legacy repository without proving that the active project no longer depends on its code, documentation, CI, deployment, environment variables, or external integrations.
+Never retire a legacy repository until its code, docs, CI, deployment, environment, data paths, scheduled functions and external integrations are proven unnecessary.

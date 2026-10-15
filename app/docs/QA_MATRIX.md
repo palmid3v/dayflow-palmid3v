@@ -8,32 +8,34 @@
 | V1 Domain Validation | npm test |
 | V2 Static Quality | npm run lint |
 | V3 Build / Artifact | npm run build + PWA generation |
-| V4 Integration | Firebase/auth/access checks |
+| V4 Integration | Firebase/auth/access checks and Firestore Emulator Rules tests |
 | V5 CVP | npm run test:cvp |
 | V6 E2E | npm run test:e2e |
-| V7 IPV / IST | Human or agent interactive UI verification |
+| V7 IPV / IST | Interactive verification by the responsible maintainer |
 | V8 Production Acceptance | deployment + smoke + PWA/responsive + rollback evidence |
 
 ## Automated validation
 
-Run:
+Run from app/:
 
-    cd app
     npm ci
     npm run validate:static
 
-With a dedicated QA account:
+With a dedicated QA account, or a valid local Playwright auth state:
 
     npm run validate
 
-Current automated suite:
+## Current status — consolidation branch
 
-- Unit: 11/11 tests.
-- Lint: 0 errors; warnings are reported.
-- Production build: PASS.
-- PWA generation: PASS.
-- CVP: PASS.
-- Full production E2E: PASS.
+Use the linked GitHub Actions run as the source of truth for the commit being evaluated. The previously recorded static validation at commit 086ae30854e52b3a2770ba4b5028d4b80c6602b6 passed unit tests (20/20), lint, production build, and PWA generation. Subsequent changes added task ID normalization tests and minor UI/accessibility refinements; confirm the newest run before using a test count for release evidence.
+
+- CVP: **SKIP** when QA credentials are not configured.
+- Authenticated production E2E: **SKIP** when QA credentials are not configured.
+- Firestore Rules Unit Testing in the Emulator Suite: pending.
+- Production data reconciliation and migration proof: pending.
+- Manual IPV/IST for desktop/mobile, keyboard, reduced motion and PWA update behavior: pending.
+
+A skipped test is not a pass. A green static CI run is not production acceptance.
 
 ## Critical Value Path
 
@@ -48,85 +50,45 @@ The automated scenarios live in app/e2e/cvp.spec.mjs.
 
 ## Full production E2E
 
-The production E2E covers:
-
-- authentication and Today;
-- Today block CRUD;
-- Tasks CRUD;
-- Schedule CRUD;
-- calendar .ics import/clear;
-- reminders and notification behavior;
-- Daily Memory;
-- Dashboard;
-- Admin Access Manager;
-- Settings/session controls;
-- browser/runtime error collection.
+The production E2E covers authentication and Today, Today block CRUD, Tasks CRUD, Schedule CRUD, calendar .ics import/clear, reminders/notification behavior, Daily Memory, Dashboard, Admin Access Manager, Settings/session controls, and browser/runtime error collection.
 
 The scenarios live in app/e2e/dayflow.spec.mjs.
 
 ## Interactive Product Verification (IPV)
 
-IPV is the process used when automated assertions cannot fully prove the user experience.
-
-A focused IPV run is an Interactive Smoke Test (IST).
-
-For DayFlow:
+A focused IPV run is an Interactive Smoke Test (IST). It complements automated tests; it does not replace them.
 
 ### Authentication
 
-- [ ] Open the approved Preview.
-- [ ] Open the approved Production deployment.
+- [ ] Open approved Preview and Production deployments.
 - [ ] Authenticate with the dedicated QA account.
-- [ ] Confirm expected access/verification state.
+- [ ] Confirm expected email-verification and access states.
 - [ ] Sign out and confirm the authentication screen returns.
 
-### Primary interaction
+### Primary flows
 
-- [ ] Open Today.
-- [ ] Press the primary Play/start action when present.
-- [ ] Confirm the expected active state appears.
-- [ ] Perform a representative block interaction.
-- [ ] Confirm the visible state changes.
-- [ ] Refresh when persistence is part of the scenario.
+- [ ] Open Today and interact with a representative block.
+- [ ] Confirm the visible state updates and survives refresh.
+- [ ] Create/edit/complete/delete a representative task.
+- [ ] Create/edit/duplicate/delete a schedule block.
+- [ ] Verify overlap warning and the explicit save-anyway path.
+- [ ] Export recurring schedules to .ics and import a sample .ics file.
+- [ ] Create/complete a reminder and verify supported browser notifications.
+- [ ] Save and reload Memory; confirm Dashboard reflects the current state.
 
-### Tasks / Schedule
+### Quality and PWA
 
-- [ ] Create, edit, complete, and delete a representative task.
-- [ ] Create, edit, duplicate, and delete a representative schedule block.
-- [ ] Confirm controls remain usable at narrow/mobile widths.
-
-### Calendar / Reminders / Memory
-
-- [ ] Import a valid .ics fixture.
-- [ ] Confirm imported events appear correctly.
-- [ ] Clear the imported snapshot.
-- [ ] Create/complete a reminder.
-- [ ] Verify notification behavior when supported.
-- [ ] Save and reload Memory.
-- [ ] Confirm Dashboard reflects the current state.
-
-### PWA / responsive
-
-- [ ] Verify desktop layout.
-- [ ] Verify mobile layout without horizontal overflow.
-- [ ] Verify touch-friendly controls.
-- [ ] Verify PWA installation/runtime.
-- [ ] Verify refreshed routes use the expected service-worker fallback.
-- [ ] Verify reduced-motion behavior where relevant.
+- [ ] Verify desktop layout at 1024px+ and narrow/mobile layout at 320px+.
+- [ ] Verify no horizontal overflow and touch targets are usable.
+- [ ] Navigate with keyboard only and confirm visible focus.
+- [ ] Verify reduced-motion preference.
+- [ ] Verify PWA installation, service-worker refresh and stale-cache update behavior.
+- [ ] Inspect relevant loading/empty/error/disabled/access-denied states.
 
 ## Production evidence
 
-Record:
-
-- Production URL.
-- Release commit SHA.
-- Vercel deployment result.
-- Firebase rules deployment result.
-- Automated validation result.
-- CVP/E2E result.
-- IPV/IST result.
-- Known warnings/exceptions.
+Record production URL, release commit SHA, Vercel result, Firebase Rules deployment result, automated validation result, CVP/E2E result, IPV/IST result, known warnings/exceptions and rollback evidence.
 
 ## Release exit criteria
 
-A release is ready when required automated checks, CVP/E2E, IPV/IST, deployment evidence, security/configuration checks, and rollback evidence are complete.
+A release is ready only when the required automated checks, Rules tests, CVP/E2E, IPV/IST, deployment evidence, security/configuration checks, data reconciliation and rollback evidence are complete.
