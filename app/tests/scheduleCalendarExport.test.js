@@ -4,7 +4,7 @@ import { buildScheduleCalendar } from "../src/features/schedule/scheduleCalendar
 
 test("exports recurring schedules using valid RFC weekday codes", () => {
   const days = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-  const schedules = days.map((day, index) => ({
+  const schedules = days.map((day) => ({
     id: "schedule-" + day,
     subject: "Block " + day,
     day,
