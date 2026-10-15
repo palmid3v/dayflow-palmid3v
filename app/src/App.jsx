@@ -518,7 +518,7 @@ function App({ access, admin = false }) {
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`mobile-nav-button grid min-h-12 justify-items-center gap-1 rounded-xl px-2 py-2 text-[10px] transition ${tab === key ? "bg-[var(--surface-muted)] text-[var(--text)]" : "text-[var(--text-muted)]"}`}
+            className={`mobile-nav-button grid min-h-12 min-w-0 justify-items-center gap-1 rounded-xl px-1 py-2 text-[9px] transition sm:px-2 sm:text-[10px] ${tab === key ? "bg-[var(--surface-muted)] text-[var(--text)]" : "text-[var(--text-muted)]"}`}
             aria-current={tab === key ? "page" : undefined}
           >
             <Icon size={20} />
@@ -567,7 +567,7 @@ function BlockRow({ block, onToggle, onDelete }) {
   const nextState = block.state === "completed" ? "planned" : "completed";
   const external = block.source === "schedule" || block.source === "imported-calendar";
   return (
-    <div className="group relative flex w-full gap-3 pb-3 pl-5 text-left">
+    <div className="group relative flex w-full flex-col gap-2 pb-3 pl-5 text-left sm:flex-row sm:gap-3">
       <time className="absolute -left-10 top-3 text-[10px] text-[var(--text-faint)]">{block.time}</time>
       <button
         onClick={() => external ? undefined : onToggle(block.id, nextState)}
@@ -583,7 +583,7 @@ function BlockRow({ block, onToggle, onDelete }) {
         {external ? <CalendarDays size={19} className="text-[var(--text-muted)]" /> : block.state === "completed" ? <CheckCircle2 size={19} /> : <Circle size={19} className="text-[var(--text-muted)]" />}
       </button>
       {!external && (
-        <div className="flex shrink-0 items-center gap-1 self-center">
+        <div className="flex shrink-0 items-center justify-end gap-1 self-end sm:self-center">
           <button onClick={() => onToggle(block.id, "skipped")} className="grid size-8 place-items-center rounded-lg text-[var(--text-faint)] hover:bg-[var(--surface-muted)] text-[10px]" aria-label={`Skip ${block.title}`}>SKIP</button>
           <button onClick={() => onToggle(block.id, "changed")} className="grid size-8 place-items-center rounded-lg text-[var(--text-faint)] hover:bg-[var(--surface-muted)] text-[10px]" aria-label={`Mark ${block.title} as changed`}>↻</button>
           <button onClick={() => onDelete(block.id)} className="grid size-9 shrink-0 place-items-center self-center rounded-xl text-[var(--text-faint)] hover:bg-[var(--surface-muted)]" aria-label={`Delete ${block.title}`} type="button">
