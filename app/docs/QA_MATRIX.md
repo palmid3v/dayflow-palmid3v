@@ -37,6 +37,14 @@ GitHub Actions run [38811104010](https://github.com/palmid3v/dayflow-palmid3v/ac
 
 A skipped test is not a pass. A green static CI run is not production acceptance.
 
+## ICS calendar import checks
+
+- [ ] With Calendar access enabled, open Schedule and see the Import .ics panel before editing recurring blocks.
+- [ ] Import a valid .ics file and confirm event count, recurrence, and source filename are displayed.
+- [ ] Confirm invalid files and files without events show a useful error without replacing the previous import.
+- [ ] Confirm clearing the import removes only imported calendar events, not recurring Schedule templates.
+- [ ] With Calendar access disabled, show an explicit access message rather than a missing/blank import area.
+
 ## Recent Today/Tasks/Dashboard usability checks
 
 - [ ] Create a task from Today and confirm it appears in the task list after switching tabs.

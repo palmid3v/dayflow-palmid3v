@@ -21,6 +21,7 @@
 - [x] Keep open tasks above completed tasks in the Today queue and label tasks due on the selected day.
 - [x] Show task totals, open tasks and overdue work in Dashboard.
 - [x] Add deterministic unit coverage for task completion/reopen state transitions.
+- [x] Bring .ics calendar import to the top of Schedule, with clear access-state messaging when Calendar is not enabled.
 - [ ] Run the new changes through CI (unit, lint, production build and PWA).
 - [ ] Verify task create/complete/reopen persistence against the authenticated Preview.
 - [ ] Complete schedule, reminder and daily-review smoke tests across desktop and mobile.
