@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, CheckCircle2, Circle, Plus, Trash2, X } from "lucide-react";
 import { auth } from "../../lib/firebase";
 import { createTask, deleteTask, loadCachedTasks, loadTasks, migrateLegacyTasks, saveTasks } from "./taskService";
+import { DEMO_MODE, DEMO_UID } from "../../lib/demoMode";
 
 const filters = [["all", "All"], ["active", "Active"], ["today", "Today"], ["completed", "Completed"]];
 
 export default function TaskModule({ onTasksChange }) {
-  const uid = auth?.currentUser?.uid;
+  const uid = auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null);
   const [tasks, setTasks] = useState(() => loadCachedTasks(uid));
   const [filter, setFilter] = useState("all");
   const [draft, setDraft] = useState({ title: "", priority: "normal", dueDate: "", scheduledTime: "" });
