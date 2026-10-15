@@ -225,7 +225,7 @@ function App({ access, admin = false }) {
   }, [selectedDate, canUse]);
 
   useEffect(() => {
-    const uid = auth?.currentUser?.uid;
+    const uid = auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null);
     if (!uid || !canUse("tasks")) return undefined;
     let active = true;
     loadTasks(uid)
