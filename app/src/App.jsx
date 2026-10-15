@@ -452,6 +452,18 @@ function App({ access, admin = false }) {
             <section className="mb-7 dayflow-task-queue">
               <SectionHeader title="To-Do" action="Open tasks" onClick={() => setTab("tasks")} />
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
+                {taskActionError && <p role="alert" className="mb-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-100">{taskActionError}</p>}
+                <form onSubmit={addQuickTask} className="mb-3 flex gap-2">
+                  <input
+                    value={quickTaskTitle}
+                    onChange={(event) => setQuickTaskTitle(event.target.value)}
+                    placeholder="Add a task for this day…"
+                    aria-label="New task title"
+                    required
+                    className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  />
+                  <button type="submit" className="grid min-h-10 min-w-10 place-items-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)]" aria-label="Create task"><Plus size={17}/></button>
+                </form>
                 {tasks.length === 0 ? (
                   <div className="flex items-center gap-3 px-2 py-3">
                     <Target size={19} className="text-[var(--text-muted)]" />
