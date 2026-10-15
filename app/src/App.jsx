@@ -473,12 +473,22 @@ function App({ access, admin = false }) {
                   </div>
                 ) : (
                   <div className="grid gap-2">
-                    {tasks.slice(0, 5).map((task) => (
+                    {visibleTasks.map((task) => (
                       <div key={task.id} className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-sm">
-                        {task.completed ? <CheckCircle2 size={17} /> : <Circle size={17} className="text-[var(--text-muted)]" />}
-                        <span className={task.completed ? "text-[var(--text-muted)] line-through" : ""}>{task.title}</span>
+                        <button
+                          type="button"
+                          onClick={() => void toggleQuickTask(task)}
+                          className="grid size-8 shrink-0 place-items-center rounded-lg hover:bg-[var(--surface-muted)]"
+                          aria-label={task.completed ? `Reopen ${task.title}` : `Complete ${task.title}`}
+                          aria-pressed={task.completed}
+                        >
+                          {task.completed ? <CheckCircle2 size={17} className="text-[var(--success)]" /> : <Circle size={17} className="text-[var(--text-muted)]" />}
+                        </button>
+                        <span className={`min-w-0 flex-1 break-words ${task.completed ? "text-[var(--text-muted)] line-through" : ""}`}>{task.title}</span>
+                        {task.dueDate === selectedDate && <span className="label shrink-0">TODAY</span>}
                       </div>
                     ))}
+                    {tasks.length > visibleTasks.length && <button type="button" onClick={() => setTab("tasks")} className="min-h-10 rounded-xl border border-dashed border-[var(--border)] text-xs text-[var(--text-muted)]">View all {tasks.length} tasks</button>}
                   </div>
                 )}
               </div>
