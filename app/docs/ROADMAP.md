@@ -18,6 +18,8 @@
 
 - [x] Document the single-app target and legacy repository retirement criteria
 - [x] Add tests for migration of legacy Timetable day IDs to DayFlow weekdays
+- [x] Add recurring .ics schedule export with valid weekday codes
+- [x] Add same-day overlap detection and an explicit save-anyway confirmation
 - [x] Tighten schedule-collection access to the Schedule feature policy
 - [x] Define initial retro-dark color/motion tokens and responsive desktop shell
 - [ ] Reconcile actual production Firestore records and contradictory legacy schedule fields

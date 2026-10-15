@@ -82,7 +82,9 @@ Firebase remains the identity and persistence layer. Keep all data user-scoped. 
 - [ ] A user cannot read/write another user's documents.
 - [ ] Feature flags are enforced in UI and Firestore Rules.
 - [ ] Tasks create/edit/complete/delete/filter; no duplicate task source.
-- [ ] Recurring timetable, occurrence editing, overlap confirmation, and ICS export work.
+- [x] Recurring template overlap warnings and explicit save-anyway flow implemented in DayFlow Schedule.
+- [x] Recurring timetable ICS export added with valid RFC weekday codes.
+- [ ] Occurrence-level overrides/history, colors and all legacy schedule settings are reconciled and validated.
 - [ ] Day plan, reminders, daily review and memory persist across refresh and device sessions.
 - [ ] Offline/local recovery does not silently overwrite newer cloud data.
 - [ ] Weekly summary/function delivery is either proven operational or explicitly disabled/documented.

@@ -61,3 +61,20 @@ export function isValidSchedule(item) {
     schedule.start < schedule.end
   );
 }
+
+
+export function findOverlappingSchedules(schedules, candidate, excludeId = null) {
+  const next = normalizeSchedule(candidate);
+  if (!isValidSchedule(next)) return [];
+
+  const ignoredId = excludeId ?? next.id;
+  return (Array.isArray(schedules) ? schedules : [])
+    .map(normalizeSchedule)
+    .filter((item) =>
+      isValidSchedule(item) &&
+      item.id !== ignoredId &&
+      item.weekday === next.weekday &&
+      item.start < next.end &&
+      next.start < item.end
+    );
+}
