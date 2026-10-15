@@ -180,9 +180,13 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 
 /* Desktop retro workstation layout; mobile keeps the floating bottom bar. */
 @media (min-width: 1024px) {
-  .mobile-nav {
+  .mobile-nav.mobile-nav {
     position: fixed !important;
-    /* Explicit physical offsets override the mobile left-1/2 utility. */
+    /*
+     * Tailwind's -translate-x-1/2 uses the individual translate property.
+     * Higher specificity is required to reliably cancel that mobile utility
+     * in the production CSS bundle.
+     */
     top: 0 !important;
     bottom: 0 !important;
     left: 0 !important;
@@ -196,7 +200,7 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
     overflow-x: hidden;
     overflow-y: auto;
     transform: none !important;
-    translate: none !important;
+    translate: 0 0 !important;
     display: flex !important;
     flex-direction: column;
     align-items: stretch;
