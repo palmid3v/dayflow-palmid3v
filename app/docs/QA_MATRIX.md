@@ -37,6 +37,14 @@ GitHub Actions run [38811104010](https://github.com/palmid3v/dayflow-palmid3v/ac
 
 A skipped test is not a pass. A green static CI run is not production acceptance.
 
+## Recent Today/Tasks/Dashboard usability checks
+
+- [ ] Create a task from Today and confirm it appears in the task list after switching tabs.
+- [ ] Complete and reopen a task from Today; confirm the status is consistent in Tasks.
+- [ ] Simulate a task save failure and confirm the previous task list is restored with a visible error.
+- [ ] Confirm Dashboard reports total, open and overdue tasks from the current user's task cache.
+- [ ] Verify the quick-add task field and completion buttons with keyboard navigation and narrow viewport.
+
 ## Critical Value Path
 
 The DayFlow CVP protects the highest-value flows:
