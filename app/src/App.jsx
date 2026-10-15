@@ -327,7 +327,7 @@ function App({ access, admin = false }) {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <div className="app-shell min-h-screen text-[var(--text)]">
+      <div className="app-shell min-h-screen text-[var(--text)]" data-active-tab={tab}>
         {cloudError && (
           <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200" role="status">
             {cloudError}
@@ -356,7 +356,7 @@ function App({ access, admin = false }) {
 
         {tab === "today" && (
           <>
-            <section className="mb-7 rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
+            <section className="mb-7 dayflow-progress rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="label">TODAY'S FLOW</p>
@@ -372,7 +372,7 @@ function App({ access, admin = false }) {
               </div>
             </section>
 
-            <section className="mb-7">
+            <section className="mb-7 dayflow-runsheet">
               <SectionHeader title={selectedDate === today ? "Today" : formatDate(selectedDate)} action="View calendar" onClick={() => setTab("calendar")} />
               <div className="relative ml-9 border-l border-[var(--border)]">
                 {visibleBlocks.map((block) => (
@@ -382,7 +382,7 @@ function App({ access, admin = false }) {
               </div>
             </section>
 
-            <section className="mb-7 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
+            <section className="mb-7 dayflow-quick-block rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
               <form onSubmit={(event) => {
                 event.preventDefault();
                 const title = quickBlockTitle.trim();
@@ -395,7 +395,7 @@ function App({ access, admin = false }) {
               </form>
             </section>
 
-            {canUse("reminders") && <section id="dayflow-reminders" className="mb-7">
+            {canUse("reminders") && <section id="dayflow-reminders" className="mb-7 dayflow-reminders">
               <SectionHeader title="Reminders" action={`${openReminders.length} open`} onClick={() => document.getElementById("dayflow-reminders")?.scrollIntoView({ behavior: "smooth", block: "start" })} />
               <ReminderPanel
                 reminders={todayReminders}
@@ -408,7 +408,7 @@ function App({ access, admin = false }) {
               />
             </section>}
 
-            <section className="mb-7">
+            <section className="mb-7 dayflow-task-queue">
               <SectionHeader title="To-Do" action="Open tasks" onClick={() => setTab("tasks")} />
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
                 {tasks.length === 0 ? (
@@ -570,7 +570,7 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd, notificationPermi
 
 function MemoryCard({ note, saved, onChange, onSave, summary }) {
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
+    <section className="dayflow-memory-card rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
       <div className="flex gap-3">
         <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface-muted)]"><BookOpen size={19} /></div>
         <div className="flex-1">
@@ -589,7 +589,7 @@ function MemoryCard({ note, saved, onChange, onSave, summary }) {
 
 function SettingsDialog({ onClose }) {
   return (
-    <div className="fixed inset-0 z-20 grid place-items-end bg-black/50 p-3 sm:place-items-center" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div className="fixed inset-0 z-50 grid place-items-end bg-black/50 p-3 sm:place-items-center" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-2xl">
         <div className="mb-5 flex items-center justify-between">
           <div><p className="label">DAYFLOW</p><h2 id="settings-title" className="mt-1 text-xl font-bold">Settings</h2></div>
