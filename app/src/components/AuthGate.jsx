@@ -1,6 +1,7 @@
 import { cloneElement, useEffect, useState } from "react";
 import { Shield } from "lucide-react";
 import { isFirebaseConfigured } from "../lib/backendConfig";
+import { DEMO_MODE } from "../lib/demoMode";
 import { getAuthErrorMessage, signOut, subscribeAuth } from "../lib/auth";
 import { APP_IDS, ensureAppAccess, hasAppAccess, isPlatformAdmin } from "../lib/access";
 import AuthScreen from "./AuthScreen";
@@ -61,6 +62,22 @@ export default function AuthGate({ children }) {
     }
     return () => unsubscribe?.();
   }, []);
+
+  if (DEMO_MODE) {
+    const demoAccess = {
+      status: "active",
+      apps: { dayflow: true },
+      features: { tasks: true, schedule: true, calendar: true, reminders: true, memory: true }
+    };
+    return (
+      <>
+        <div role="status" className="sticky top-0 z-50 border-b border-amber-400/40 bg-amber-400/10 px-4 py-2 text-center text-xs font-semibold text-amber-100">
+          DEMO MODE · Local browser data only · Do not enter real or sensitive information
+        </div>
+        {cloneElement(children, { access: demoAccess, admin: false })}
+      </>
+    );
+  }
 
   if (!isFirebaseConfigured()) return <AuthScreen productName="DayFlow" configurationRequired />;
   if (loading) return <main className="grid min-h-screen place-items-center bg-[var(--bg,#0b0d10)] px-4 text-[var(--text,#f5f7fa)]"><p className="text-sm opacity-70">Checking your PALMI-D3V account…</p></main>;
