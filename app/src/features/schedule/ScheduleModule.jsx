@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Copy, Download, MapPin, Pencil, Plus, Trash2, X } from "lucide-react";
 import { auth } from "../../lib/firebase";
 import { DEMO_MODE, DEMO_UID } from "../../lib/demoMode";
@@ -58,14 +58,14 @@ function ImportedCalendarView() {
  const [error,setError]=useState("");
  const [selected,setSelected]=useState(()=>calendarDayStart(new Date()));
  const [month,setMonth]=useState(()=>new Date(new Date().getFullYear(),new Date().getMonth(),1));
- async function refresh() {
+ const refresh=useCallback(async()=>{
   if(!uid){setEvents([]);setLoading(false);return;}
   setLoading(true);
   try{setEvents(await loadImportedCalendarEvents(uid));setError("");}
   catch(loadError){setError(loadError?.message||"Unable to load imported events.");}
   finally{setLoading(false);}
- }
- useEffect(()=>{void refresh();const listener=()=>void refresh();window.addEventListener("dayflow:calendar-change",listener);return()=>window.removeEventListener("dayflow:calendar-change",listener);},[uid]);
+ },[uid]);
+ useEffect(()=>{void refresh();const listener=()=>void refresh();window.addEventListener("dayflow:calendar-change",listener);return()=>window.removeEventListener("dayflow:calendar-change",listener);},[refresh]);
  const dates=useMemo(()=>{
   const first=new Date(month.getFullYear(),month.getMonth(),1);
   const total=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
