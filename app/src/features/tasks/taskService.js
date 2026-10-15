@@ -1,5 +1,6 @@
 import { collection, deleteDoc, doc, getDocs, writeBatch } from "firebase/firestore";
 import { db } from "../../lib/firebase";
+import { normalizeTaskDocument, normalizeTaskRecord, parseLegacyTaskList } from "./taskModel.js";
 
 const COLLECTION = "tasks";
 const CACHE_PREFIX = "DAYFLOW_TASKS:";
@@ -17,28 +18,7 @@ function cacheKey(uid) {
   return CACHE_PREFIX + uid;
 }
 
-function normalize(task) {
-  if (!task || typeof task !== "object") return null;
-  const title = String(task.title ?? task.name ?? "").trim();
-  if (!title) return null;
-  const createdAt = String(task.createdAt ?? new Date().toISOString());
-  const completed = Boolean(task.completed ?? task.done);
-
-  return {
-    id: String(task.id),
-    title,
-    description: String(task.description ?? ""),
-    completed,
-    status: task.status ?? (completed ? "completed" : "active"),
-    priority: task.priority ?? "normal",
-    dueDate: task.dueDate ? String(task.dueDate) : "",
-    scheduledTime: task.scheduledTime ? String(task.scheduledTime) : "",
-    category: String(task.category ?? ""),
-    tags: Array.isArray(task.tags) ? task.tags.map(String) : [],
-    createdAt,
-    updatedAt: String(task.updatedAt ?? createdAt)
-  };
-}
+const normalize = normalizeTaskRecord;
 
 function readCache(uid) {
   try {
@@ -79,7 +59,7 @@ export function createTask(title, details = {}) {
 export async function loadTasks(uid) {
   const snapshot = await getDocs(collectionRef(uid));
   const tasks = snapshot.docs
-    .map((item) => normalize({ ...item.data(), id: item.id }))
+    .map((item) => normalizeTaskDocument(item.id, item.data()))
     .filter(Boolean);
   writeCache(uid, tasks);
   return tasks;
@@ -136,8 +116,7 @@ export async function migrateLegacyTasks(uid) {
   let legacy;
   try {
     const raw = localStorage.getItem("TODO") ?? "[]";
-    const parsed = JSON.parse(raw);
-    legacy = Array.isArray(parsed) ? parsed.map(normalize).filter(Boolean) : [];
+    legacy = parseLegacyTaskList(raw);
   } catch {
     throw new Error("Legacy task data could not be parsed; it was left untouched.");
   }
