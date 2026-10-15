@@ -3,6 +3,7 @@ import { Check, CheckCircle2, Circle, Plus, Trash2, X } from "lucide-react";
 import { auth } from "../../lib/firebase";
 import { createTask, deleteTask, loadCachedTasks, loadTasks, migrateLegacyTasks, saveTasks } from "./taskService";
 import { DEMO_MODE, DEMO_UID } from "../../lib/demoMode";
+import { setTaskCompletion } from "./taskModel.js";
 
 const filters = [["all", "All"], ["active", "Active"], ["today", "Today"], ["completed", "Completed"]];
 
@@ -79,7 +80,7 @@ export default function TaskModule({ onTasksChange }) {
   function toggle(task) {
     const completed = !task.completed;
     void commit(tasks.map((item) => item.id === task.id
-      ? { ...item, completed, status: completed ? "completed" : "active", updatedAt: new Date().toISOString() }
+      ? setTaskCompletion(item, completed)
       : item));
   }
 
