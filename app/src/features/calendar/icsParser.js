@@ -116,7 +116,7 @@ export function classifyCalendarEvent(event = {}) {
     event.summary,
     event.description,
     ...(Array.isArray(event.categories) ? event.categories : [])
-  ].filter(Boolean).join(" ").toLocaleLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "");
+  ].filter(Boolean).join(" ").toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
   if (/\b(birthday|birthdays|cumpleaños|cumpleanos|aniversario)\b/.test(text)) return "birthday";
   if (/\b(appointment|appt|cita|doctor|dentist|consulta|entrevista)\b/.test(text)) return "appointment";
