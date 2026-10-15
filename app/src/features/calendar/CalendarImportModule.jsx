@@ -41,11 +41,12 @@ export default function CalendarImportModule() {
       setCurrentImport({
         fileName: result.fileName,
         eventCount: result.eventCount,
+        files: result.files,
         importedAt: new Date().toISOString(),
         source: "ics"
       });
       window.dispatchEvent(new CustomEvent("dayflow:calendar-change"));
-      setMessage(`${result.eventCount} events imported from ${file.name}.`);
+      setMessage(`${result.importedCount} events imported from ${file.name}. ${result.eventCount} events are now available across ${result.files.length} calendar file(s).`);
     } catch (importError) {
       setError(importError?.message || "Unable to import this calendar.");
     } finally {
@@ -77,7 +78,7 @@ export default function CalendarImportModule() {
           <p className="label">CALENDAR IMPORT</p>
           <h3 className="mt-1 text-sm font-semibold">Bring your calendar into DayFlow</h3>
           <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
-            Export a calendar as .ics and import it here. DayFlow reads the file locally and stores the imported events in your account. No Google login or Calendar API is required.
+            Export calendars as .ics and import each file here. You can import multiple calendars; re-importing a file updates that file without removing your other imported calendars. If Google gives you a .zip, extract it first. No Google login or Calendar API is required.
           </p>
         </div>
       </div>
@@ -85,7 +86,7 @@ export default function CalendarImportModule() {
       {currentImport && (
         <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3 text-xs">
           <p className="font-semibold">{currentImport.fileName}</p>
-          <p className="mt-1 text-[var(--text-muted)]">{currentImport.eventCount} events · imported {new Date(currentImport.importedAt).toLocaleString()}</p>
+          <p className="mt-1 text-[var(--text-muted)]">{currentImport.eventCount} events across {currentImport.files?.length || 1} calendar file(s) · last imported {new Date(currentImport.importedAt).toLocaleString()}</p>
         </div>
       )}
 
@@ -110,13 +111,13 @@ export default function CalendarImportModule() {
             disabled={busy}
             className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] px-4 text-xs font-semibold disabled:opacity-50"
           >
-            <Trash2 size={15} /> Clear import
+            <Trash2 size={15} /> Clear imported calendars
           </button>
         )}
       </div>
 
       <p className="mt-3 text-[11px] leading-5 text-[var(--text-faint)]">
-        Google Calendar exports can contain recurring-event data. DayFlow keeps that recurrence information so recurring events can appear on the right day.
+        Recurring events stay recurring. DayFlow categorizes recognizable birthdays, appointments, meetings, holidays, travel and reminders, and shows all imported events in the monthly calendar below.
       </p>
     </section>
   );
