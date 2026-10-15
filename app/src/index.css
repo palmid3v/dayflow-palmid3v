@@ -231,12 +231,18 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
     color: var(--accent);
   }
   .app-shell {
-    width: calc(100% - 224px) !important;
-    max-width: none !important;
-    margin-left: 224px !important;
+    /*
+     * The sidebar is fixed to the viewport, so the workspace must be sized
+     * against the remaining viewport area rather than centered in the page.
+     * Cap the readable content width on ultrawide monitors.
+     */
+    width: min(calc(100vw - 224px), 1280px) !important;
+    max-width: 1280px !important;
+    margin-left: calc(224px + max(0px, (100vw - 224px - 1280px) / 2)) !important;
     margin-right: 0 !important;
-    padding: 34px clamp(20px, 2.5vw, 44px) 42px !important;
+    padding: 34px clamp(20px, 2.5vw, 40px) 42px !important;
     min-width: 0;
+    box-sizing: border-box;
   }
   .app-shell[data-active-tab="today"] {
     display: grid;
