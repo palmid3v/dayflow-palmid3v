@@ -50,36 +50,52 @@ export async function importIcsCalendar(uid, text, fileName) {
   if (!uid) throw new Error("You must be signed in to import a calendar.");
   const events = parseIcsCalendar(text);
   const database = requireDb();
-
+  const sourceFile = fileName || "calendar.ics";
   const existing = await getDocs(eventsRef(uid));
-  for (let index = 0; index < existing.docs.length; index += MAX_BATCH_WRITES) {
-    const batch = writeBatch(database);
-    existing.docs.slice(index, index + MAX_BATCH_WRITES).forEach((item) => batch.delete(item.ref));
-    await batch.commit();
-  }
+  const metadataSnapshot = await getDoc(importRef(uid));
+  const previousMetadata = metadataSnapshot.exists() ? metadataSnapshot.data() : {};
+  const stableIds = new Set(events.map((event) => safeId(`${sourceFile}-${event.id}-${event.start}`)));
 
+  // Write the new version first. If writing fails, the previous import is still available.
   for (let index = 0; index < events.length; index += MAX_BATCH_WRITES) {
     const batch = writeBatch(database);
     events.slice(index, index + MAX_BATCH_WRITES).forEach((event) => {
-      const id = safeId(`${event.id}-${event.start}`);
+      const id = safeId(`${sourceFile}-${event.id}-${event.start}`);
       batch.set(eventRef(uid, id), {
         ...event,
         id,
         source: "ics",
-        sourceFile: fileName || "calendar.ics"
+        sourceFile
       });
     });
     await batch.commit();
   }
 
+  // Replace only this file's previous events; other imported calendars remain intact.
+  const obsolete = existing.docs.filter((item) => item.data().sourceFile === sourceFile && !stableIds.has(item.id));
+  for (let index = 0; index < obsolete.length; index += MAX_BATCH_WRITES) {
+    const batch = writeBatch(database);
+    obsolete.slice(index, index + MAX_BATCH_WRITES).forEach((item) => batch.delete(item.ref));
+    await batch.commit();
+  }
+
+  const preserved = existing.docs.filter((item) => item.data().sourceFile !== sourceFile);
+  const totalEventCount = preserved.length + events.length;
+  const files = [...new Set([
+    ...(Array.isArray(previousMetadata.files) ? previousMetadata.files : []),
+    ...preserved.map((item) => item.data().sourceFile).filter(Boolean),
+    sourceFile
+  ])];
+
   await setDoc(importRef(uid), {
-    fileName: fileName || "calendar.ics",
-    eventCount: events.length,
+    fileName: sourceFile,
+    files,
+    eventCount: totalEventCount,
     importedAt: new Date().toISOString(),
     source: "ics"
   }, { merge: true });
 
-  return { events, eventCount: events.length, fileName: fileName || "calendar.ics" };
+  return { events, importedCount: events.length, eventCount: totalEventCount, files, fileName: sourceFile };
 }
 
 export async function clearImportedCalendar(uid) {
