@@ -193,6 +193,7 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
     overflow-x: hidden;
     overflow-y: auto;
     transform: none !important;
+    translate: 0 0 !important;
     display: flex !important;
     flex-direction: column;
     align-items: stretch;
@@ -246,7 +247,11 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
     grid-auto-flow: row;
   }
   .app-shell[data-active-tab="today"] > * { min-width: 0; }
-  .app-shell[data-active-tab="today"] .dayflow-quick-block { align-self: start; }
+  .app-shell[data-active-tab="today"] .dayflow-quick-block {
+    align-self: start;
+    height: fit-content;
+    min-height: 0;
+  }
   .app-shell[data-active-tab="today"] > header { grid-column: 1 / -1; }
   .app-shell[data-active-tab="today"] .dayflow-progress { grid-column: 1 / -1; }
   .app-shell[data-active-tab="today"] .dayflow-runsheet,
