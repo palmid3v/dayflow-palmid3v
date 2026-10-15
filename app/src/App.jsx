@@ -26,6 +26,7 @@ import {
 } from "./lib/dayflowStore";
 import { createDailyMemory, createDailyResult } from "./domain/models";
 import { createTask, loadCachedTasks, loadTasks, saveTasks } from "./features/tasks/taskService";
+import { setTaskCompletion } from "./features/tasks/taskModel.js";
 import { createReminder, isReminderCompletedForDate, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
 import { getNotificationSupport, notifyDueReminders, requestReminderNotificationPermission, showReminderNotification } from "./features/reminders/notificationService";
@@ -269,7 +270,7 @@ function App({ access, admin = false }) {
   async function toggleQuickTask(task) {
     const completed = !task.completed;
     const next = tasks.map((item) => item.id === task.id
-      ? { ...item, completed, status: completed ? "completed" : "active", updatedAt: new Date().toISOString() }
+      ? setTaskCompletion(item, completed)
       : item);
     await persistTasks(next);
   }
