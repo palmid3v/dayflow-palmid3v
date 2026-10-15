@@ -513,7 +513,7 @@ function App({ access, admin = false }) {
         )}
       </div>
 
-      <nav className="mobile-nav fixed bottom-2 left-1/2 z-40 grid w-[calc(100%-16px)] max-w-[720px] -translate-x-1/2 grid-cols-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
+      <nav className="mobile-nav fixed bottom-2 left-1/2 z-40 grid w-[calc(100%-16px)] max-w-[720px] grid-cols-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
         {navItems.filter(([, key]) => admin || key === "today" || key === "dashboard" || (key === "calendar" && canUse("schedule")) || (key === "tasks" && canUse("tasks")) || (key === "memory" && canUse("memory"))).map(([Icon, key, label]) => (
           <button
             key={key}
