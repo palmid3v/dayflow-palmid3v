@@ -146,6 +146,8 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .primary-action:hover { opacity: .92; }
 
 .mobile-nav {
+  /* Center the floating mobile bar without Tailwind's individual translate property. */
+  transform: translateX(-50%);
   padding-bottom: max(.5rem, env(safe-area-inset-bottom));
 }
 
@@ -200,7 +202,6 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
     overflow-x: hidden;
     overflow-y: auto;
     transform: none !important;
-    translate: 0 0 !important;
     display: flex !important;
     flex-direction: column;
     align-items: stretch;
