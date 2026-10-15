@@ -14,6 +14,18 @@
 - [x] DayFlow-owned Firestore model
 - [x] Feature-aware access model and release validation tooling
 
+## Product usability milestone — target 80%
+
+- [x] Create tasks directly from Today without changing screens.
+- [x] Complete/reopen tasks from Today with optimistic UI and rollback on save failure.
+- [x] Keep open tasks above completed tasks in the Today queue and label tasks due on the selected day.
+- [x] Show task totals, open tasks and overdue work in Dashboard.
+- [x] Add deterministic unit coverage for task completion/reopen state transitions.
+- [ ] Run the new changes through CI (unit, lint, production build and PWA).
+- [ ] Verify task create/complete/reopen persistence against the authenticated Preview.
+- [ ] Complete schedule, reminder and daily-review smoke tests across desktop and mobile.
+- [ ] Close Firebase Rules Emulator, migration/backup, authenticated E2E, PWA cache and rollback gates.
+
 ## Current hardening — in progress
 
 - [x] Document the single-app target and legacy repository retirement criteria
