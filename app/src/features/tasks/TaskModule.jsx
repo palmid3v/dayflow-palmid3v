@@ -57,18 +57,22 @@ export default function TaskModule({ onTasksChange }) {
 
     try {
       await saveTasks(uid, next, previous);
+      return true;
     } catch {
       setTasks(previous);
       onTasksChange?.(previous);
       setError("Unable to save this task. The previous state was restored.");
+      return false;
     }
   }
 
-  function add(event) {
+  async function add(event) {
     event.preventDefault();
     if (!draft.title.trim()) return;
-    void commit([createTask(draft.title, draft), ...tasks]);
-    setDraft({ title: "", priority: "normal", dueDate: "", scheduledTime: "" });
+
+    const saved = await commit([createTask(draft.title, draft), ...tasks]);
+    // Keep the user's draft if persistence fails so it can be retried.
+    if (saved) setDraft({ title: "", priority: "normal", dueDate: "", scheduledTime: "" });
   }
 
   function toggle(task) {
@@ -103,7 +107,7 @@ export default function TaskModule({ onTasksChange }) {
     {error && <p className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200" role="status">{error}</p>}
     <form onSubmit={add} className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
       <div className="flex gap-2">
-        <input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Add a task…" className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm outline-none" />
+        <input required aria-label="Task title" value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Add a task…" className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]" />
         <button className="grid size-10 place-items-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)]" aria-label="Add task"><Plus size={17} /></button>
       </div>
       <div className="mt-2 grid gap-2 sm:grid-cols-3">
