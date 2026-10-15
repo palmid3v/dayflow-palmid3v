@@ -21,8 +21,8 @@ export default defineConfig({
         start_url: "/",
         scope: "/",
         description: "Plan, do, track, remember.",
-        theme_color: "#090a0d",
-        background_color: "#090a0d",
+        theme_color: "#0A0C10",
+        background_color: "#0A0C10",
         display: "standalone",
         orientation: "portrait-primary",
         icons: [

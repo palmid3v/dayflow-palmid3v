@@ -208,6 +208,11 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
     text-align: left; grid-template-columns: none !important;
   }
   .mobile-nav button svg { flex: none; }
+  .mobile-nav button[aria-current="page"] {
+    border-left: 2px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    color: var(--accent);
+  }
   .app-shell {
     width: auto !important; max-width: none !important; margin-left: 224px !important;
     margin-right: 0 !important; padding: 34px clamp(20px, 2.5vw, 44px) 42px !important;
