@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import {
   BarChart3,
   BookOpen,
@@ -25,12 +25,8 @@ import {
   saveMemory
 } from "./lib/dayflowStore";
 import { createDailyMemory, createDailyResult } from "./domain/models";
-import TaskModule from "./features/tasks/TaskModule";
-import ScheduleModule from "./features/schedule/ScheduleModule";
 import { loadCachedTasks, loadTasks } from "./features/tasks/taskService";
 import { createReminder, isReminderCompletedForDate, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
-import MemoryModule from "./features/memory/MemoryModule";
-import DashboardModule from "./features/dashboard/DashboardModule";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
 import { getNotificationSupport, notifyDueReminders, requestReminderNotificationPermission, showReminderNotification } from "./features/reminders/notificationService";
 import { calendarEventsToDailyBlocks, loadImportedCalendarEvents } from "./features/calendar/calendarService";
@@ -42,6 +38,11 @@ import {
   saveRemindersCloud,
   synchronizeDayFlow
 } from "./lib/dayflowCloudStore";
+
+const TaskModule = lazy(() => import("./features/tasks/TaskModule.jsx"));
+const ScheduleModule = lazy(() => import("./features/schedule/ScheduleModule.jsx"));
+const MemoryModule = lazy(() => import("./features/memory/MemoryModule.jsx"));
+const DashboardModule = lazy(() => import("./features/dashboard/DashboardModule.jsx"));
 
 const navItems = [
   [Home, "today", "Today"],
@@ -84,7 +85,7 @@ function App({ access, admin = false }) {
   const [reminders, setReminders] = useState(() => loadCachedReminders(auth?.currentUser?.uid).length ? loadCachedReminders(auth?.currentUser?.uid) : (getDayFlowState().reminders ?? []));
   const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid));
   const theme = "dark";
-  const canUse = (feature) => admin || access?.features?.[feature] === true;
+  const canUse = useCallback((feature) => admin || access?.features?.[feature] === true, [admin, access?.features]);
   const [scheduleBlocks, setScheduleBlocks] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
   const [reviewSaved, setReviewSaved] = useState(Boolean(getDailyResult(today)));
@@ -147,7 +148,7 @@ function App({ access, admin = false }) {
     return () => {
       cancelled = true;
     };
-  }, [today]);
+  }, [today, canUse]);
 
   useEffect(() => {
     if (!canUse("reminders")) return undefined;
@@ -159,7 +160,7 @@ function App({ access, admin = false }) {
     checkDueReminders();
     const interval = window.setInterval(checkDueReminders, 15000);
     return () => window.clearInterval(interval);
-  }, [reminders, admin, access]);
+  }, [reminders, canUse]);
 
   async function enableReminderNotifications() {
     const permission = await requestReminderNotificationPermission();
@@ -216,7 +217,7 @@ function App({ access, admin = false }) {
       window.removeEventListener("dayflow:calendar-change", refresh);
       window.removeEventListener("dayflow:schedule-change", refresh);
     };
-  }, [selectedDate]);
+  }, [selectedDate, canUse]);
 
   useEffect(() => {
     const uid = auth?.currentUser?.uid;
@@ -231,7 +232,7 @@ function App({ access, admin = false }) {
       active = false;
       window.removeEventListener("dayflow:tasks-change", refresh);
     };
-  }, []);
+  }, [canUse]);
 
   function updatePlan(nextBlocks) {
     const nextPlan = { ...plan, blocks: nextBlocks, updatedAt: new Date().toISOString() };
@@ -435,10 +436,12 @@ function App({ access, admin = false }) {
           </>
         )}
 
-        {tab === "dashboard" && <DashboardModule />}
-        {tab === "calendar" && canUse("schedule") && <ScheduleModule canUseCalendar={canUse("calendar")} />}
-        {tab === "tasks" && canUse("tasks") && <TaskModule onTasksChange={setTasks} />}
-        {tab === "memory" && canUse("memory") && <MemoryModule />}
+        <Suspense fallback={<div className="surface p-5 text-sm text-[var(--text-muted)]" role="status">Loading module…</div>}>
+          {tab === "dashboard" && <DashboardModule />}
+          {tab === "calendar" && canUse("schedule") && <ScheduleModule canUseCalendar={canUse("calendar")} />}
+          {tab === "tasks" && canUse("tasks") && <TaskModule onTasksChange={setTasks} />}
+          {tab === "memory" && canUse("memory") && <MemoryModule />}
+        </Suspense>
 
         {showSettings && (
           <SettingsDialog onClose={() => setShowSettings(false)} />
