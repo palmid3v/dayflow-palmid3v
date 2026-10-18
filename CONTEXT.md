@@ -55,3 +55,9 @@ PR #30 is an unmerged draft proposing consolidation hardening and retro-dark UI 
     npm run lint
     npm run build
     npm run validate:static
+
+## Documentation checkpoint — 2026-10-18
+
+README.md actualizado como destino canónico de productividad. Unificación sigue abierta hasta reconciliar datos históricos, permisos, funciones/despliegues, autenticación E2E y rollback. No retirar To-Do/Timetable antes de cerrar esas puertas. Mantener el objetivo operativo de $0.
+
+Status labels describe the latest documented evidence, not a guarantee that every workflow is complete. Update this checkpoint when new validation results arrive.
