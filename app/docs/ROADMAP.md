@@ -63,3 +63,7 @@
 ## Product principle
 
 DayFlow coordinates the day without becoming a second task database or calendar source of truth. One application, one Firebase identity, user-scoped data, and no mandatory paid service.
+
+## Documentation checkpoint — 2026-10-18
+
+The product feature foundation is present, but release status remains gated. The recent usability work still requires CI for unit tests/lint/production build/PWA, authenticated Preview verification for task create/complete/reopen persistence, and desktop/mobile smoke tests for schedule, reminders and daily review. The broader unification audit remains authoritative for migration risks. Do not retire To-Do or Timetable until user data, access policy, deployed functions, domains and history are reconciled and rollback is verified. A green static check alone does not close the full E2E gate.
