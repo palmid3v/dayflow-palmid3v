@@ -11,7 +11,8 @@
     "test:cvp": "playwright test e2e/cvp.spec.mjs --config=playwright.config.mjs",
     "test:e2e": "playwright test e2e/dayflow.spec.mjs --config=playwright.config.mjs",
     "validate:static": "node scripts/validate.mjs --static",
-    "validate": "node scripts/validate.mjs"
+    "validate": "node scripts/validate.mjs",
+    "test:rules": "node --test tests/firestore.rules.test.js"
   },
   "dependencies": {
     "firebase": "^12.19.0",
@@ -31,6 +32,7 @@
     "globals": "^16.0.0",
     "tailwindcss": "^4.1.14",
     "vite": "^7.1.7",
-    "vite-plugin-pwa": "^1.0.2"
+    "vite-plugin-pwa": "^1.0.2",
+    "@firebase/rules-unit-testing": "^5.0.2"
   }
 }
