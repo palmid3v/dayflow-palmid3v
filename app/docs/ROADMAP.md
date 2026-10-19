@@ -14,7 +14,7 @@ Product principles:
 
 ## Phase 1 — Cerrar DayFlow (To-Do + Timetable)
 
-**Status: en cierre; no se declara completada hasta validar la unificación funcional y la migración de datos.** El baseline local automatizado está aprobado, pero eso por sí solo no demuestra que los datos, permisos y flujos reales de To-Do y Timetable hayan quedado unificados.
+**Estado: CERRADA.** El usuario confirma que se ejecutaron las pruebas y validaciones acordadas. Se acepta la Fase 1 como cerrada para avanzar; las comprobaciones operativas de producción y rollback quedan como controles previos a cualquier migración destructiva o retiro de sistemas heredados, no como motivo para bloquear el inicio de Cupboard.
 
 **Objetivo:** terminar la unificación de To-Do y Timetable y validar tareas, horarios, calendario, recordatorios, permisos y migración de datos.
 
@@ -54,21 +54,18 @@ Product principles:
 - [ ] Añadir pruebas de dominio, persistencia, permisos, movimientos de stock, vencimientos, stock bajo y lista de compras.
 - [ ] Mantener el objetivo de **$0 de gasto obligatorio** y no reemplazar servicios existentes sin evidencia de necesidad.
 
-### Cierre obligatorio de Phase 1 — DayFlow
-La Fase 2 no sustituye ni da por aprobada la unificación de DayFlow. Estos gates siguen abiertos hasta contar con evidencia:
-- [ ] Una sola fuente canónica de tareas entre To-Do y DayFlow.
-- [ ] Una sola fuente canónica de horarios entre Timetable y DayFlow, incluidos recurrencias y excepciones.
-- [ ] Validación de tareas, horarios, calendario ICS, recordatorios y permisos por usuario/función.
-- [ ] Inventario de los datos heredados reales, respaldo verificable, migración idempotente, reconciliación de conteos y procedimiento de rollback.
-- [ ] CVP/E2E autenticado y verificación manual desktop/móvil de los flujos unificados.
-- [ ] Mantener repositorios, dominios, funciones y despliegues heredados disponibles hasta completar aceptación y rollback.
+### Estado de cierre de Phase 1 — DayFlow
+- [x] Fase 1 marcada como cerrada por confirmación del usuario de que las pruebas acordadas ya se realizaron.
+- [x] Baseline automatizado documentado: 33/33 pruebas, 6/6 Rules tests, lint, build/PWA y audit sin vulnerabilidades.
+- [x] Unificación de To-Do y Timetable aceptada como objetivo funcional de la fase.
+- [ ] Antes de cualquier mutación de datos de producción o retiro de sistemas heredados, conservar evidencia verificable de backup, reconciliación y rollback. Este control no bloquea el trabajo de Fase 2.
 
 ### Secuencia de trabajo
-1. **Cerrar DayFlow:** inspeccionar código y datos reales; resolver las brechas de unificación y demostrar permisos/migración sin pérdida ni duplicados.
-2. **Auditar Cupboard:** localizar los servicios actuales y mapear sus contratos antes de modificar código.
+1. **Fase 1 cerrada:** no repetir el baseline aprobado sin una regresión o cambio relevante.
+2. **Auditar Cupboard:** localizar los repositorios y servicios actuales y mapear sus contratos antes de modificar código.
 3. **Construir Cupboard central:** separar Hogar y Negocio → Sandwichies y reutilizar los servicios existentes.
 4. **Conectar consumo de Sandwichies:** descontar stock de manera idempotente cuando corresponda.
-5. **Validar:** pruebas automatizadas, escenarios de inventario y aceptación manual antes de desplegar.
+5. **Validar Fase 2:** pruebas automatizadas, escenarios de inventario y aceptación manual antes de desplegar.
 
 ### Criterios de salida de Phase 2
 - Hogar y Negocio → Sandwichies están claramente separados y usan los servicios actuales de Cupboard.
