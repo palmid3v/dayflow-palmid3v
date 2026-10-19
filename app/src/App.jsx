@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import {
   BarChart3,
+  Bell,
   BookOpen,
   CalendarDays,
   Check,
@@ -51,6 +52,7 @@ const navItems = [
   [BarChart3, "dashboard", "Dashboard"],
   [CalendarDays, "calendar", "Schedule"],
   [CheckCircle2, "tasks", "Tasks"],
+  [Bell, "reminders", "Reminders"],
   [BookOpen, "memory", "Memory"]
 ];
 
@@ -418,23 +420,10 @@ function App({ access, admin = false }) {
               <SectionHeader title={selectedDate === today ? "Today" : formatDate(selectedDate)} action="View calendar" onClick={() => setTab("calendar")} />
               <div className="relative ml-9 border-l border-[var(--border)]">
                 {visibleBlocks.map((block) => (
-                  <BlockRow key={block.id} block={block} onToggle={updateBlock} onDelete={deleteBlock} />
+                  <BlockRow key={block.id} block={block} onToggle={updateBlock} onDelete={deleteBlock} readOnly />
                 ))}
                 {!visibleBlocks.length && <Empty title="Nothing planned" text="Add a block below or bring context from Schedule/Calendar." />}
               </div>
-            </section>
-
-            <section className="mb-7 dayflow-quick-block rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
-              <form onSubmit={(event) => {
-                event.preventDefault();
-                const title = quickBlockTitle.trim();
-                if (!title) return;
-                updatePlan([...plan.blocks, { id: `block-${Date.now()}`, source: "plan", time: "18:00", emoji: "○", title, meta: "Added to Today", state: "planned" }]);
-                setQuickBlockTitle("");
-              }} className="flex gap-2">
-                <input value={quickBlockTitle} onChange={(event)=>setQuickBlockTitle(event.target.value)} placeholder="Add a block to Today…" className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm outline-none" aria-label="Add a block to today"/>
-                <button className="grid size-10 place-items-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)]" aria-label="Add block"><Plus size={17}/></button>
-              </form>
             </section>
 
             {canUse("reminders") && <section id="dayflow-reminders" className="mb-7 dayflow-reminders">
@@ -447,6 +436,7 @@ function App({ access, admin = false }) {
                 notificationPermission={notificationPermission}
                 onEnableNotifications={enableReminderNotifications}
                 onTestNotification={testReminderNotification}
+                readOnly
               />
             </section>}
 
@@ -454,17 +444,6 @@ function App({ access, admin = false }) {
               <SectionHeader title="To-Do" action="Open tasks" onClick={() => setTab("tasks")} />
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
                 {taskActionError && <p role="alert" className="mb-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-100">{taskActionError}</p>}
-                <form onSubmit={addQuickTask} className="mb-3 flex gap-2">
-                  <input
-                    value={quickTaskTitle}
-                    onChange={(event) => setQuickTaskTitle(event.target.value)}
-                    placeholder="Add a task for this day…"
-                    aria-label="New task title"
-                    required
-                    className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                  />
-                  <button type="submit" className="grid min-h-10 min-w-10 place-items-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)]" aria-label="Create task"><Plus size={17}/></button>
-                </form>
                 {tasks.length === 0 ? (
                   <div className="flex items-center gap-3 px-2 py-3">
                     <Target size={19} className="text-[var(--text-muted)]" />
@@ -505,6 +484,7 @@ function App({ access, admin = false }) {
           {tab === "dashboard" && <DashboardModule />}
           {tab === "calendar" && canUse("schedule") && <ScheduleModule canUseCalendar={canUse("calendar")} />}
           {tab === "tasks" && canUse("tasks") && <TaskModule onTasksChange={setTasks} />}
+          {tab === "reminders" && canUse("reminders") && <section className="min-w-0 space-y-4"><header><p className="label">DAYFLOW · REMINDERS</p><h2 className="mt-1 text-2xl font-bold">Reminders</h2><p className="mt-1 text-sm text-[var(--text-muted)]">Create and manage reminders for your day.</p></header><ReminderPanel reminders={todayReminders} onToggle={toggleReminder} onDelete={deleteReminder} onAdd={addReminder} notificationPermission={notificationPermission} onEnableNotifications={enableReminderNotifications} onTestNotification={testReminderNotification} /></section>}
           {tab === "memory" && canUse("memory") && <MemoryModule />}
         </Suspense>
 
@@ -563,7 +543,7 @@ function SectionHeader({ title, action, onClick }) {
   );
 }
 
-function BlockRow({ block, onToggle, onDelete }) {
+function BlockRow({ block, onToggle, onDelete, readOnly = false }) {
   const nextState = block.state === "completed" ? "planned" : "completed";
   const external = block.source === "schedule" || block.source === "imported-calendar";
   return (
@@ -582,7 +562,7 @@ function BlockRow({ block, onToggle, onDelete }) {
         </span>
         {external ? <CalendarDays size={19} className="text-[var(--text-muted)]" /> : block.state === "completed" ? <CheckCircle2 size={19} /> : <Circle size={19} className="text-[var(--text-muted)]" />}
       </button>
-      {!external && (
+      {!external && !readOnly && (
         <div className="flex shrink-0 items-center justify-end gap-1 self-end sm:self-center">
           <button onClick={() => onToggle(block.id, "skipped")} className="grid size-8 place-items-center rounded-lg text-[var(--text-faint)] hover:bg-[var(--surface-muted)] text-[10px]" aria-label={`Skip ${block.title}`}>SKIP</button>
           <button onClick={() => onToggle(block.id, "changed")} className="grid size-8 place-items-center rounded-lg text-[var(--text-faint)] hover:bg-[var(--surface-muted)] text-[10px]" aria-label={`Mark ${block.title} as changed`}>↻</button>
@@ -595,27 +575,27 @@ function BlockRow({ block, onToggle, onDelete }) {
   );
 }
 
-function ReminderPanel({ reminders, onToggle, onDelete, onAdd, notificationPermission, onEnableNotifications, onTestNotification }) {
+function ReminderPanel({ reminders, onToggle, onDelete, onAdd, notificationPermission, onEnableNotifications, onTestNotification, readOnly = false }) {
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
       <div className="mb-3 grid gap-2">
         {reminders.map((item) => (
           <div key={item.id} className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2">
-            <button onClick={() => onToggle(item.id)} aria-label={`${item.occurrenceCompleted ? "Reopen" : "Complete"} reminder: ${item.title}`}>
+            {readOnly ? <span className="grid size-8 shrink-0 place-items-center">{item.occurrenceCompleted ? <CheckCircle2 size={18} /> : <Circle size={18} className="text-[var(--text-muted)]" />}</span> : <button onClick={() => onToggle(item.id)} aria-label={`${item.occurrenceCompleted ? "Reopen" : "Complete"} reminder: ${item.title}`}>
               {item.occurrenceCompleted ? <CheckCircle2 size={18} /> : <Circle size={18} className="text-[var(--text-muted)]" />}
-            </button>
+            </button>}
             <span className={`flex-1 text-sm ${item.occurrenceCompleted ? "text-[var(--text-muted)] line-through" : ""}`}>{item.title}</span>
             <time className={`text-xs ${item.overdue ? "text-amber-300" : "text-[var(--text-muted)]"}`}>{item.overdue ? "Overdue · " : ""}{item.time}</time>
-            <button onClick={() => onDelete(item.id)} className="text-[var(--text-faint)]" aria-label={`Delete reminder: ${item.title}`}><Trash2 size={15} /></button>
+            {!readOnly && <button onClick={() => onDelete(item.id)} className="text-[var(--text-faint)]" aria-label={`Delete reminder: ${item.title}`}><Trash2 size={15} /></button>}
           </div>
         ))}
         {!reminders.length && <p className="px-2 py-2 text-xs text-[var(--text-muted)]">Nothing waiting. Add a reminder below.</p>}
       </div>
-      <form onSubmit={onAdd} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
+      {!readOnly && <form onSubmit={onAdd} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
         <input name="title" required placeholder="Remember to…" aria-label="Reminder title" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm outline-none" />
         <input name="time" type="time" defaultValue="18:00" aria-label="Reminder time" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-2 text-sm" />
         <select name="repeat" aria-label="Reminder repeat" className="min-h-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-2 text-xs"><option value="none">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select><button className="grid min-h-10 place-items-center rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-contrast)]" aria-label="Add reminder"><Plus size={17} /></button>
-      </form>
+      </form>}
       <div className="mt-3 flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold">Notifications</p>
@@ -623,14 +603,14 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd, notificationPermi
             {notificationPermission === "granted" ? "Enabled for this browser." : notificationPermission === "denied" ? "Blocked by the browser. Change site permissions to enable them." : notificationPermission === "unsupported" ? "This browser does not support web notifications." : "Enable notifications to get a browser alert when a reminder is due while DayFlow is open."}
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
+        {!readOnly && <div className="flex shrink-0 gap-2">
           {notificationPermission !== "granted" && notificationPermission !== "unsupported" && (
             <button type="button" onClick={onEnableNotifications} className="min-h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold">Enable</button>
           )}
           {notificationPermission === "granted" && (
             <button type="button" onClick={onTestNotification} className="min-h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold">Test</button>
           )}
-        </div>
+        </div>}
       </div>
     </div>
   );
