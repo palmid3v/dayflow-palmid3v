@@ -26,7 +26,7 @@ import {
   saveMemory
 } from "./lib/dayflowStore";
 import { createDailyMemory, createDailyResult } from "./domain/models";
-import { createTask, loadCachedTasks, loadTasks, saveTasks } from "./features/tasks/taskService";
+import { loadCachedTasks, loadTasks, saveTasks } from "./features/tasks/taskService";
 import { setTaskCompletion } from "./features/tasks/taskModel.js";
 import { createReminder, isReminderCompletedForDate, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
