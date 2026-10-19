@@ -919,3 +919,99 @@ body {
     animation: none !important;
   }
 }
+
+
+/* Module-wide responsive polish for Dashboard, Tasks, Schedule and Memory. */
+.app-shell > section:not(.dayflow-runsheet):not(.dayflow-quick-block):not(.dayflow-reminders):not(.dayflow-task-queue):not(.dayflow-progress) {
+  min-width: 0;
+  width: 100%;
+}
+
+.app-shell > section > header {
+  min-width: 0;
+}
+
+.app-shell > section > header h2 {
+  line-height: 1.2;
+  letter-spacing: -.025em;
+}
+
+.app-shell > section > header p:not(.label) {
+  max-width: 62ch;
+  line-height: 1.55;
+}
+
+.app-shell > section input,
+.app-shell > section select,
+.app-shell > section textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell > section button {
+  touch-action: manipulation;
+}
+
+.app-shell > section article,
+.app-shell > section section,
+.app-shell > section form {
+  min-width: 0;
+}
+
+@media (max-width: 639px) {
+  .app-shell > section > header {
+    align-items: flex-start;
+  }
+
+  .app-shell > section > header h2 {
+    font-size: 1.45rem;
+  }
+
+  .app-shell > section > header p:not(.label) {
+    font-size: .8125rem;
+  }
+
+  .app-shell > section form {
+    max-width: 100%;
+  }
+
+  .app-shell > section form input,
+  .app-shell > section form select,
+  .app-shell > section form textarea {
+    width: 100%;
+  }
+
+  .app-shell > section form button {
+    min-height: 2.75rem;
+  }
+
+  .app-shell > section .grid {
+    min-width: 0;
+  }
+
+  .app-shell > section [class*="grid-cols-3"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell > section [class*="grid-cols-2"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell > section .flex.items-center.gap-2 {
+    min-width: 0;
+  }
+
+  .app-shell > section .flex.items-center.gap-2 > :is(input, select) {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .app-shell > section {
+    max-width: 100%;
+  }
+
+  .app-shell > section [class*="grid-cols-3"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
