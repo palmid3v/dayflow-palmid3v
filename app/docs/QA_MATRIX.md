@@ -25,9 +25,30 @@
 
 The expected `PERMISSION_DENIED` emulator log entries occur in negative authorization tests; those tests passed by confirming forbidden writes are denied.
 
-## Phase 2 — build verification queue
+## Fase 1 — gates pendientes para cerrar DayFlow
 
-These checks are the next product/data work, not a request to rerun the completed baseline without a code change.
+La línea base automatizada local está aprobada; estos gates funcionales/de datos aún requieren evidencia antes de declarar terminada la unificación:
+
+- [ ] Confirmar una sola fuente canónica de tareas entre To-Do y DayFlow.
+- [ ] Confirmar una sola fuente canónica de horarios entre Timetable y DayFlow, con recurrencias y excepciones.
+- [ ] Validar tareas, horarios, calendario ICS, recordatorios y permisos por usuario/función.
+- [ ] Inventariar datos reales, respaldar antes de mutar, migrar de forma idempotente y reconciliar conteos sin pérdida ni duplicados.
+- [ ] Registrar CVP/E2E autenticado y verificación manual de los flujos unificados.
+- [ ] Mantener repositorios/despliegues heredados hasta aceptación y rollback verificables.
+
+## Fase 2 — Cupboard como inventario central
+
+Esta fase incorpora espacios separados **Hogar** y **Negocio → Sandwichies**, reutilizando servicios actuales de inventario, movimientos, vencimientos, stock bajo y lista de compras. DayFlow mantiene la planificación; Cupboard, el inventario; Sandwichies, los pedidos y el consumo.
+
+- [ ] Inspeccionar repositorio y servicios actuales de Cupboard antes de diseñar cambios.
+- [ ] Definir límites de datos y permisos entre Hogar y Negocio.
+- [ ] Verificar persistencia y trazabilidad de movimientos, vencimientos, stock bajo y lista de compras.
+- [ ] Probar que un movimiento o consumo no descuente inventario dos veces.
+- [ ] Validar permisos, pruebas de dominio, interfaz responsive y recuperación ante errores.
+
+## Cola técnica de validación de DayFlow
+
+Estos checks técnicos de DayFlow siguen abiertos cuando corresponda; no son una petición de repetir el baseline aprobado sin cambios de código.
 
 ### Data contracts and persistence
 - [ ] Document canonical task, schedule template, occurrence, settings, plan, result, reminder, calendar import/event and memory schemas.
