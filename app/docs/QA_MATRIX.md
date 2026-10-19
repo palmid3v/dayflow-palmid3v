@@ -4,112 +4,82 @@
 
 | Level | DayFlow implementation |
 |---|---|
-| V0 Repository Contract | Validate-CVPProfile.ps1 |
-| V1 Domain Validation | npm test |
-| V2 Static Quality | npm run lint |
-| V3 Build / Artifact | npm run build + PWA generation |
-| V4 Integration | Firebase/auth/access checks and Firestore Emulator Rules tests |
-| V5 CVP | npm run test:cvp |
-| V6 E2E | npm run test:e2e |
+| V0 Repository Contract | `Validate-CVPProfile.ps1` |
+| V1 Domain Validation | `npm run test` |
+| V2 Static Quality | `npm run lint` |
+| V3 Build / Artifact | `npm run build` + PWA generation |
+| V4 Integration | Firebase/Auth/access checks and Firestore Emulator Rules tests |
+| V5 CVP | `npm run test:cvp` |
+| V6 E2E | `npm run test:e2e` |
 | V7 IPV / IST | Interactive verification by the responsible maintainer |
-| V8 Production Acceptance | deployment + smoke + PWA/responsive + rollback evidence |
+| V8 Production Acceptance | Deployment + smoke + PWA/responsive + rollback evidence |
 
-## Automated validation
+## Confirmed local baseline — commit `2877bff`
 
-Run from app/:
+- [x] `firebase emulators:exec --only firestore --project demo-dayflow "npm --prefix app test"`: **33 passed, 0 failed**, including **6 Firestore Rules tests**.
+- [x] `npm --prefix app run lint`: passed.
+- [x] `npm --prefix app run build`: passed; PWA service-worker generation completed.
+- [x] `npm --prefix app audit`: **0 vulnerabilities**.
+- [x] `@grpc/grpc-js` resolves to `1.14.6` via the package override, without downgrading Firebase.
+- [x] Commit `2877bff` was pushed to `origin/main`; user reported local main up to date and working tree clean.
 
-    npm ci
-    npm run validate:static
+The expected `PERMISSION_DENIED` emulator log entries occur in negative authorization tests; those tests passed by confirming forbidden writes are denied.
 
-With a dedicated QA account, or a valid local Playwright auth state:
+## Phase 2 — build verification queue
 
-    npm run validate
+These checks are the next product/data work, not a request to rerun the completed baseline without a code change.
 
-## Current status — consolidated `main`
+### Data contracts and persistence
+- [ ] Document canonical task, schedule template, occurrence, settings, plan, result, reminder, calendar import/event and memory schemas.
+- [ ] Test normalization of legacy aliases and invalid/malformed records at persistence boundaries.
+- [ ] Verify task create/edit/complete/reopen/delete persists across refresh and authenticated sessions.
+- [ ] Verify schedule recurrence, occurrence overrides/history, settings and overlap confirmation.
+- [ ] Verify reminders, daily review and Memory persistence.
+- [ ] Verify `.ics` import/clear preserves recurring Schedule templates.
+- [ ] Define and test local recovery versus cloud conflict handling; no silent overwrite.
 
-Latest recorded local validation during the hardening work: full Node test suite **33/33 PASS**, including Firestore Rules Emulator tests **6/6 PASS**; `npm --prefix app run lint` **PASS**; `npm --prefix app run build` and PWA service-worker generation **PASS**. The full suite was run with `firebase emulators:exec --only firestore --project demo-dayflow "npm --prefix app test"`. These results are local; a fresh CI run against the final consolidated `main` commit has not yet been recorded. The most recent local build emitted: app entry 300.34 kB, Firestore 391.66 kB, Auth 78.76 kB and shared Firebase 79.48 kB (minified sizes), with no oversized-chunk warning.
+### Access, production data and migration
+- [ ] Inventory production Firestore paths, document counts/shapes and legacy schedule fields before migration.
+- [ ] Verify deployed Rules and feature flags against the documented access contract.
+- [ ] Prepare backup, idempotent migration, count/checksum reconciliation and rollback evidence before any production mutation.
+- [ ] Decide and document the Timetable weekly-summary Function's owner/status and $0-budget disposition.
+- [ ] Keep legacy repositories/deployments available until migration and release acceptance are evidenced.
 
-- npm audit: **5 high severity findings** reported through the `@grpc/grpc-js` dependency tree; remediation not yet selected. Do not use `npm audit fix --force` because npm proposes a potentially breaking Firebase downgrade.
-- CVP: **pending** dedicated QA credentials / recorded run.
-- Authenticated production E2E: **pending** dedicated QA credentials / recorded run.
-- Production data reconciliation and migration proof: pending.
-- Manual IPV/IST for desktop/mobile, keyboard, reduced motion and PWA update behavior: pending.
-
-A skipped test is not a pass. Local results are not production acceptance. Rerun lint, build and the full suite against the final consolidated `main` commit.
+### CVP, E2E, manual and PWA
+- [ ] Run CVP with dedicated QA credentials or valid Playwright auth state.
+- [ ] Run full Playwright E2E.
+- [ ] Complete manual IPV/IST on desktop/mobile, keyboard-only navigation, reduced motion, loading/empty/error/access-denied states and responsive overflow.
+- [ ] Verify PWA installation, service-worker update, stale-client behavior and rollback.
+- [ ] Record deployment, Rules, test, manual verification and rollback evidence before production release.
 
 ## ICS calendar import checks
 
-- [ ] With Calendar access enabled, open Schedule and see the Import .ics panel before editing recurring blocks.
-- [ ] Import a valid .ics file and confirm event count, recurrence, and source filename are displayed.
-- [ ] Confirm invalid files and files without events show a useful error without replacing the previous import.
-- [ ] Confirm clearing the import removes only imported calendar events, not recurring Schedule templates.
-- [ ] With Calendar access disabled, show an explicit access message rather than a missing/blank import area.
-- [ ] Confirm the imported-events month grid shows all-day birthdays on the correct date and repeats yearly events.
-- [ ] Confirm imported events are categorized from their title/description (birthday, appointment, meeting, holiday, travel, reminder, or general event).
-- [ ] Confirm month navigation, selected-day details, locations and descriptions work at desktop and mobile widths.
-- [ ] Confirm imported calendar view has no horizontal overflow at 320px, 768px, 1024px and wide desktop.
+- [ ] With Calendar access enabled, Schedule shows the Import .ics panel.
+- [ ] Importing a valid file displays event count, recurrence and source filename.
+- [ ] Invalid files or files without events show a useful error without replacing the previous import.
+- [ ] Clearing imported events removes only imported calendar events, not recurring Schedule templates.
+- [ ] Disabled Calendar access shows an explicit access message.
+- [ ] All-day birthdays appear on the correct date and yearly events recur.
+- [ ] Month navigation, selected-day details, locations and descriptions work at desktop and mobile widths.
+- [ ] No horizontal overflow at 320px, 768px, 1024px and wide desktop.
 
-## Recent Today/Tasks/Dashboard usability checks
+## Today / Tasks / Dashboard checks
 
-- [ ] Create a task from Today and confirm it appears in the task list after switching tabs.
-- [ ] Complete and reopen a task from Today; confirm the status is consistent in Tasks.
-- [ ] Simulate a task save failure and confirm the previous task list is restored with a visible error.
-- [ ] Confirm Dashboard reports total, open and overdue tasks from the current user's task cache.
-- [ ] Confirm high-priority and overdue labels are shown only when their conditions are true.
-- [ ] Verify the quick-add task field and completion buttons with keyboard navigation and narrow viewport.
+- [ ] Create a task from Today and confirm it appears in Tasks after switching tabs.
+- [ ] Complete/reopen a task from Today and confirm consistent status in Tasks.
+- [ ] Simulate save failure and confirm prior task state is restored with a visible error.
+- [ ] Dashboard totals, open and overdue counts reflect the current user's task data.
+- [ ] Priority/overdue labels appear only when applicable.
+- [ ] Quick-add and completion controls work with keyboard navigation and narrow viewports.
 
 ## Critical Value Path
 
-The DayFlow CVP protects the highest-value flows:
-
-- authentication/session access;
-- Today block lifecycle;
-- Tasks lifecycle;
-- Dashboard visibility.
-
-The automated scenarios live in app/e2e/cvp.spec.mjs.
+CVP protects authentication/session access, Today block lifecycle, Tasks lifecycle and Dashboard visibility. Automated scenarios live in `app/e2e/cvp.spec.mjs`.
 
 ## Full production E2E
 
-The production E2E covers authentication and Today, Today block CRUD, Tasks CRUD, Schedule CRUD, calendar .ics import/clear, reminders/notification behavior, Daily Memory, Dashboard, Admin Access Manager, Settings/session controls, and browser/runtime error collection.
-
-The scenarios live in app/e2e/dayflow.spec.mjs.
-
-## Interactive Product Verification (IPV)
-
-A focused IPV run is an Interactive Smoke Test (IST). It complements automated tests; it does not replace them.
-
-### Authentication
-
-- [ ] Open approved Preview and Production deployments.
-- [ ] Authenticate with the dedicated QA account.
-- [ ] Confirm expected email-verification and access states.
-- [ ] Sign out and confirm the authentication screen returns.
-
-### Primary flows
-
-- [ ] Open Today and interact with a representative block.
-- [ ] Confirm the visible state updates and survives refresh.
-- [ ] Create/edit/complete/delete a representative task.
-- [ ] Create/edit/duplicate/delete a schedule block.
-- [ ] Verify overlap warning and the explicit save-anyway path.
-- [ ] Export recurring schedules to .ics and import a sample .ics file.
-- [ ] Create/complete a reminder and verify supported browser notifications.
-- [ ] Save and reload Memory; confirm Dashboard reflects the current state.
-
-### Quality and PWA
-
-- [ ] Verify desktop layout at 1024px+ and narrow/mobile layout at 320px+.
-- [ ] Verify no horizontal overflow and touch targets are usable.
-- [ ] Navigate with keyboard only and confirm visible focus.
-- [ ] Verify reduced-motion preference.
-- [ ] Verify PWA installation, service-worker refresh and stale-cache update behavior.
-- [ ] Inspect relevant loading/empty/error/disabled/access-denied states.
-
-## Production evidence
-
-Record production URL, release commit SHA, Vercel result, Firebase Rules deployment result, automated validation result, CVP/E2E result, IPV/IST result, known warnings/exceptions and rollback evidence.
+The suite in `app/e2e/dayflow.spec.mjs` covers authentication and Today, Today block CRUD, Tasks CRUD, Schedule CRUD, calendar import/clear, reminders/notifications, Daily Memory, Dashboard, Admin Access Manager, Settings/session controls and browser/runtime errors.
 
 ## Release exit criteria
 
-A release is ready only when the required automated checks, Rules tests, CVP/E2E, IPV/IST, deployment evidence, security/configuration checks, data reconciliation and rollback evidence are complete.
+A release is ready only when required automated checks, Rules tests, CVP/E2E, IPV/IST, deployment evidence, security/configuration checks, data reconciliation and rollback evidence are complete. Passing local automated tests does not by itself authorize production migration or legacy retirement.
