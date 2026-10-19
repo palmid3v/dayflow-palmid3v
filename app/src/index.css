@@ -395,8 +395,7 @@ body {
   border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
 }
 
-.app-shell button.bg-\\[var\\(--accent\\)\\]:hover,
-.app-shell button[class*="bg-[var(--accent)]"]:hover,
+.app-shell button.primary-action:hover,
 .primary-action:hover {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent),
     0 8px 28px color-mix(in srgb, var(--accent) 20%, transparent);
@@ -494,5 +493,525 @@ body {
   .app-shell section.rounded-xl:hover,
   .mobile-nav button:hover {
     transform: none !important;
+  }
+}
+
+
+/* Responsive hardening: prevent compact forms and cards from overflowing. */
+.app-shell,
+.app-shell * {
+  min-width: 0;
+}
+
+.app-shell img,
+.app-shell video,
+.app-shell canvas,
+.app-shell svg {
+  max-width: 100%;
+}
+
+.app-shell input,
+.app-shell textarea,
+.app-shell select {
+  max-width: 100%;
+}
+
+.app-shell form {
+  min-width: 0;
+}
+
+.app-shell [class~="flex"] > input,
+.app-shell [class~="flex"] > textarea,
+.app-shell [class~="flex"] > select {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.app-shell .dayflow-reminders > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell .dayflow-reminders form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: .5rem;
+  width: 100%;
+}
+
+.app-shell .dayflow-reminders form > input,
+.app-shell .dayflow-reminders form > select,
+.app-shell .dayflow-reminders form > button {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell .dayflow-reminders form > input:first-child {
+  flex: 1 1 9rem;
+}
+
+.app-shell .dayflow-reminders form > button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 639px) {
+  .app-shell {
+    padding-inline: .875rem;
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+
+  .app-shell header {
+    gap: .75rem;
+  }
+
+  .app-shell section.rounded-2xl,
+  .app-shell section.rounded-3xl,
+  .app-shell section.rounded-xl {
+    border-radius: 1rem;
+  }
+
+  .app-shell .dayflow-reminders form > input,
+  .app-shell .dayflow-reminders form > select {
+    flex: 1 1 7rem;
+    width: auto;
+  }
+
+  .app-shell .dayflow-reminders form > button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .app-shell .dayflow-reminders [class*="notification"],
+  .app-shell .dayflow-reminders [class*="Notification"] {
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-nav {
+    gap: .25rem;
+    padding: .375rem;
+  }
+
+  .mobile-nav button {
+    min-width: 0;
+    padding-inline: .25rem;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .app-shell {
+    width: min(100%, 52rem);
+    padding-inline: 1.25rem;
+  }
+}
+
+
+/* Mockup alignment: responsive workspace, stronger hierarchy, and usable forms. */
+.app-shell {
+  --panel-gap: clamp(14px, 1.35vw, 22px);
+  max-width: 100%;
+}
+
+.app-shell > header h1 {
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+  line-height: 1.16;
+  letter-spacing: -.035em;
+}
+
+.app-shell .dayflow-progress {
+  padding: clamp(16px, 2vw, 24px);
+}
+
+.app-shell .dayflow-progress strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.app-shell .dayflow-runsheet > div.relative {
+  margin-left: 2rem;
+}
+
+.app-shell .dayflow-runsheet time {
+  font-variant-numeric: tabular-nums;
+}
+
+.app-shell .dayflow-quick-block form,
+.app-shell .dayflow-task-queue form {
+  display: flex;
+  align-items: stretch;
+  gap: .5rem;
+  width: 100%;
+}
+
+.app-shell .dayflow-quick-block form input,
+.app-shell .dayflow-task-queue form input {
+  flex: 1 1 auto;
+  width: 1%;
+  min-width: 0;
+}
+
+.app-shell .dayflow-quick-block form button,
+.app-shell .dayflow-task-queue form button {
+  flex: 0 0 2.75rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.app-shell .dayflow-reminders form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: stretch;
+  gap: .5rem;
+}
+
+.app-shell .dayflow-reminders form > input[name="title"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+}
+
+.app-shell .dayflow-reminders form > input[name="time"] {
+  min-width: 0;
+  width: 100%;
+}
+
+.app-shell .dayflow-reminders form > select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell .dayflow-reminders form > button {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.app-shell .dayflow-reminders > div:last-child {
+  min-width: 0;
+}
+
+.app-shell .dayflow-reminders > div:last-child p {
+  overflow-wrap: anywhere;
+}
+
+.app-shell .dayflow-memory-card textarea {
+  min-height: 5.5rem;
+}
+
+.app-shell .dayflow-task-queue > div,
+.app-shell .dayflow-reminders > div,
+.app-shell .dayflow-progress,
+.app-shell .dayflow-quick-block {
+  min-width: 0;
+}
+
+.mobile-nav {
+  bottom: max(.5rem, env(safe-area-inset-bottom)) !important;
+  padding-bottom: max(.375rem, env(safe-area-inset-bottom)) !important;
+}
+
+@media (min-width: 1024px) {
+  .app-shell[data-active-tab="today"] {
+    grid-template-columns: minmax(0, 1.12fr) minmax(260px, .9fr) minmax(240px, .9fr);
+    column-gap: var(--panel-gap);
+    row-gap: 0;
+  }
+
+  .app-shell[data-active-tab="today"] > header,
+  .app-shell[data-active-tab="today"] .dayflow-progress {
+    grid-column: 1 / -1;
+  }
+
+  .app-shell[data-active-tab="today"] .dayflow-runsheet {
+    grid-column: 1;
+    grid-row: 3 / span 2;
+  }
+
+  .app-shell[data-active-tab="today"] .dayflow-quick-block {
+    grid-column: 1;
+    grid-row: 5;
+    align-self: start;
+  }
+
+  .app-shell[data-active-tab="today"] .dayflow-task-queue {
+    grid-column: 2;
+    grid-row: 3 / span 2;
+  }
+
+  .app-shell[data-active-tab="today"] .dayflow-reminders {
+    grid-column: 3;
+    grid-row: 3 / span 2;
+  }
+
+  .app-shell[data-active-tab="today"] .dayflow-memory-card {
+    grid-column: 2 / 4;
+    grid-row: 5;
+    align-self: start;
+  }
+
+  .app-shell[data-active-tab="today"] .dayflow-runsheet > div.relative {
+    margin-left: 2.5rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .app-shell[data-active-tab="today"] {
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, .92fr) minmax(260px, .92fr);
+    column-gap: 22px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .app-shell[data-active-tab="today"] {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .app-shell[data-active-tab="today"] > header,
+  .app-shell[data-active-tab="today"] .dayflow-progress,
+  .app-shell[data-active-tab="today"] .dayflow-runsheet,
+  .app-shell[data-active-tab="today"] .dayflow-quick-block,
+  .app-shell[data-active-tab="today"] .dayflow-task-queue,
+  .app-shell[data-active-tab="today"] .dayflow-reminders,
+  .app-shell[data-active-tab="today"] .dayflow-memory-card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .app-shell[data-active-tab="today"] .dayflow-progress {
+    margin-bottom: 1.25rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .app-shell {
+    padding-inline: .875rem;
+    padding-top: 1rem;
+    padding-bottom: calc(6.75rem + env(safe-area-inset-bottom));
+  }
+
+  .app-shell > header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.75rem;
+    align-items: start;
+    column-gap: .5rem;
+    row-gap: .75rem;
+    padding-top: 3rem;
+  }
+
+  .app-shell > header > div:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .app-shell > header > button[aria-label="Open settings"] {
+    grid-column: 2;
+    grid-row: 2;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .app-shell .dayflow-progress {
+    border-radius: 1.25rem;
+    padding: 1rem;
+  }
+
+  .app-shell .dayflow-progress strong {
+    font-size: 2.5rem;
+  }
+
+  .app-shell .dayflow-progress .size-20 {
+    width: 3.75rem;
+    height: 3.75rem;
+  }
+
+  .app-shell .dayflow-progress .size-\[62px\] {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .app-shell .dayflow-progress p:not(.label) {
+    max-width: 15rem;
+    font-size: .75rem;
+    line-height: 1.45;
+  }
+
+  .app-shell .dayflow-runsheet > div.relative {
+    margin-left: 2.25rem;
+  }
+
+  .app-shell .dayflow-runsheet time {
+    left: -2.25rem;
+    font-size: 9px;
+  }
+
+  .app-shell .dayflow-reminders form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem;
+  }
+
+  .app-shell .dayflow-reminders form > input[name="title"] {
+    grid-column: 1 / -1;
+  }
+
+  .app-shell .dayflow-reminders form > input[name="time"] {
+    grid-column: 1;
+  }
+
+  .app-shell .dayflow-reminders form > select {
+    grid-column: 2;
+    width: 100%;
+  }
+
+  .app-shell .dayflow-reminders form > button {
+    grid-column: 3;
+    grid-row: 2;
+    width: 2.75rem;
+    padding-inline: 0;
+  }
+
+  .app-shell .dayflow-reminders > div:last-child {
+    align-items: stretch;
+  }
+
+  .app-shell .dayflow-reminders > div:last-child > div:last-child {
+    align-self: flex-start;
+  }
+
+  .app-shell .dayflow-task-queue form button,
+  .app-shell .dayflow-quick-block form button {
+    flex-basis: 2.75rem;
+    width: 2.75rem;
+  }
+
+  .app-shell .dayflow-memory-card > div {
+    align-items: flex-start;
+  }
+
+  .mobile-nav {
+    width: calc(100% - 16px) !important;
+    max-width: 460px !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+
+  .mobile-nav button span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+  }
+
+  [role="dialog"] {
+    align-items: end;
+    padding: .5rem !important;
+  }
+
+  [role="dialog"] > div {
+    max-height: calc(100dvh - 1rem - env(safe-area-inset-top));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell .dayflow-progress::after {
+    animation: none !important;
+  }
+}
+
+
+/* Module-wide responsive polish for Dashboard, Tasks, Schedule and Memory. */
+.app-shell > section:not(.dayflow-runsheet):not(.dayflow-quick-block):not(.dayflow-reminders):not(.dayflow-task-queue):not(.dayflow-progress) {
+  min-width: 0;
+  width: 100%;
+}
+
+.app-shell > section > header {
+  min-width: 0;
+}
+
+.app-shell > section > header h2 {
+  line-height: 1.2;
+  letter-spacing: -.025em;
+}
+
+.app-shell > section > header p:not(.label) {
+  max-width: 62ch;
+  line-height: 1.55;
+}
+
+.app-shell > section input,
+.app-shell > section select,
+.app-shell > section textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell > section button {
+  touch-action: manipulation;
+}
+
+.app-shell > section article,
+.app-shell > section section,
+.app-shell > section form {
+  min-width: 0;
+}
+
+@media (max-width: 639px) {
+  .app-shell > section > header {
+    align-items: flex-start;
+  }
+
+  .app-shell > section > header h2 {
+    font-size: 1.45rem;
+  }
+
+  .app-shell > section > header p:not(.label) {
+    font-size: .8125rem;
+  }
+
+  .app-shell > section form {
+    max-width: 100%;
+  }
+
+  .app-shell > section form input,
+  .app-shell > section form select,
+  .app-shell > section form textarea {
+    width: 100%;
+  }
+
+  .app-shell > section form button {
+    min-height: 2.75rem;
+  }
+
+  .app-shell > section .grid {
+    min-width: 0;
+  }
+
+  .app-shell > section [class*="grid-cols-3"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell > section [class*="grid-cols-2"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell > section .flex.items-center.gap-2 {
+    min-width: 0;
+  }
+
+  .app-shell > section .flex.items-center.gap-2 > :is(input, select) {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .app-shell > section {
+    max-width: 100%;
+  }
+
+  .app-shell > section [class*="grid-cols-3"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
