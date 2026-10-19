@@ -53,9 +53,15 @@ Firestore is the cloud source of truth. LocalStorage is a cache/recovery layer. 
 - Full local Node suite: 33/33 passed, including 6/6 Firestore Rules tests through the Firestore emulator.
 - ESLint and production build passed; PWA service-worker generation completed.
 
-## Phase 2 — Build
+## Fases vigentes
 
-Phase 2 is the active work focus. Start with canonical data contracts and persistence boundaries, then verify core CRUD/session persistence, schedule compatibility, local/cloud conflict behavior, and production-data inventory. Keep feature work moving; production migration, legacy retirement and release remain gated on backup/reconciliation, authenticated CVP/E2E, manual IPV/IST, PWA update and rollback evidence.
+### Fase 1 — Cerrar DayFlow (To-Do + Timetable)
+Estado: en cierre. Validar tareas, horarios, calendario, recordatorios, permisos y migración de datos. El cierre exige una sola fuente canónica de tareas y horarios, reconciliación con los datos heredados, respaldo, migración idempotente y rollback probado. La suite local aprobada no equivale a aceptación de producción.
+
+### Fase 2 — Cupboard como inventario central
+Siguiente fase de producto: espacio separado con dos contextos, **Hogar** y **Negocio → Sandwichies**. Reutilizar los servicios existentes de inventario, movimientos, vencimientos, stock bajo y lista de compras. No reimplementar servicios antes de inspeccionar Cupboard. Los contextos doméstico y comercial no deben compartir stock accidentalmente. Los pedidos/consumos confirmados de Sandwichies deben descontar inventario de forma idempotente si esa integración forma parte del flujo existente.
+
+Responsabilidades: DayFlow = tiempo y planificación; Cupboard = inventario; Sandwichies = pedidos y consumo. Mantener el presupuesto de $0 de gasto obligatorio y trabajar directamente sobre `main`, sin crear ramas.
 
 ## Development
 
