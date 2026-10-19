@@ -495,3 +495,112 @@ body {
     transform: none !important;
   }
 }
+
+
+/* Responsive hardening: prevent compact forms and cards from overflowing. */
+.app-shell,
+.app-shell * {
+  min-width: 0;
+}
+
+.app-shell img,
+.app-shell video,
+.app-shell canvas,
+.app-shell svg {
+  max-width: 100%;
+}
+
+.app-shell input,
+.app-shell textarea,
+.app-shell select {
+  max-width: 100%;
+}
+
+.app-shell form {
+  min-width: 0;
+}
+
+.app-shell [class~="flex"] > input,
+.app-shell [class~="flex"] > textarea,
+.app-shell [class~="flex"] > select {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.app-shell .dayflow-reminders > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell .dayflow-reminders form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: .5rem;
+  width: 100%;
+}
+
+.app-shell .dayflow-reminders form > input,
+.app-shell .dayflow-reminders form > select,
+.app-shell .dayflow-reminders form > button {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell .dayflow-reminders form > input:first-child {
+  flex: 1 1 9rem;
+}
+
+.app-shell .dayflow-reminders form > button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 639px) {
+  .app-shell {
+    padding-inline: .875rem;
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+
+  .app-shell header {
+    gap: .75rem;
+  }
+
+  .app-shell section.rounded-2xl,
+  .app-shell section.rounded-3xl,
+  .app-shell section.rounded-xl {
+    border-radius: 1rem;
+  }
+
+  .app-shell .dayflow-reminders form > input,
+  .app-shell .dayflow-reminders form > select {
+    flex: 1 1 7rem;
+    width: auto;
+  }
+
+  .app-shell .dayflow-reminders form > button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .app-shell .dayflow-reminders [class*="notification"],
+  .app-shell .dayflow-reminders [class*="Notification"] {
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-nav {
+    gap: .25rem;
+    padding: .375rem;
+  }
+
+  .mobile-nav button {
+    min-width: 0;
+    padding-inline: .25rem;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .app-shell {
+    width: min(100%, 52rem);
+    padding-inline: 1.25rem;
+  }
+}
