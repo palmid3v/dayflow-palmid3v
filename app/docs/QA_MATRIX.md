@@ -25,17 +25,17 @@ With a dedicated QA account, or a valid local Playwright auth state:
 
     npm run validate
 
-## Current status — consolidation branch
+## Current status — consolidated `main`
 
-GitHub Actions run [38811104010](https://github.com/palmid3v/dayflow-palmid3v/actions/runs/38811104010) validated commit `111e7744e160a04d8ac174f3b36d820f4789588a`: Unit **26/26 PASS**, Lint **PASS**, production build **PASS**, and PWA generation **PASS**. Firebase vendor splitting passed without the previous oversized-chunk warning: app entry 295.78 kB, Firestore 391.66 kB, Auth 78.76 kB and shared Firebase 79.48 kB (minified sizes).
+Latest recorded local validation during the hardening work: full Node test suite **33/33 PASS**, including Firestore Rules Emulator tests **6/6 PASS**; `npm --prefix app run lint` **PASS**; `npm --prefix app run build` and PWA service-worker generation **PASS**. The full suite was run with `firebase emulators:exec --only firestore --project demo-dayflow "npm --prefix app test"`. These results are local; a fresh CI run against the final consolidated `main` commit has not yet been recorded. The most recent local build emitted: app entry 300.34 kB, Firestore 391.66 kB, Auth 78.76 kB and shared Firebase 79.48 kB (minified sizes), with no oversized-chunk warning.
 
-- CVP: **SKIP** when QA credentials are not configured.
-- Authenticated production E2E: **SKIP** when QA credentials are not configured.
-- Firestore Rules Unit Testing in the Emulator Suite: pending.
+- npm audit: **5 high severity findings** reported through the `@grpc/grpc-js` dependency tree; remediation not yet selected. Do not use `npm audit fix --force` because npm proposes a potentially breaking Firebase downgrade.
+- CVP: **pending** dedicated QA credentials / recorded run.
+- Authenticated production E2E: **pending** dedicated QA credentials / recorded run.
 - Production data reconciliation and migration proof: pending.
 - Manual IPV/IST for desktop/mobile, keyboard, reduced motion and PWA update behavior: pending.
 
-A skipped test is not a pass. A green static CI run is not production acceptance.
+A skipped test is not a pass. Local results are not production acceptance. Rerun lint, build and the full suite against the final consolidated `main` commit.
 
 ## ICS calendar import checks
 
