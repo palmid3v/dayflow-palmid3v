@@ -82,13 +82,11 @@ function getGreeting() {
 function App({ access, admin = false }) {
   const today = dateKey();
   const [selectedDate, setSelectedDate] = useState(today);
-  const [quickBlockTitle, setQuickBlockTitle] = useState("");
   const [tab, setTab] = useState("today");
   const [plan, setPlan] = useState(() => getInitialPlan(today));
   const [note, setNote] = useState(() => getDayFlowState().notes?.[today] ?? "");
   const [reminders, setReminders] = useState(() => loadCachedReminders(auth?.currentUser?.uid).length ? loadCachedReminders(auth?.currentUser?.uid) : (getDayFlowState().reminders ?? []));
   const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null)));
-  const [quickTaskTitle, setQuickTaskTitle] = useState("");
   const [taskActionError, setTaskActionError] = useState("");
   const theme = "dark";
   const canUse = useCallback((feature) => admin || access?.features?.[feature] === true, [admin, access?.features]);
@@ -259,14 +257,6 @@ function App({ access, admin = false }) {
       setTaskActionError("The task was not saved. Your previous list has been restored; try again.");
       return false;
     }
-  }
-
-  async function addQuickTask(event) {
-    event.preventDefault();
-    const title = quickTaskTitle.trim();
-    if (!title) return;
-    const next = [createTask(title, { dueDate: selectedDate }), ...tasks];
-    if (await persistTasks(next)) setQuickTaskTitle("");
   }
 
   async function toggleQuickTask(task) {
@@ -458,8 +448,9 @@ function App({ access, admin = false }) {
                         <button
                           type="button"
                           onClick={() => void toggleQuickTask(task)}
-                          className="grid size-8 shrink-0 place-items-center rounded-lg hover:bg-[var(--surface-muted)]"
-                          aria-label={task.completed ? `Reopen ${task.title}` : `Complete ${task.title}`}
+                          disabled
+                          className="grid size-8 shrink-0 place-items-center rounded-lg"
+                          aria-label={task.completed ? `${task.title}, completed` : `${task.title}, open`}
                           aria-pressed={task.completed}
                         >
                           {task.completed ? <CheckCircle2 size={17} className="text-[var(--success)]" /> : <Circle size={17} className="text-[var(--text-muted)]" />}
@@ -494,7 +485,7 @@ function App({ access, admin = false }) {
       </div>
 
       <nav className="mobile-nav fixed bottom-2 left-1/2 z-40 grid w-[calc(100%-16px)] max-w-[720px] grid-cols-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
-        {navItems.filter(([, key]) => admin || key === "today" || key === "dashboard" || (key === "calendar" && canUse("schedule")) || (key === "tasks" && canUse("tasks")) || (key === "memory" && canUse("memory"))).map(([Icon, key, label]) => (
+        {navItems.filter(([, key]) => admin || key === "today" || key === "dashboard" || (key === "calendar" && canUse("schedule")) || (key === "tasks" && canUse("tasks")) || (key === "reminders" && canUse("reminders")) || (key === "memory" && canUse("memory"))).map(([Icon, key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
@@ -589,7 +580,7 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd, notificationPermi
             {!readOnly && <button onClick={() => onDelete(item.id)} className="text-[var(--text-faint)]" aria-label={`Delete reminder: ${item.title}`}><Trash2 size={15} /></button>}
           </div>
         ))}
-        {!reminders.length && <p className="px-2 py-2 text-xs text-[var(--text-muted)]">Nothing waiting. Add a reminder below.</p>}
+        {!reminders.length && <p className="px-2 py-2 text-xs text-[var(--text-muted)]">{readOnly ? "No reminders for this day." : "Nothing waiting. Add a reminder below."}</p>}
       </div>
       {!readOnly && <form onSubmit={onAdd} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
         <input name="title" required placeholder="Remember to…" aria-label="Reminder title" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm outline-none" />
