@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+
 import fs from "node:fs";
 import path from "node:path";
 
@@ -15,19 +16,24 @@ const failedRequests = [];
 
 async function waitForApp(page) {
   try {
-    await expect(page.getByText("Your day, in one flow.")).toBeVisible({ timeout: 30000 });
-  } catch (error) {
-    const bodyText = await page.locator("body").innerText().catch(function () {
-      return "";
+    await expect(page.getByText("Your day, in one flow.")).toBeVisible({
+      timeout: 30000,
     });
+  } catch (error) {
+    const bodyText = await page
+      .locator("body")
+      .innerText()
+      .catch(function () {
+        return "";
+      });
+
     const compactBody = bodyText.replace(/\s+/g, " ").trim().slice(0, 2000);
 
     throw new Error(
       "DayFlow did not reach the authenticated app shell. " +
         "Current URL: " +
         page.url() +
-        ". " +
-        "Visible state: " +
+        ". Visible state: " +
         compactBody,
       { cause: error }
     );
@@ -40,7 +46,7 @@ async function ensureAuthenticated(browser, baseURL) {
   const context = await browser.newContext({
     storageState: hasStoredAuth ? authFile : undefined,
     permissions: ["notifications"],
-    viewport: { width: 1440, height: 1000 }
+    viewport: { width: 1440, height: 1000 },
   });
 
   const page = await context.newPage();
@@ -77,20 +83,25 @@ async function ensureAuthenticated(browser, baseURL) {
   if (loginVisible) {
     if (!email || !password) {
       throw new Error(
-        "Authentication is required for E2E validation. Set DAYFLOW_VALIDATE_EMAIL and DAYFLOW_VALIDATE_PASSWORD once."
+        "Authentication is required for E2E validation. " +
+          "Set DAYFLOW_VALIDATE_EMAIL and DAYFLOW_VALIDATE_PASSWORD once."
       );
     }
 
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password").fill(password);
-    await page.locator("form").getByRole("button", { name: "Sign in" }).click();
+    await page
+      .locator("form")
+      .getByRole("button", { name: "Sign in" })
+      .click();
 
     await waitForApp(page);
 
     fs.mkdirSync(path.dirname(authFile), { recursive: true });
+
     await context.storageState({
       path: authFile,
-      indexedDB: true
+      indexedDB: true,
     });
   } else {
     await waitForApp(page);
@@ -98,7 +109,7 @@ async function ensureAuthenticated(browser, baseURL) {
 
   return {
     context,
-    page
+    page,
   };
 }
 
@@ -106,7 +117,10 @@ async function goTab(page, name) {
   await page.getByRole("button", { name, exact: true }).last().click();
 }
 
-test("DayFlow production end-to-end validation", async function ({ browser, baseURL }) {
+test("DayFlow production end-to-end validation", async function ({
+  browser,
+  baseURL,
+}) {
   const state = await ensureAuthenticated(browser, baseURL);
   const context = state.context;
   const page = state.page;
@@ -116,7 +130,9 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
       await waitForApp(page);
 
       await expect(
-        page.getByText("Cloud sync is unavailable. Your local DayFlow data remains available.")
+        page.getByText(
+          "Cloud sync is unavailable. Your local DayFlow data remains available."
+        )
       ).toHaveCount(0);
     });
 
@@ -130,13 +146,13 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
 
       await page
         .getByRole("button", {
-          name: new RegExp(title + ", currently planned")
+          name: new RegExp(title + ", currently planned"),
         })
         .click();
 
       await expect(
         page.getByRole("button", {
-          name: new RegExp(title + ", currently completed")
+          name: new RegExp(title + ", currently completed"),
         })
       ).toBeVisible();
 
@@ -202,9 +218,39 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
     });
 
     await test.step("Calendar ICS import and clear", async function () {
+      // Diagnose the current UI before asserting that the file input exists.
+      const bodyText = await page.locator("body").innerText();
+
+      const importHeading = page.getByRole("heading", {
+        name: "Bring your calendar into DayFlow",
+      });
+
       const input = page.locator(
         'input[type="file"][accept=".ics,text/calendar"]'
       );
+
+      const diagnostic = {
+        url: page.url(),
+        importHeadingCount: await importHeading.count(),
+        calendarImportDisabled: /Calendar import is not enabled/i.test(bodyText),
+        fileInputCount: await input.count(),
+      };
+
+      console.log("Calendar import diagnostic:", JSON.stringify(diagnostic));
+
+      if (diagnostic.calendarImportDisabled) {
+        throw new Error(
+          "The E2E account can access Schedule but Calendar import is disabled. " +
+            "Enable the Calendar feature for the QA account and rerun the test."
+        );
+      }
+
+      if (diagnostic.fileInputCount === 0) {
+        throw new Error(
+          "Calendar import file input was not rendered. " +
+            "Check the diagnostic above, the active tab, and the QA account's Calendar permission."
+        );
+      }
 
       await expect(input).toHaveCount(1);
       await input.setInputFiles(icsFile);
@@ -236,19 +282,19 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
 
       await page
         .getByRole("button", {
-          name: "Complete reminder: " + title
+          name: "Complete reminder: " + title,
         })
         .click();
 
       await expect(
         page.getByRole("button", {
-          name: "Reopen reminder: " + title
+          name: "Reopen reminder: " + title,
         })
       ).toBeVisible();
 
       await page
         .getByRole("button", {
-          name: "Delete reminder: " + title
+          name: "Delete reminder: " + title,
         })
         .click();
 
@@ -272,13 +318,9 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
 
       await goTab(page, "Today");
 
-      await page
-        .getByPlaceholder("Add a note about today…")
-        .fill(note);
+      await page.getByPlaceholder("Add a note about today…").fill(note);
 
-      await page
-        .getByRole("button", { name: "Save daily review" })
-        .click();
+      await page.getByRole("button", { name: "Save daily review" }).click();
 
       await expect(
         page.getByRole("button", { name: "Review saved" })
@@ -286,21 +328,16 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
 
       await goTab(page, "Memory");
 
-      await expect(
-        page.getByText(note, { exact: true })
-      ).toBeVisible({ timeout: 30000 });
+      await expect(page.getByText(note, { exact: true })).toBeVisible({
+        timeout: 30000,
+      });
 
-      // Remove the QA note before the run finishes so repeated validation
-      // does not accumulate test content in the user's daily memory.
+      // Remove the QA note to prevent repeated runs accumulating test content.
       await goTab(page, "Today");
 
-      await page
-        .getByPlaceholder("Add a note about today…")
-        .fill("");
+      await page.getByPlaceholder("Add a note about today…").fill("");
 
-      await page
-        .getByRole("button", { name: "Review saved" })
-        .click();
+      await page.getByRole("button", { name: "Review saved" }).click();
     });
 
     await test.step("Dashboard", async function () {
@@ -314,7 +351,7 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
 
     await test.step("Admin access manager", async function () {
       const adminButton = page.getByRole("button", {
-        name: "Open admin access manager"
+        name: "Open admin access manager",
       });
 
       if (await adminButton.count()) {
@@ -335,9 +372,7 @@ test("DayFlow production end-to-end validation", async function ({ browser, base
     });
 
     await test.step("Settings and session controls", async function () {
-      await page
-        .getByRole("button", { name: "Open settings" })
-        .click();
+      await page.getByRole("button", { name: "Open settings" }).click();
 
       await expect(
         page.getByRole("dialog", { name: "Settings" })
