@@ -29,9 +29,15 @@ npm run dev
 
 Consulta los documentos del proyecto antes de configurar servicios, credenciales o despliegues. Los comandos pueden variar según el entorno y las dependencias instaladas.
 
+## 🧭 Experiencia actual
+
+La interfaz **Dark Premium** está aplicada a Today, Dashboard, Tasks, Schedule, Memory y Settings, con ajustes responsive y estados de interacción más claros. Today funciona como resumen de solo lectura; la creación y modificación se realizan en los módulos correspondientes. Recordatorios se administra desde su pestaña dedicada.
+
+El diálogo de Settings se posiciona respecto al viewport y no depende de la posición de scroll de la página.
+
 ## 📍 Estado del proyecto
 
-Unificación en progreso. No se considera cerrada hasta validar migración y reconciliación de datos, permisos, integraciones, despliegues, flujos E2E autenticados y rollback. Mantener el presupuesto operativo objetivo de $0.
+La capa visual y las pruebas locales de regresión fueron validadas manualmente por el mantenedor. La unificación **sigue en hardening**: faltan pruebas automatizadas de reglas de Firestore, evidencia autenticada de persistencia, reconciliación de datos reales, verificación de PWA/rollback y cierre de los flujos E2E de producción. No retirar los repositorios heredados ni declarar listo para producción hasta completar los gates documentados. Mantener el presupuesto operativo objetivo de $0.
 
 ## 📚 Documentación
 

@@ -1,6 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   BarChart3,
+  Bell,
   BookOpen,
   CalendarDays,
   Check,
@@ -25,7 +27,7 @@ import {
   saveMemory
 } from "./lib/dayflowStore";
 import { createDailyMemory, createDailyResult } from "./domain/models";
-import { createTask, loadCachedTasks, loadTasks, saveTasks } from "./features/tasks/taskService";
+import { loadCachedTasks, loadTasks, saveTasks } from "./features/tasks/taskService";
 import { setTaskCompletion } from "./features/tasks/taskModel.js";
 import { createReminder, isReminderCompletedForDate, loadCachedReminders, remindersForDate, saveCachedReminders, sortReminders, updateReminder } from "./features/reminders/reminderService";
 import { loadSchedules, scheduleToDailyBlocks } from "./features/schedule/scheduleService";
@@ -51,6 +53,7 @@ const navItems = [
   [BarChart3, "dashboard", "Dashboard"],
   [CalendarDays, "calendar", "Schedule"],
   [CheckCircle2, "tasks", "Tasks"],
+  [Bell, "reminders", "Reminders"],
   [BookOpen, "memory", "Memory"]
 ];
 
@@ -80,13 +83,11 @@ function getGreeting() {
 function App({ access, admin = false }) {
   const today = dateKey();
   const [selectedDate, setSelectedDate] = useState(today);
-  const [quickBlockTitle, setQuickBlockTitle] = useState("");
   const [tab, setTab] = useState("today");
   const [plan, setPlan] = useState(() => getInitialPlan(today));
   const [note, setNote] = useState(() => getDayFlowState().notes?.[today] ?? "");
   const [reminders, setReminders] = useState(() => loadCachedReminders(auth?.currentUser?.uid).length ? loadCachedReminders(auth?.currentUser?.uid) : (getDayFlowState().reminders ?? []));
   const [tasks, setTasks] = useState(() => loadCachedTasks(auth?.currentUser?.uid ?? (DEMO_MODE ? DEMO_UID : null)));
-  const [quickTaskTitle, setQuickTaskTitle] = useState("");
   const [taskActionError, setTaskActionError] = useState("");
   const theme = "dark";
   const canUse = useCallback((feature) => admin || access?.features?.[feature] === true, [admin, access?.features]);
@@ -259,14 +260,6 @@ function App({ access, admin = false }) {
     }
   }
 
-  async function addQuickTask(event) {
-    event.preventDefault();
-    const title = quickTaskTitle.trim();
-    if (!title) return;
-    const next = [createTask(title, { dueDate: selectedDate }), ...tasks];
-    if (await persistTasks(next)) setQuickTaskTitle("");
-  }
-
   async function toggleQuickTask(task) {
     const completed = !task.completed;
     const next = tasks.map((item) => item.id === task.id
@@ -418,23 +411,10 @@ function App({ access, admin = false }) {
               <SectionHeader title={selectedDate === today ? "Today" : formatDate(selectedDate)} action="View calendar" onClick={() => setTab("calendar")} />
               <div className="relative ml-9 border-l border-[var(--border)]">
                 {visibleBlocks.map((block) => (
-                  <BlockRow key={block.id} block={block} onToggle={updateBlock} onDelete={deleteBlock} />
+                  <BlockRow key={block.id} block={block} onToggle={updateBlock} onDelete={deleteBlock} readOnly />
                 ))}
                 {!visibleBlocks.length && <Empty title="Nothing planned" text="Add a block below or bring context from Schedule/Calendar." />}
               </div>
-            </section>
-
-            <section className="mb-7 dayflow-quick-block rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
-              <form onSubmit={(event) => {
-                event.preventDefault();
-                const title = quickBlockTitle.trim();
-                if (!title) return;
-                updatePlan([...plan.blocks, { id: `block-${Date.now()}`, source: "plan", time: "18:00", emoji: "○", title, meta: "Added to Today", state: "planned" }]);
-                setQuickBlockTitle("");
-              }} className="flex gap-2">
-                <input value={quickBlockTitle} onChange={(event)=>setQuickBlockTitle(event.target.value)} placeholder="Add a block to Today…" className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm outline-none" aria-label="Add a block to today"/>
-                <button className="grid size-10 place-items-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)]" aria-label="Add block"><Plus size={17}/></button>
-              </form>
             </section>
 
             {canUse("reminders") && <section id="dayflow-reminders" className="mb-7 dayflow-reminders">
@@ -447,6 +427,7 @@ function App({ access, admin = false }) {
                 notificationPermission={notificationPermission}
                 onEnableNotifications={enableReminderNotifications}
                 onTestNotification={testReminderNotification}
+                readOnly
               />
             </section>}
 
@@ -454,17 +435,6 @@ function App({ access, admin = false }) {
               <SectionHeader title="To-Do" action="Open tasks" onClick={() => setTab("tasks")} />
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
                 {taskActionError && <p role="alert" className="mb-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-100">{taskActionError}</p>}
-                <form onSubmit={addQuickTask} className="mb-3 flex gap-2">
-                  <input
-                    value={quickTaskTitle}
-                    onChange={(event) => setQuickTaskTitle(event.target.value)}
-                    placeholder="Add a task for this day…"
-                    aria-label="New task title"
-                    required
-                    className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                  />
-                  <button type="submit" className="grid min-h-10 min-w-10 place-items-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)]" aria-label="Create task"><Plus size={17}/></button>
-                </form>
                 {tasks.length === 0 ? (
                   <div className="flex items-center gap-3 px-2 py-3">
                     <Target size={19} className="text-[var(--text-muted)]" />
@@ -479,8 +449,9 @@ function App({ access, admin = false }) {
                         <button
                           type="button"
                           onClick={() => void toggleQuickTask(task)}
-                          className="grid size-8 shrink-0 place-items-center rounded-lg hover:bg-[var(--surface-muted)]"
-                          aria-label={task.completed ? `Reopen ${task.title}` : `Complete ${task.title}`}
+                          disabled
+                          className="grid size-8 shrink-0 place-items-center rounded-lg"
+                          aria-label={task.completed ? `${task.title}, completed` : `${task.title}, open`}
                           aria-pressed={task.completed}
                         >
                           {task.completed ? <CheckCircle2 size={17} className="text-[var(--success)]" /> : <Circle size={17} className="text-[var(--text-muted)]" />}
@@ -505,16 +476,18 @@ function App({ access, admin = false }) {
           {tab === "dashboard" && <DashboardModule />}
           {tab === "calendar" && canUse("schedule") && <ScheduleModule canUseCalendar={canUse("calendar")} />}
           {tab === "tasks" && canUse("tasks") && <TaskModule onTasksChange={setTasks} />}
+          {tab === "reminders" && canUse("reminders") && <section className="min-w-0 space-y-4"><header><p className="label">DAYFLOW · REMINDERS</p><h2 className="mt-1 text-2xl font-bold">Reminders</h2><p className="mt-1 text-sm text-[var(--text-muted)]">Create and manage reminders for your day.</p></header><ReminderPanel reminders={todayReminders} onToggle={toggleReminder} onDelete={deleteReminder} onAdd={addReminder} notificationPermission={notificationPermission} onEnableNotifications={enableReminderNotifications} onTestNotification={testReminderNotification} /></section>}
           {tab === "memory" && canUse("memory") && <MemoryModule />}
         </Suspense>
 
-        {showSettings && (
-          <SettingsDialog onClose={() => setShowSettings(false)} />
+        {showSettings && createPortal(
+          <SettingsDialog onClose={() => setShowSettings(false)} />,
+          document.body
         )}
       </div>
 
       <nav className="mobile-nav fixed bottom-2 left-1/2 z-40 grid w-[calc(100%-16px)] max-w-[720px] grid-cols-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Primary navigation">
-        {navItems.filter(([, key]) => admin || key === "today" || key === "dashboard" || (key === "calendar" && canUse("schedule")) || (key === "tasks" && canUse("tasks")) || (key === "memory" && canUse("memory"))).map(([Icon, key, label]) => (
+        {navItems.filter(([, key]) => admin || key === "today" || key === "dashboard" || (key === "calendar" && canUse("schedule")) || (key === "tasks" && canUse("tasks")) || (key === "reminders" && canUse("reminders")) || (key === "memory" && canUse("memory"))).map(([Icon, key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
@@ -563,16 +536,17 @@ function SectionHeader({ title, action, onClick }) {
   );
 }
 
-function BlockRow({ block, onToggle, onDelete }) {
+function BlockRow({ block, onToggle, onDelete, readOnly = false }) {
   const nextState = block.state === "completed" ? "planned" : "completed";
   const external = block.source === "schedule" || block.source === "imported-calendar";
   return (
     <div className="group relative flex w-full flex-col gap-2 pb-3 pl-5 text-left sm:flex-row sm:gap-3">
       <time className="absolute -left-10 top-3 text-[10px] text-[var(--text-faint)]">{block.time}</time>
       <button
-        onClick={() => external ? undefined : onToggle(block.id, nextState)}
-        className={`flex min-h-[62px] flex-1 items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 text-left transition ${external ? "cursor-default" : "hover:border-[var(--text-muted)]"}`}
-        aria-label={external ? `${block.title}, imported calendar event` : `${block.title}, currently ${block.state}. Change to ${nextState}`}
+        onClick={() => external || readOnly ? undefined : onToggle(block.id, nextState)}
+        disabled={external || readOnly}
+        className={`flex min-h-[62px] flex-1 items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 text-left transition ${external || readOnly ? "cursor-default" : "hover:border-[var(--text-muted)]"}`}
+        aria-label={external || readOnly ? `${block.title}, ${block.state}, read-only` : `${block.title}, currently ${block.state}. Change to ${nextState}`}
         type="button"
       >
         <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--surface-muted)] text-lg">{block.emoji}</span>
@@ -582,7 +556,7 @@ function BlockRow({ block, onToggle, onDelete }) {
         </span>
         {external ? <CalendarDays size={19} className="text-[var(--text-muted)]" /> : block.state === "completed" ? <CheckCircle2 size={19} /> : <Circle size={19} className="text-[var(--text-muted)]" />}
       </button>
-      {!external && (
+      {!external && !readOnly && (
         <div className="flex shrink-0 items-center justify-end gap-1 self-end sm:self-center">
           <button onClick={() => onToggle(block.id, "skipped")} className="grid size-8 place-items-center rounded-lg text-[var(--text-faint)] hover:bg-[var(--surface-muted)] text-[10px]" aria-label={`Skip ${block.title}`}>SKIP</button>
           <button onClick={() => onToggle(block.id, "changed")} className="grid size-8 place-items-center rounded-lg text-[var(--text-faint)] hover:bg-[var(--surface-muted)] text-[10px]" aria-label={`Mark ${block.title} as changed`}>↻</button>
@@ -595,27 +569,27 @@ function BlockRow({ block, onToggle, onDelete }) {
   );
 }
 
-function ReminderPanel({ reminders, onToggle, onDelete, onAdd, notificationPermission, onEnableNotifications, onTestNotification }) {
+function ReminderPanel({ reminders, onToggle, onDelete, onAdd, notificationPermission, onEnableNotifications, onTestNotification, readOnly = false }) {
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
       <div className="mb-3 grid gap-2">
         {reminders.map((item) => (
           <div key={item.id} className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2">
-            <button onClick={() => onToggle(item.id)} aria-label={`${item.occurrenceCompleted ? "Reopen" : "Complete"} reminder: ${item.title}`}>
+            {readOnly ? <span className="grid size-8 shrink-0 place-items-center">{item.occurrenceCompleted ? <CheckCircle2 size={18} /> : <Circle size={18} className="text-[var(--text-muted)]" />}</span> : <button onClick={() => onToggle(item.id)} aria-label={`${item.occurrenceCompleted ? "Reopen" : "Complete"} reminder: ${item.title}`}>
               {item.occurrenceCompleted ? <CheckCircle2 size={18} /> : <Circle size={18} className="text-[var(--text-muted)]" />}
-            </button>
+            </button>}
             <span className={`flex-1 text-sm ${item.occurrenceCompleted ? "text-[var(--text-muted)] line-through" : ""}`}>{item.title}</span>
             <time className={`text-xs ${item.overdue ? "text-amber-300" : "text-[var(--text-muted)]"}`}>{item.overdue ? "Overdue · " : ""}{item.time}</time>
-            <button onClick={() => onDelete(item.id)} className="text-[var(--text-faint)]" aria-label={`Delete reminder: ${item.title}`}><Trash2 size={15} /></button>
+            {!readOnly && <button onClick={() => onDelete(item.id)} className="text-[var(--text-faint)]" aria-label={`Delete reminder: ${item.title}`}><Trash2 size={15} /></button>}
           </div>
         ))}
-        {!reminders.length && <p className="px-2 py-2 text-xs text-[var(--text-muted)]">Nothing waiting. Add a reminder below.</p>}
+        {!reminders.length && <p className="px-2 py-2 text-xs text-[var(--text-muted)]">{readOnly ? "No reminders for this day." : "Nothing waiting. Add a reminder below."}</p>}
       </div>
-      <form onSubmit={onAdd} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
+      {!readOnly && <form onSubmit={onAdd} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
         <input name="title" required placeholder="Remember to…" aria-label="Reminder title" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-3 text-sm outline-none" />
         <input name="time" type="time" defaultValue="18:00" aria-label="Reminder time" className="min-h-10 rounded-xl border border-[var(--border)] bg-transparent px-2 text-sm" />
         <select name="repeat" aria-label="Reminder repeat" className="min-h-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-2 text-xs"><option value="none">Once</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select><button className="grid min-h-10 place-items-center rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-contrast)]" aria-label="Add reminder"><Plus size={17} /></button>
-      </form>
+      </form>}
       <div className="mt-3 flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold">Notifications</p>
@@ -623,14 +597,14 @@ function ReminderPanel({ reminders, onToggle, onDelete, onAdd, notificationPermi
             {notificationPermission === "granted" ? "Enabled for this browser." : notificationPermission === "denied" ? "Blocked by the browser. Change site permissions to enable them." : notificationPermission === "unsupported" ? "This browser does not support web notifications." : "Enable notifications to get a browser alert when a reminder is due while DayFlow is open."}
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
+        {!readOnly && <div className="flex shrink-0 gap-2">
           {notificationPermission !== "granted" && notificationPermission !== "unsupported" && (
             <button type="button" onClick={onEnableNotifications} className="min-h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold">Enable</button>
           )}
           {notificationPermission === "granted" && (
             <button type="button" onClick={onTestNotification} className="min-h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold">Test</button>
           )}
-        </div>
+        </div>}
       </div>
     </div>
   );
@@ -657,17 +631,24 @@ function MemoryCard({ note, saved, onChange, onSave, summary }) {
 
 function SettingsDialog({ onClose }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-end bg-black/50 p-3 sm:place-items-center" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-      <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-2xl">
-        <div className="mb-5 flex items-center justify-between">
-          <div><p className="label">DAYFLOW</p><h2 id="settings-title" className="mt-1 text-xl font-bold">Settings</h2></div>
-          <button onClick={onClose} className="grid size-10 place-items-center rounded-xl bg-[var(--surface-muted)]" aria-label="Close settings">×</button>
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/60 p-3 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div className="my-auto max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:p-6">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--accent)]"><Settings size={19}/></div>
+          <div className="min-w-0 flex-1"><p className="label">DAYFLOW · PREFERENCES</p><h2 id="settings-title" className="mt-1 text-xl font-bold">Settings</h2></div>
+          <button type="button" onClick={onClose} className="grid size-10 shrink-0 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)]" aria-label="Close settings">×</button>
         </div>
-        <p className="mb-3 text-sm font-semibold">Appearance</p>
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-          <div className="flex items-center gap-3"><Moon size={19} /><div><p className="text-sm font-semibold">Dark theme</p><p className="text-xs text-[var(--text-muted)]">DayFlow uses one consistent dark theme.</p></div></div>
-        </div>
-        <button onClick={onClose} className="mt-5 min-h-11 w-full rounded-xl bg-[var(--accent)] text-sm font-semibold text-[var(--accent-contrast)]">Done</button>
+        <section aria-labelledby="settings-appearance-title">
+          <div className="mb-3"><h3 id="settings-appearance-title" className="text-sm font-semibold">Appearance</h3><p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">Your workspace, kept calm and focused.</p></div>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 sm:p-5">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--accent)]"><Moon size={19}/></span>
+              <div className="min-w-0 flex-1"><p className="text-sm font-semibold">Dark theme</p><p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">DayFlow uses one consistent dark theme across the app.</p></div>
+              <span className="shrink-0 rounded-full border border-[var(--border)] px-2.5 py-1 text-[10px] font-semibold text-[var(--text-muted)]">Active</span>
+            </div>
+          </div>
+        </section>
+        <div className="mt-6 border-t border-[var(--border)] pt-4"><button type="button" onClick={onClose} className="min-h-11 w-full rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-contrast)] transition hover:brightness-105">Done</button></div>
       </div>
     </div>
   );
