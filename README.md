@@ -46,11 +46,11 @@ Los resultados automatizados locales no sustituyen la aceptación de producción
 
 ## Estado y fases
 
-**Fase 1 — Cerrar DayFlow (To-Do + Timetable): EN CIERRE.** El baseline local automatizado está aprobado, pero falta demostrar la unificación funcional y la migración real. Hay que validar tareas, horarios, calendario, recordatorios, permisos y migración de datos. El resultado exigido es una sola fuente canónica de tareas y una sola fuente canónica de horarios, sin pérdida ni duplicados.
+**Fase 1 — Cerrar DayFlow (To-Do + Timetable): CERRADA.** Se acepta el cierre por confirmación del usuario de que las pruebas acordadas ya se realizaron. La base automatizada documentada es 33/33 pruebas, 6/6 Rules tests, lint/build aprobados y `npm audit` sin vulnerabilidades. Los controles de backup/rollback siguen siendo obligatorios antes de cualquier operación destructiva en producción, pero no bloquean el avance.
 
 **Fase 2 — Cupboard como inventario central: SIGUIENTE FASE.** Incorporar un espacio separado para **Hogar** y **Negocio → Sandwichies**, reutilizando los servicios actuales de inventario, movimientos, vencimientos, stock bajo y lista de compras. El resultado será saber qué hay y qué se debe comprar desde un solo sitio, sin mezclar existencias domésticas y del negocio.
 
-Orden de trabajo: cerrar los gates de DayFlow; auditar los servicios actuales de Cupboard; construir la experiencia central de inventario; integrar consumo de Sandwichies con descuentos idempotentes; validar pruebas y aceptación. DayFlow sigue siendo responsable del tiempo y la planificación, Cupboard del inventario y Sandwichies de pedidos/consumo.
+Orden de trabajo: auditar los servicios actuales de Cupboard; construir la experiencia central de inventario; integrar consumo de Sandwichies con descuentos idempotentes; validar pruebas y aceptación. DayFlow sigue siendo responsable del tiempo y la planificación, Cupboard del inventario y Sandwichies de pedidos/consumo.
 
 El objetivo operativo se mantiene en **$0 de gasto obligatorio**. No retirar los repositorios ni despliegues heredados de To-Do y Timetable hasta cerrar reconciliación de datos, seguridad, aceptación y rollback.
 
