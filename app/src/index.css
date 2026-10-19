@@ -395,8 +395,7 @@ body {
   border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
 }
 
-.app-shell button.bg-\\[var\\(--accent\\)\\]:hover,
-.app-shell button[class*="bg-[var(--accent)]"]:hover,
+.app-shell button.primary-action:hover,
 .primary-action:hover {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent),
     0 8px 28px color-mix(in srgb, var(--accent) 20%, transparent);
