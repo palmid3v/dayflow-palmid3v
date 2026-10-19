@@ -12,9 +12,13 @@ Product principles:
 - Preserve the $0 mandatory-service budget; do not introduce paid services as a default dependency.
 - Keep To-Do and Timetable repositories/deployments as migration and rollback evidence until data and operational ownership are reconciled.
 
-## Phase 1 — Foundation and hardening
+## Phase 1 — Cerrar DayFlow (To-Do + Timetable)
 
-**Status: complete for the current local automated validation and dependency-hardening scope.** The application foundation, consolidated modules, access policy, rules-test harness, usability adjustments, production build and dependency override are in place.
+**Status: en cierre; no se declara completada hasta validar la unificación funcional y la migración de datos.** El baseline local automatizado está aprobado, pero eso por sí solo no demuestra que los datos, permisos y flujos reales de To-Do y Timetable hayan quedado unificados.
+
+**Objetivo:** terminar la unificación de To-Do y Timetable y validar tareas, horarios, calendario, recordatorios, permisos y migración de datos.
+
+**Resultado esperado:** un centro de productividad confiable, sin dos fuentes de tareas ni dos fuentes de horarios.
 
 - [x] Daily planning and execution states.
 - [x] Tasks feature and task completion/reopen behavior.
@@ -31,43 +35,47 @@ Product principles:
 - [x] Dependency remediation: `@grpc/grpc-js` overridden to `1.14.6`; `npm audit` reports **0 vulnerabilities**.
 - [x] Commit `2877bff` pushed to `origin/main`; local working tree clean at the last reported check.
 
-## Phase 2 — Build
+## Phase 2 — Cupboard como inventario central
 
-**Status: ready to start.** Focus on making the consolidated product reliable end-to-end and closing data-contract gaps while continuing feature work directly on `main`. Do not reopen completed local validation tasks unless a change requires rerunning them.
+**Estado: siguiente fase; no confundir con el trabajo pendiente de cierre de DayFlow.**
 
-### Workstream 2.1 — Canonical data contracts
-- [ ] Document and verify canonical schemas for tasks, schedule templates, occurrences, settings, day plans/results, reminders, calendar imports and memories.
-- [ ] Identify legacy aliases and compatibility paths; add explicit normalization/validation at persistence boundaries.
-- [ ] Keep task documents canonical and reference task IDs from other domains.
-- [ ] Define conflict-resolution rules for Firestore versus local recovery/cache; never silently overwrite newer cloud data.
+**Objetivo:** incorporar en el ecosistema un espacio separado llamado Cupboard para **Hogar** y **Negocio → Sandwichies**, reutilizando los servicios actuales de inventario y evitando duplicar la lógica que ya existe.
 
-### Workstream 2.2 — Persistence and domain behavior
-- [ ] Confirm create/edit/complete/reopen/delete behavior and persistence for Tasks.
-- [ ] Confirm Schedule template/occurrence behavior, overrides, history, settings and recurrence compatibility.
-- [ ] Confirm day plan, reminders, daily review and Memory survive refresh and a second authenticated session/device.
-- [ ] Verify import/clear behavior for `.ics` without deleting unrelated Schedule templates.
-- [ ] Keep Today as a read-only overview; mutations belong to their owning modules.
+**Resultado esperado:** saber qué hay disponible y qué hace falta comprar desde un solo sitio, manteniendo separados los contextos de Hogar y Negocio.
 
-### Workstream 2.3 — Access and data reconciliation
-- [ ] Inventory actual production Firestore paths, document shapes, counts and contradictory legacy schedule fields before any migration.
-- [ ] Confirm app access and feature flags are enforced by the deployed Rules.
-- [ ] Prepare backup, idempotent migration plan, reconciliation evidence and rollback procedure before touching production data.
-- [ ] Decide whether the legacy Timetable weekly-summary Cloud Function remains required under the $0 budget; document owner, deployment and secrets by name only.
-- [ ] Do not retire To-Do/Timetable repositories, domains, functions or deployments until acceptance and rollback evidence exists.
+### Alcance funcional
+- [ ] Revisar el repositorio y los servicios actuales de Cupboard antes de implementar; reutilizar inventario, movimientos, vencimientos, alertas de stock bajo y lista de compras.
+- [ ] Definir los límites de datos y la navegación de los espacios **Hogar** y **Negocio → Sandwichies**.
+- [ ] Conservar un único registro canónico por artículo dentro de cada espacio; movimientos de stock deben ser trazables y no duplicarse.
+- [ ] Mostrar cantidades disponibles, movimientos, vencimientos, niveles bajos y lista de compras en una experiencia coherente.
+- [ ] Integrar Sandwichies como contexto de negocio de Cupboard sin mezclar existencias domésticas con existencias del negocio.
+- [ ] Definir el contrato para que pedidos/consumo confirmados de Sandwichies descuenten ingredientes de Cupboard de forma idempotente, sin descuentos duplicados.
+- [ ] Mantener DayFlow responsable del tiempo y la planificación; Cupboard responsable del inventario; Sandwichies responsable de pedidos y consumo.
+- [ ] Añadir pruebas de dominio, persistencia, permisos, movimientos de stock, vencimientos, stock bajo y lista de compras.
+- [ ] Mantener el objetivo de **$0 de gasto obligatorio** y no reemplazar servicios existentes sin evidencia de necesidad.
 
-### Workstream 2.4 — Product verification
-- [ ] Run authenticated CVP and full Playwright E2E with dedicated QA credentials kept out of source control.
-- [ ] Complete focused manual IPV/IST on desktop and mobile, including keyboard focus, reduced motion, error/empty/access-denied states and responsive overflow.
-- [ ] Verify PWA installation, service-worker updates, stale-client behavior and recovery.
-- [ ] Record release evidence and rollback instructions when preparing a deployment.
+### Cierre obligatorio de Phase 1 — DayFlow
+La Fase 2 no sustituye ni da por aprobada la unificación de DayFlow. Estos gates siguen abiertos hasta contar con evidencia:
+- [ ] Una sola fuente canónica de tareas entre To-Do y DayFlow.
+- [ ] Una sola fuente canónica de horarios entre Timetable y DayFlow, incluidos recurrencias y excepciones.
+- [ ] Validación de tareas, horarios, calendario ICS, recordatorios y permisos por usuario/función.
+- [ ] Inventario de los datos heredados reales, respaldo verificable, migración idempotente, reconciliación de conteos y procedimiento de rollback.
+- [ ] CVP/E2E autenticado y verificación manual desktop/móvil de los flujos unificados.
+- [ ] Mantener repositorios, dominios, funciones y despliegues heredados disponibles hasta completar aceptación y rollback.
 
-### Phase 2 exit criteria
-- Canonical data contracts are documented and covered by tests.
-- Core CRUD and persistence flows work for the authenticated user across refresh/session changes.
-- User isolation and feature restrictions are verified against the intended Rules configuration.
-- Production data has been inventoried and any migration is backed up, idempotent, reconciled and reversible.
-- CVP/E2E and manual IPV/IST evidence is recorded.
-- PWA update behavior and rollback procedure are verified before production release or legacy retirement.
+### Secuencia de trabajo
+1. **Cerrar DayFlow:** inspeccionar código y datos reales; resolver las brechas de unificación y demostrar permisos/migración sin pérdida ni duplicados.
+2. **Auditar Cupboard:** localizar los servicios actuales y mapear sus contratos antes de modificar código.
+3. **Construir Cupboard central:** separar Hogar y Negocio → Sandwichies y reutilizar los servicios existentes.
+4. **Conectar consumo de Sandwichies:** descontar stock de manera idempotente cuando corresponda.
+5. **Validar:** pruebas automatizadas, escenarios de inventario y aceptación manual antes de desplegar.
+
+### Criterios de salida de Phase 2
+- Hogar y Negocio → Sandwichies están claramente separados y usan los servicios actuales de Cupboard.
+- Movimientos, vencimientos, stock bajo y lista de compras son consistentes y persistentes.
+- Los movimientos de inventario y descuentos derivados de consumo/pedidos no se duplican.
+- Las pruebas de dominio, permisos y flujos principales pasan.
+- El cierre de DayFlow, la migración y cualquier despliegue mantienen evidencia separada; no se declara aprobado lo que no se haya ejecutado.
 
 ## Validation reference
 
@@ -89,6 +97,6 @@ DayFlow coordinates the day without becoming a second task database or calendar 
 
 ## Checkpoint — 2026-10-19
 
-Current reported main commit: `2877bff` (`fix: update vulnerable grpc dependency`). Local validation passed: **33/33 tests**, including **6/6 Firestore Rules tests**; lint passed; production build and PWA generation passed; `npm audit` reported **0 vulnerabilities**. The dependency override is `@grpc/grpc-js@1.14.6`. The user confirmed the branch set is up to date and asked to move forward rather than repeat validation.
+Baseline de código reportado: `2877bff` (`fix: update vulnerable grpc dependency`); después se actualizaron documentos de roadmap en `main`. Local validation passed: **33/33 tests**, including **6/6 Firestore Rules tests**; lint passed; production build and PWA generation passed; `npm audit` reported **0 vulnerabilities**. The dependency override is `@grpc/grpc-js@1.14.6`. The user confirmed the branch set is up to date and asked to move forward rather than repeat validation.
 
-Phase 2 is now the active build focus. Production reconciliation, migration proof, authenticated CVP/E2E, manual IPV/IST, PWA update verification and release/rollback evidence remain release/data-safety gates; they do not prevent beginning Phase 2 product work. Never describe an unexecuted production gate as passed.
+La prioridad inmediata es cerrar los gates funcionales y de datos de DayFlow. Cupboard es la siguiente fase de producto, pero su implementación debe comenzar con una inspección de sus servicios existentes. Nunca describir un gate de producción o migración no ejecutado como aprobado.
