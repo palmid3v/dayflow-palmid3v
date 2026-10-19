@@ -16,9 +16,9 @@
 
 ## Product usability milestone — target 80%
 
-- [x] Create tasks directly from Today without changing screens.
-- [x] Complete/reopen tasks from Today with optimistic UI and rollback on save failure.
-- [x] Keep open tasks above completed tasks in the Today queue and label tasks due on the selected day.
+- [x] Keep Today as a read-only daily overview; route task changes to Tasks and reminder changes to Reminders.
+- [x] Show open tasks above completed tasks in the Today queue and label tasks due on the selected day.
+- [x] Keep daily blocks and reminders in Today read-only to avoid duplicate management surfaces.
 - [x] Show task totals, open tasks and overdue work in Dashboard.
 - [x] Add deterministic unit coverage for task completion/reopen state transitions.
 - [x] Bring .ics calendar import to the top of Schedule, with clear access-state messaging when Calendar is not enabled.
@@ -35,6 +35,8 @@
 - [x] Add same-day overlap detection and an explicit save-anyway confirmation
 - [x] Tighten schedule-collection access to the Schedule feature policy
 - [x] Define initial retro-dark color/motion tokens and responsive desktop shell
+- [x] Apply and visually review Dark Premium refinements across Today, Dashboard, Tasks, Schedule, Memory and Settings
+- [x] Fix Settings modal viewport positioning so it remains centered independently of page scroll
 - [ ] Reconcile actual production Firestore records and contradictory legacy schedule fields
 - [ ] Add automated Firestore Rules allow/deny tests using the Emulator Suite
 - [ ] Decide the fate of the Timetable weekly-summary Cloud Function under the strict $0 budget
@@ -64,6 +66,6 @@
 
 DayFlow coordinates the day without becoming a second task database or calendar source of truth. One application, one Firebase identity, user-scoped data, and no mandatory paid service.
 
-## Documentation checkpoint — 2026-10-18
+## Documentation checkpoint — 2026-10-19
 
-The product feature foundation is present, but release status remains gated. The recent usability work still requires CI for unit tests/lint/production build/PWA, authenticated Preview verification for task create/complete/reopen persistence, and desktop/mobile smoke tests for schedule, reminders and daily review. The broader unification audit remains authoritative for migration risks. Do not retire To-Do or Timetable until user data, access policy, deployed functions, domains and history are reconciled and rollback is verified. A green static check alone does not close the full E2E gate.
+The maintainer reports that lint, unit tests, production build and the latest visual review pass locally after the UI refresh and Settings modal fix. This is local validation, not a substitute for a recorded CI run or production acceptance. Today is intentionally read-only; task and reminder mutations live in their dedicated modules. The next engineering focus is Firebase Rules allow/deny coverage, cloud/local persistence conflict behavior, authenticated E2E, PWA update behavior, and release/rollback evidence. Reconcile production records before any migration or legacy retirement. Do not treat undocumented or unexecuted gates as passed.
