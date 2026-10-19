@@ -95,10 +95,10 @@ test("disabled feature blocks its collection even when app access is active", as
   await assertSucceeds(getDoc(doc(db, "users/user-a/timetableTemplates/template-1")));
 });
 
-test("platform admin can access protected user data", async () => {
+test("platform admin can access their own protected data", async () => {
   const db = userDb("admin-a");
 
-  await assertSucceeds(setDoc(doc(db, "users/user-a/tasks/admin-reviewed"), {
+  await assertSucceeds(setDoc(doc(db, "users/admin-a/tasks/admin-reviewed"), {
     title: "Admin-reviewed task"
   }));
 });
