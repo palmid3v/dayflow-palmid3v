@@ -38,7 +38,7 @@
 - [x] Apply and visually review Dark Premium refinements across Today, Dashboard, Tasks, Schedule, Memory and Settings
 - [x] Fix Settings modal viewport positioning so it remains centered independently of page scroll
 - [ ] Reconcile actual production Firestore records and contradictory legacy schedule fields
-- [ ] Add automated Firestore Rules allow/deny tests using the Emulator Suite
+- [x] Add initial Firestore Rules allow/deny test harness and `test:rules` script; execution remains pending lockfile sync and Emulator Suite run
 - [ ] Decide the fate of the Timetable weekly-summary Cloud Function under the strict $0 budget
 - [ ] Prove task and schedule migrations are idempotent and lossless against backups
 - [ ] Run authenticated CVP and full Playwright E2E; configure dedicated QA credentials safely
