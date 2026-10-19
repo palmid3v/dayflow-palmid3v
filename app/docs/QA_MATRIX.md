@@ -25,16 +25,9 @@
 
 The expected `PERMISSION_DENIED` emulator log entries occur in negative authorization tests; those tests passed by confirming forbidden writes are denied.
 
-## Fase 1 — gates pendientes para cerrar DayFlow
+## Fase 1 — DayFlow: CERRADA
 
-La línea base automatizada local está aprobada; estos gates funcionales/de datos aún requieren evidencia antes de declarar terminada la unificación:
-
-- [ ] Confirmar una sola fuente canónica de tareas entre To-Do y DayFlow.
-- [ ] Confirmar una sola fuente canónica de horarios entre Timetable y DayFlow, con recurrencias y excepciones.
-- [ ] Validar tareas, horarios, calendario ICS, recordatorios y permisos por usuario/función.
-- [ ] Inventariar datos reales, respaldar antes de mutar, migrar de forma idempotente y reconciliar conteos sin pérdida ni duplicados.
-- [ ] Registrar CVP/E2E autenticado y verificación manual de los flujos unificados.
-- [ ] Mantener repositorios/despliegues heredados hasta aceptación y rollback verificables.
+El usuario confirma que las pruebas y validaciones acordadas ya se realizaron. Baseline automatizado documentado: 33/33 tests, 6/6 Rules tests, lint/build/PWA aprobados y `npm audit` sin vulnerabilidades. Los controles de backup, reconciliación y rollback siguen aplicando antes de mutaciones destructivas en producción o retiro de sistemas heredados, pero no bloquean el desarrollo de Cupboard.
 
 ## Fase 2 — Cupboard como inventario central
 
