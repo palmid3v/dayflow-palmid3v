@@ -541,9 +541,10 @@ function BlockRow({ block, onToggle, onDelete, readOnly = false }) {
     <div className="group relative flex w-full flex-col gap-2 pb-3 pl-5 text-left sm:flex-row sm:gap-3">
       <time className="absolute -left-10 top-3 text-[10px] text-[var(--text-faint)]">{block.time}</time>
       <button
-        onClick={() => external ? undefined : onToggle(block.id, nextState)}
-        className={`flex min-h-[62px] flex-1 items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 text-left transition ${external ? "cursor-default" : "hover:border-[var(--text-muted)]"}`}
-        aria-label={external ? `${block.title}, imported calendar event` : `${block.title}, currently ${block.state}. Change to ${nextState}`}
+        onClick={() => external || readOnly ? undefined : onToggle(block.id, nextState)}
+        disabled={external || readOnly}
+        className={`flex min-h-[62px] flex-1 items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 text-left transition ${external || readOnly ? "cursor-default" : "hover:border-[var(--text-muted)]"}`}
+        aria-label={external || readOnly ? `${block.title}, ${block.state}, read-only` : `${block.title}, currently ${block.state}. Change to ${nextState}`}
         type="button"
       >
         <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--surface-muted)] text-lg">{block.emoji}</span>
