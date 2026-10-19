@@ -629,17 +629,24 @@ function MemoryCard({ note, saved, onChange, onSave, summary }) {
 
 function SettingsDialog({ onClose }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-end bg-black/50 p-3 sm:place-items-center" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-      <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-2xl">
-        <div className="mb-5 flex items-center justify-between">
-          <div><p className="label">DAYFLOW</p><h2 id="settings-title" className="mt-1 text-xl font-bold">Settings</h2></div>
-          <button onClick={onClose} className="grid size-10 place-items-center rounded-xl bg-[var(--surface-muted)]" aria-label="Close settings">×</button>
+    <div className="fixed inset-0 z-50 grid place-items-end overflow-y-auto bg-black/60 p-2 backdrop-blur-sm sm:place-items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div className="my-auto max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:p-6">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--accent)]"><Settings size={19}/></div>
+          <div className="min-w-0 flex-1"><p className="label">DAYFLOW · PREFERENCES</p><h2 id="settings-title" className="mt-1 text-xl font-bold">Settings</h2></div>
+          <button type="button" onClick={onClose} className="grid size-10 shrink-0 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)]" aria-label="Close settings">×</button>
         </div>
-        <p className="mb-3 text-sm font-semibold">Appearance</p>
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-          <div className="flex items-center gap-3"><Moon size={19} /><div><p className="text-sm font-semibold">Dark theme</p><p className="text-xs text-[var(--text-muted)]">DayFlow uses one consistent dark theme.</p></div></div>
-        </div>
-        <button onClick={onClose} className="mt-5 min-h-11 w-full rounded-xl bg-[var(--accent)] text-sm font-semibold text-[var(--accent-contrast)]">Done</button>
+        <section aria-labelledby="settings-appearance-title">
+          <div className="mb-3"><h3 id="settings-appearance-title" className="text-sm font-semibold">Appearance</h3><p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">Your workspace, kept calm and focused.</p></div>
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 sm:p-5">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--accent)]"><Moon size={19}/></span>
+              <div className="min-w-0 flex-1"><p className="text-sm font-semibold">Dark theme</p><p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">DayFlow uses one consistent dark theme across the app.</p></div>
+              <span className="shrink-0 rounded-full border border-[var(--border)] px-2.5 py-1 text-[10px] font-semibold text-[var(--text-muted)]">Active</span>
+            </div>
+          </div>
+        </section>
+        <div className="mt-6 border-t border-[var(--border)] pt-4"><button type="button" onClick={onClose} className="min-h-11 w-full rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-contrast)] transition hover:brightness-105">Done</button></div>
       </div>
     </div>
   );
