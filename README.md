@@ -1,51 +1,73 @@
 # 🌊 DayFlow — Productividad personal
 
-> **by PALMI-D3V** · Producto digital en desarrollo continuo.
+> **by PALMI-D3V** · Aplicación central de productividad en construcción continua.
 
-Aplicación central de productividad de PALMI-D3V, diseñada para reunir tareas, horarios recurrentes, planificación diaria, recordatorios, calendario, revisión y memoria en una experiencia única.
+DayFlow reúne tareas, horarios recurrentes, planificación diaria, recordatorios, calendario, revisión y memoria en una sola experiencia.
 
-## ✨ Funcionalidades
+## Funcionalidades actuales
 
-- Vista diaria y ejecución de tareas
-- Gestión de tareas
-- Horarios y bloques recurrentes
-- Importación/exportación de calendario
-- Recordatorios y revisión diaria
-- Dashboard y memoria personal
-- Autenticación Firebase y datos por usuario
-- Interfaz responsive y base PWA
+- Vista diaria y ejecución de bloques.
+- Gestión de tareas.
+- Horarios recurrentes, detección de solapamientos y exportación ICS.
+- Importación de calendario `.ics`.
+- Recordatorios y revisión diaria.
+- Dashboard y memoria personal.
+- Autenticación Firebase y datos aislados por usuario.
+- Interfaz responsive y base PWA.
+- Administración de acceso y políticas por función.
 
-## 🛠️ Tecnología
+Today es una vista general de solo lectura. Las modificaciones se hacen desde el módulo dueño de cada dominio, evitando superficies duplicadas.
 
-React · Vite · Firebase Authentication · Cloud Firestore · PWA
+## Tecnología
 
-## 🚀 Ejecutar el proyecto
+React 19 · Vite 7 · Firebase Authentication · Cloud Firestore · PWA · Playwright
 
-```bash
-cd app
-npm ci
-npm run dev
+## Ejecutar el proyecto
+
+Desde la raíz del repositorio:
+
+```powershell
+npm --prefix app install
+npm --prefix app run dev
 ```
 
-Consulta los documentos del proyecto antes de configurar servicios, credenciales o despliegues. Los comandos pueden variar según el entorno y las dependencias instaladas.
+## Validación local confirmada
 
-## 🧭 Experiencia actual
+En el checkpoint del 19 de octubre de 2026:
 
-La interfaz **Dark Premium** está aplicada a Today, Dashboard, Tasks, Schedule, Memory y Settings, con ajustes responsive y estados de interacción más claros. Today funciona como resumen de solo lectura; la creación y modificación se realizan en los módulos correspondientes. Recordatorios se administra desde su pestaña dedicada.
+- Suite Node: **33/33 tests aprobados**, incluidos **6/6 tests de reglas de Firestore** en el emulador.
+- ESLint: aprobado.
+- Build de producción y generación del service worker PWA: aprobados.
+- `npm audit`: **0 vulnerabilidades**.
+- `@grpc/grpc-js`: `1.14.6` mediante npm override.
+- Commit de seguridad `2877bff` publicado en `main`.
 
-El diálogo de Settings se posiciona respecto al viewport y no depende de la posición de scroll de la página.
+Los resultados automatizados locales no sustituyen la aceptación de producción ni la evidencia de migración y rollback.
 
-## 📍 Estado del proyecto
+## Estado y siguiente fase
 
-La capa visual y las pruebas locales de regresión fueron validadas manualmente por el mantenedor. La unificación **sigue en hardening**: faltan pruebas automatizadas de reglas de Firestore, evidencia autenticada de persistencia, reconciliación de datos reales, verificación de PWA/rollback y cierre de los flujos E2E de producción. No retirar los repositorios heredados ni declarar listo para producción hasta completar los gates documentados. Mantener el presupuesto operativo objetivo de $0.
+**Fase 1 — Foundation and hardening:** base unificada y baseline de validación local completados.
 
-## 📚 Documentación
+**Fase 2 — Build:** en curso como siguiente foco de desarrollo. Prioridades:
+1. Documentar y validar los contratos canónicos de datos.
+2. Confirmar CRUD y persistencia de Tasks, Schedule, planes diarios, recordatorios y Memory.
+3. Definir y probar conflictos entre caché local y Firestore.
+4. Inventariar datos y rutas heredadas antes de migraciones.
+5. Completar CVP/E2E autenticado, verificación manual, PWA y evidencia de rollback antes de release.
 
-`app/docs/ROADMAP.md`, `app/docs/audits/UNIFICATION-AUDIT-2026-10.md`, `app/docs/INTEGRATION_CONTRACT.md`, `CONTEXT.md`
+El objetivo operativo se mantiene en **$0 de gasto obligatorio**. No retirar los repositorios ni despliegues heredados de To-Do y Timetable hasta cerrar reconciliación de datos, seguridad, aceptación y rollback.
 
-La documentación técnica describe la arquitectura, las decisiones, las pruebas y el trabajo pendiente. Las funcionalidades futuras no se consideran implementadas hasta que exista evidencia en el código y validación correspondiente.
+## Documentación del proyecto
 
-## 🤝 Créditos
+- `CONTEXT.md` — arquitectura, restricciones y estado actual.
+- `app/docs/ROADMAP.md` — fases, prioridades y criterios de salida.
+- `app/docs/QA_MATRIX.md` — baseline automatizado y cola de validación.
+- `app/docs/audits/UNIFICATION-AUDIT-2026-10.md` — auditoría de unificación y riesgos de migración.
+- `app/docs/INTEGRATION_CONTRACT.md` — contrato de integración.
+
+La documentación distingue funcionalidades implementadas, resultados comprobados y gates de producción aún pendientes. Trabajar directamente sobre `main`; no crear ramas adicionales.
+
+## Créditos
 
 Diseñado y desarrollado bajo la identidad **PALMI-D3V**.
 
