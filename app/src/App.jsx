@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   BarChart3,
   Bell,
@@ -479,8 +480,9 @@ function App({ access, admin = false }) {
           {tab === "memory" && canUse("memory") && <MemoryModule />}
         </Suspense>
 
-        {showSettings && (
-          <SettingsDialog onClose={() => setShowSettings(false)} />
+        {showSettings && createPortal(
+          <SettingsDialog onClose={() => setShowSettings(false)} />,
+          document.body
         )}
       </div>
 
@@ -629,7 +631,7 @@ function MemoryCard({ note, saved, onChange, onSave, summary }) {
 
 function SettingsDialog({ onClose }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-end overflow-y-auto bg-black/60 p-2 backdrop-blur-sm sm:place-items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/60 p-3 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div className="my-auto max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--accent)]"><Settings size={19}/></div>
