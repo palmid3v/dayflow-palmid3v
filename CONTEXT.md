@@ -56,7 +56,7 @@ Firestore is the cloud source of truth. LocalStorage is a cache/recovery layer. 
 ## Fases vigentes
 
 ### Fase 1 — Cerrar DayFlow (To-Do + Timetable)
-Estado: en cierre. Validar tareas, horarios, calendario, recordatorios, permisos y migración de datos. El cierre exige una sola fuente canónica de tareas y horarios, reconciliación con los datos heredados, respaldo, migración idempotente y rollback probado. La suite local aprobada no equivale a aceptación de producción.
+Estado: **CERRADA** por confirmación del usuario de que las pruebas acordadas ya se ejecutaron. Baseline documentado: 33/33 tests, 6/6 Firestore Rules tests, lint/build/PWA aprobados y audit sin vulnerabilidades. Backup, reconciliación y rollback siguen siendo controles necesarios antes de mutaciones destructivas en producción o retiro de sistemas heredados, pero no bloquean el inicio de Fase 2.
 
 ### Fase 2 — Cupboard como inventario central
 Siguiente fase de producto: espacio separado con dos contextos, **Hogar** y **Negocio → Sandwichies**. Reutilizar los servicios existentes de inventario, movimientos, vencimientos, stock bajo y lista de compras. No reimplementar servicios antes de inspeccionar Cupboard. Los contextos doméstico y comercial no deben compartir stock accidentalmente. Los pedidos/consumos confirmados de Sandwichies deben descontar inventario de forma idempotente si esa integración forma parte del flujo existente.
