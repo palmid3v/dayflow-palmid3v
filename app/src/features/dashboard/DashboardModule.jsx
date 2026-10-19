@@ -4,7 +4,9 @@ import { DEMO_MODE, DEMO_UID } from "../../lib/demoMode";
 import { loadCachedTasks } from "../tasks/taskService";
 import { getDayFlowState } from "../../lib/dayflowStore";
 
-function dateKey(date) { return date.toLocaleDateString("en-CA"); }
+function dateKey(date) {
+  return date.toLocaleDateString("en-CA");
+}
 
 function daysBack(count) {
   return Array.from({ length: count }, (_, index) => {
@@ -24,39 +26,57 @@ function summarize(state, keys) {
     const completed = result?.completed ?? blocks.filter((item) => item.state === "completed").length;
     const skipped = result?.skipped ?? blocks.filter((item) => item.state === "skipped").length;
     const changed = result?.changed ?? blocks.filter((item) => item.state === "changed").length;
+
     if (total > 0) summary.plannedDays += 1;
     summary.total += total;
     summary.completed += completed;
     summary.skipped += skipped;
     summary.changed += changed;
+
     if (total > 0 && completed === total) summary.daysCompleted += 1;
     if (total > 0 && completed + changed > 0) summary.activeDays += 1;
+
     return summary;
-  }, { total: 0, completed: 0, skipped: 0, changed: 0, daysCompleted: 0, activeDays: 0, plannedDays: 0 });
+  }, {
+    total: 0,
+    completed: 0,
+    skipped: 0,
+    changed: 0,
+    daysCompleted: 0,
+    activeDays: 0,
+    plannedDays: 0,
+  });
 }
 
 function calculateStreak(state) {
   let streak = 0;
+
   for (const key of daysBack(90)) {
     const result = state.dailyResults?.[key];
     const plan = state.dailyPlans?.[key];
     const total = result?.total ?? plan?.blocks?.length ?? 0;
     const completed = result?.completed ?? plan?.blocks?.filter((item) => item.state === "completed").length ?? 0;
+
     if (total > 0 && completed === total) streak += 1;
     else break;
   }
+
   return streak;
 }
 
 function Metric({ icon, label, value, detail }) {
   return (
-    <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-      <div className="flex items-center justify-between gap-3">
-        <span className="grid size-9 place-items-center rounded-xl bg-[var(--surface-muted)]">{icon}</span>
-        <strong className="text-2xl tracking-tight">{value}</strong>
+    <article className="min-w-0 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors">
+      <div className="flex items-start justify-between gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--accent)]">
+          {icon}
+        </span>
+        <strong className="min-w-0 break-words text-right text-2xl font-semibold tracking-tight tabular-nums">
+          {value}
+        </strong>
       </div>
       <p className="label mt-3">{label}</p>
-      <p className="mt-1 text-xs text-[var(--text-muted)]">{detail}</p>
+      <p className="mt-1 break-words text-xs leading-5 text-[var(--text-muted)]">{detail}</p>
     </article>
   );
 }
@@ -75,41 +95,87 @@ export default function DashboardModule() {
   const adherence = summary.total ? Math.round(((summary.completed + summary.changed) / summary.total) * 100) : 0;
 
   return (
-    <section>
+    <section className="min-w-0 space-y-4">
       <header className="mb-5">
         <p className="label">DAYFLOW · DASHBOARD</p>
-        <h2 className="mt-1 text-2xl font-bold">Your operating week</h2>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">A compact view of execution, consistency, and how closely the week followed the plan.</p>
+        <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Your operating week</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
+          A compact view of execution, consistency, and how closely the week followed the plan.
+        </p>
       </header>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Metric icon={<Target size={18} />} label="COMPLETION RATE" value={completionRate + "%"} detail={summary.completed + " completed of " + summary.total + " planned blocks"} />
-        <Metric icon={<TrendingUp size={18} />} label="PLAN ADHERENCE" value={adherence + "%"} detail={summary.skipped + " skipped · " + summary.changed + " changed"} />
-        <Metric icon={<CheckCircle2 size={18} />} label="DAYS COMPLETED" value={summary.daysCompleted} detail="Fully completed days in the last 7" />
-        <Metric icon={<Flame size={18} />} label="CURRENT STREAK" value={streak + "d"} detail="Consecutive fully completed days" />
+
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+        <Metric
+          icon={<Target size={18} />}
+          label="COMPLETION RATE"
+          value={completionRate + "%"}
+          detail={summary.completed + " completed of " + summary.total + " planned blocks"}
+        />
+        <Metric
+          icon={<TrendingUp size={18} />}
+          label="PLAN ADHERENCE"
+          value={adherence + "%"}
+          detail={summary.skipped + " skipped · " + summary.changed + " changed"}
+        />
+        <Metric
+          icon={<CheckCircle2 size={18} />}
+          label="DAYS COMPLETED"
+          value={summary.daysCompleted}
+          detail="Fully completed days in the last 7"
+        />
+        <Metric
+          icon={<Flame size={18} />}
+          label="CURRENT STREAK"
+          value={streak + "d"}
+          detail="Consecutive fully completed days"
+        />
       </div>
-      <section className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <div className="mb-3"><p className="label">TASK LOAD</p><p className="mt-1 text-sm text-[var(--text-muted)]">Work still in front of you, alongside your daily execution.</p></div>
-        <div className="grid gap-3 sm:grid-cols-3">
+
+      <section className="min-w-0 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 sm:p-4">
+        <div className="mb-4">
+          <p className="label">TASK LOAD</p>
+          <p className="mt-1 text-sm leading-5 text-[var(--text-muted)]">
+            Work still in front of you, alongside your daily execution.
+          </p>
+        </div>
+        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
           <Metric icon={<ListTodo size={18} />} label="TOTAL TASKS" value={tasks.length} detail="Across your task list" />
           <Metric icon={<Target size={18} />} label="OPEN TASKS" value={openTasks.length} detail="Still to complete" />
           <Metric icon={<AlertCircle size={18} />} label="OVERDUE" value={overdueTasks.length} detail="Open tasks past their due date" />
         </div>
       </section>
-      <section className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <div className="flex items-center justify-between">
-          <div><p className="label">WEEKLY CONSISTENCY</p><p className="mt-1 text-sm text-[var(--text-muted)]">Days with meaningful execution</p></div>
-          <strong className="text-xl">{consistency}%</strong>
+
+      <section className="min-w-0 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 sm:p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="label">WEEKLY CONSISTENCY</p>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">Days with meaningful execution</p>
+          </div>
+          <strong className="text-xl tabular-nums">{consistency}%</strong>
         </div>
-        <div className="mt-4 grid grid-cols-7 gap-2">
+
+        <div className="mt-4 grid grid-cols-7 gap-1.5 sm:gap-2" aria-label="Weekly consistency by day">
           {keys.map((key) => {
             const day = summarize(state, [key]);
             const active = day.activeDays > 0;
+            const weekday = new Date(key + "T12:00:00").toLocaleDateString("en-US", { weekday: "long" });
+            const label = weekday + ": " + day.completed + " of " + day.total + " blocks completed";
+
             return (
-              <div key={key} className="text-center">
-                <div className={"mx-auto grid size-9 place-items-center rounded-xl border " + (active ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-contrast)]" : "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-faint)]")} title={key + ": " + day.completed + "/" + day.total + " completed"}>
-                  <BarChart3 size={15} />
+              <div key={key} className="min-w-0 text-center" title={label} aria-label={label}>
+                <div
+                  className={
+                    "mx-auto grid size-8 place-items-center rounded-xl border sm:size-9 " +
+                    (active
+                      ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-contrast)]"
+                      : "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-faint)]")
+                  }
+                >
+                  <BarChart3 size={15} aria-hidden="true" />
                 </div>
-                <span className="mt-1 block text-[9px] text-[var(--text-faint)]">{new Date(key + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" }).slice(0, 1)}</span>
+                <span className="mt-1 block text-[9px] text-[var(--text-faint)]">
+                  {weekday.slice(0, 1)}
+                </span>
               </div>
             );
           })}
