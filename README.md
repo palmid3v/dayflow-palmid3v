@@ -71,3 +71,7 @@ Diseñado y desarrollado bajo la identidad **PALMI-D3V**.
 ---
 
 *Build · Create · Improve · Validate*
+
+## PALMI-D3V Connected Workspace
+
+DayFlow runs alongside DayFlow, Cupboard, Sandwichies and Financial-D3v through [PALMI-D3V Connected Workspace](https://github.com/palmid3v/PALMI-D3V-Connected-Workspace). For shared runtime ports, cross-project ownership, implementation status, technology map, safety constraints and AI continuation instructions, see the [ecosystem AI handoff](https://github.com/palmid3v/PALMI-D3V-Connected-Workspace/blob/main/AI-HANDOFF-2026-11-01.md).
