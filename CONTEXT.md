@@ -77,3 +77,17 @@ Run these validations again when the relevant code changes or when investigating
 ## Documentation rule
 
 Record only evidence that exists. Separate confirmed local automated results from production acceptance. Update `app/docs/ROADMAP.md` and `app/docs/QA_MATRIX.md` when Phase 2 work changes the scope or status. Keep this file aligned with the current `main` commit and next actionable task.
+
+## Ecosystem handoff — 2026-11-01
+
+DayFlow is one of four separately versioned PALMI-D3V applications launched by [PALMI-D3V Connected Workspace](https://github.com/palmid3v/PALMI-D3V-Connected-Workspace). The shared runtime is configured at `D:\\PALMI-D3V\\projects`: DayFlow `app/` on `http://127.0.0.1:5180`; Cupboard `app/` on HTTPS port 5181; Sandwichies `app/` on port 5182; Financial-D3v `frontend/` on port 5183.
+
+**Ownership:** DayFlow owns personal time and planning. Cupboard owns inventory. Sandwichies owns orders and consumption requests. Financial-D3v owns private personal finance. Do not merge repositories or duplicate another app's domain services.
+
+**Current documented technology:** React 19, Vite 7, Firebase Authentication, Cloud Firestore, PWA and Playwright. Check `app/package.json` before assuming exact versions.
+
+**Current phase:** Phase 1 (To-Do + Timetable consolidation) was accepted as closed by the user. Keep legacy sources available until data, permissions, deployed functions, domains, history, backup and rollback are reconciled. The ecosystem's next product phase is Cupboard central inventory (Home and Business → Sandwichies); it is not a DayFlow inventory rewrite. Phase 4 date/event integration is a roadmap item, not confirmed implementation.
+
+**Historical QA checkpoint (2026-10-19, not a fresh run):** 33/33 Node tests, 6/6 Firestore Rules emulator tests, lint, build, PWA generation and npm audit (0 vulnerabilities) passed; `@grpc/grpc-js` override 1.14.6. Re-run after relevant code changes.
+
+**Global constraints:** $0 mandatory spend; use emulators for rules/migrations; no destructive production migration or legacy retirement without backup, acceptance and rollback. Work on `main` per owner instruction. For ecosystem orchestration and AI continuation, read [AI-HANDOFF-2026-11-01.md](https://github.com/palmid3v/PALMI-D3V-Connected-Workspace/blob/main/AI-HANDOFF-2026-11-01.md).
