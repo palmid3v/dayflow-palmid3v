@@ -91,3 +91,12 @@ DayFlow is one of four separately versioned PALMI-D3V applications launched by [
 **Historical QA checkpoint (2026-10-19, not a fresh run):** 33/33 Node tests, 6/6 Firestore Rules emulator tests, lint, build, PWA generation and npm audit (0 vulnerabilities) passed; `@grpc/grpc-js` override 1.14.6. Re-run after relevant code changes.
 
 **Global constraints:** $0 mandatory spend; use emulators for rules/migrations; no destructive production migration or legacy retirement without backup, acceptance and rollback. Work on `main` per owner instruction. For ecosystem orchestration and AI continuation, read [AI-HANDOFF-2026-11-01.md](https://github.com/palmid3v/PALMI-D3V-Connected-Workspace/blob/main/AI-HANDOFF-2026-11-01.md).
+
+## Maintenance handoff — 2026-11-12
+
+- Current branch: maintenance/ci-recovery-2026-11.
+- Open PR: https://github.com/palmid3v/dayflow-palmid3v/pull/41.
+- CI passed on 2026-11-13: 27/27 unit/domain tests, 6/6 Firestore Rules emulator tests, lint and production build/PWA.
+- Firestore Rules tests are now isolated from npm test and executed under the Firestore Emulator in CI. Authenticated CVP/E2E remains conditional on configured secrets and is not implied by the static CI pass.
+- Keep production migration, rollback and retirement of To-Do/Timetable separate from local/CI validation.
+- Latest evidence: QUALITY-CHECKPOINT-2026-11-12.md.
