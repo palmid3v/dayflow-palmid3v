@@ -16,7 +16,7 @@ DayFlow reúne tareas, horarios recurrentes, planificación diaria, calendario, 
 
 ## 🔎 Quality checkpoint — 2026-11-12
 
-See [QUALITY-CHECKPOINT-2026-11-12.md](QUALITY-CHECKPOINT-2026-11-12.md) for the latest CI evidence, changes under review and release gates. CI status is not represented as green until the corresponding GitHub Actions run completes successfully.
+Maintenance-branch CI passed: 27/27 unit/domain tests, 6/6 Firestore Rules emulator tests, lint and production build/PWA. Authenticated CVP/E2E and production migration gates remain separate. See [QUALITY-CHECKPOINT-2026-11-12.md](QUALITY-CHECKPOINT-2026-11-12.md) for evidence and remaining release gates.
 
 ## 📊 Estado del proyecto
 **Avance por fases del roadmap principal: 50% (1 de 2 fases de producto documentadas).**
