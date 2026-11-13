@@ -18,7 +18,7 @@
 
 ## Evidence
 - Previous failing run: https://github.com/palmid3v/dayflow-palmid3v/actions/runs/41564149610
-- PR validation passed on 2026-11-13: 27/27 unit/domain tests, 6/6 Firestore Rules emulator tests, ESLint and production build/PWA completed successfully. Full authenticated CVP/E2E remains conditional on configured secrets.
+- Latest successful PR validation: https://github.com/palmid3v/dayflow-palmid3v/actions/runs/43360559200 — 27/27 unit/domain tests, 6/6 Firestore Rules emulator tests, ESLint and production build/PWA passed. Full authenticated CVP/E2E remains conditional on configured secrets.
 
 ## Next gates
 1. Confirm the PR's static and emulator-backed Rules jobs pass.
