@@ -14,6 +14,10 @@ DayFlow reúne tareas, horarios recurrentes, planificación diaria, calendario, 
 - Administración de acceso y políticas por función.
 - **Stack declarado:** React 19, Vite 7, Firebase Authentication, Cloud Firestore, PWA y Playwright. Los rangos/versiones instalados se verifican en `app/package.json`.
 
+## 🔎 Quality checkpoint — 2026-11-12
+
+See [QUALITY-CHECKPOINT-2026-11-12.md](QUALITY-CHECKPOINT-2026-11-12.md) for the latest CI evidence, changes under review and release gates. CI status is not represented as green until the corresponding GitHub Actions run completes successfully.
+
 ## 📊 Estado del proyecto
 **Avance por fases del roadmap principal: 50% (1 de 2 fases de producto documentadas).**
 - **Fase 1 — Cierre To-Do + Timetable: CERRADA por aceptación del usuario.**
