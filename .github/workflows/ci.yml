@@ -37,6 +37,18 @@ jobs:
       - name: Static validation
         run: npm run validate:static
 
+      - name: Setup Java for Firestore Emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools
+
+      - name: Firestore Rules tests
+        run: firebase emulators:exec --config ../firebase.json --only firestore --project demo-dayflow "npm run test:rules"
+
       - name: CVP and production E2E
         if: ${{ env.DAYFLOW_VALIDATE_EMAIL != '' && env.DAYFLOW_VALIDATE_PASSWORD != '' }}
         run: npm run validate
