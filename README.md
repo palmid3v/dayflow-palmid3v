@@ -2,6 +2,19 @@
 
 > **PALMI-D3V** · Aplicación central de productividad personal.
 
+## 🎯 Misión
+
+Reunir tareas, horarios, planificación diaria, recordatorios y revisión personal en un único espacio de productividad.
+
+## 🔭 Visión
+
+Ser el centro de organización personal de PALMI-D3V, integrando capacidades de productividad con migraciones seguras y límites claros entre dominios.
+
+## 🗓️ Revisión documental
+
+README revisado el **14 de noviembre de 2026**. El estado y las capacidades descritas se limitan a lo documentado en este repositorio; una función planificada no se considera implementada sin evidencia y validación.
+
+
 ## 🎯 Producto
 DayFlow reúne tareas, horarios recurrentes, planificación diaria, calendario, recordatorios, revisión y memoria en una sola experiencia. Today es una vista general de solo lectura; cada dominio conserva su módulo propietario para evitar duplicaciones.
 
