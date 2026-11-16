@@ -10,6 +10,14 @@ Reunir tareas, horarios, planificación diaria, recordatorios y revisión person
 
 Ser el centro de organización personal de PALMI-D3V, integrando capacidades de productividad con migraciones seguras y límites claros entre dominios.
 
+
+## 🌐 Despliegue en Vercel
+
+- **URL de producción:** https://dayflowd3v.vercel.app
+- **Proyecto Vercel:** `dayflow-palmid3v`
+- **Repositorio GitHub:** [`palmid3v/dayflow-palmid3v`](https://github.com/palmid3v/dayflow-palmid3v)
+- **Alias verificado:** dominio asociado al despliegue de producción READY consultado el 15 de noviembre de 2026.
+
 ## 🗓️ Revisión documental
 
 README revisado el **14 de noviembre de 2026**. El estado y las capacidades descritas se limitan a lo documentado en este repositorio; una función planificada no se considera implementada sin evidencia y validación.
