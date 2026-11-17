@@ -1,3 +1,5 @@
+**Documentation review:** 2026-11-17
+
 # DayFlow Internal Domain Contract — Unified Product
 
 **Version:** 2.0 · Consolidation work in progress · October 15, 2026
