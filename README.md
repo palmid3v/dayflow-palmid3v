@@ -1,90 +1,56 @@
-# 🌊 𝐃𝐚𝐲𝐅𝐥𝐨𝐰 — Productividad personal
+# DayFlow
 
-> **PALMI-D3V** · Aplicación central de productividad personal.
+**DayFlow** es una aplicación de productividad personal que organiza tareas, horarios recurrentes, planificación diaria, calendario, recordatorios y revisión personal en un único espacio.
 
-## 🎯 Misión
+Su objetivo es ayudar a convertir compromisos y prioridades en un plan diario ejecutable, manteniendo una experiencia responsive y utilizable como PWA.
 
-Reunir tareas, horarios, planificación diaria, recordatorios y revisión personal en un único espacio de productividad.
+## Producto
 
-## 🔭 Visión
+- **Today:** vista diaria para consultar el plan, organizar bloques y registrar su ejecución.
+- **Tasks:** creación, edición, priorización, clasificación, seguimiento y finalización de tareas.
+- **Schedule:** plantillas de horarios recurrentes, detección de solapamientos y exportación de horarios.
+- **Calendar:** visualización de eventos e importación de calendarios compatibles mediante archivos ICS.
+- **Reminders:** recordatorios y notificaciones sujetos a los permisos y capacidades del navegador.
+- **Daily Review y Memory:** revisión de resultados y registro de memoria personal.
+- **Dashboard y administración:** resumen de actividad y gestión de accesos y capacidades.
 
-Ser el centro de organización personal de PALMI-D3V, integrando capacidades de productividad con migraciones seguras y límites claros entre dominios.
+Today coordina los módulos, pero no crea una segunda base de tareas ni sustituye la fuente canónica de horarios. Las tareas, plantillas, planes y registros conservan sus dominios dentro de DayFlow.
 
+## Arquitectura y tecnologías
 
-## 🌐 Despliegue en Vercel
+DayFlow utiliza **React 19**, **Vite 7**, Firebase Authentication y Cloud Firestore. La interfaz responsive se distribuye como Progressive Web App (PWA). Playwright y las herramientas de pruebas del repositorio cubren validaciones automatizadas y flujos de usuario.
 
-- **URL de producción:** https://dayflowd3v.vercel.app
-- **Proyecto Vercel:** `dayflow-palmid3v`
-- **Repositorio GitHub:** [`palmid3v/dayflow-palmid3v`](https://github.com/palmid3v/dayflow-palmid3v)
-- **Alias verificado:** dominio asociado al despliegue de producción READY consultado el 15 de noviembre de 2026.
+Los datos personales se aíslan por UID autenticado y las reglas de Firestore aplican los permisos en el backend. LocalStorage se utiliza como caché o mecanismo de recuperación, no como fuente cloud canónica.
 
-## 🗓️ Revisión documental
+## Límites e integraciones
 
-README revisado el **14 de noviembre de 2026**. El estado y las capacidades descritas se limitan a lo documentado en este repositorio; una función planificada no se considera implementada sin evidencia y validación.
+DayFlow es responsable de productividad, tiempo, calendario y recordatorios. No es propietario de inventario (Cupboard), pedidos o catálogo comercial (Sandwichies), ni de registros financieros privados (Financial-D3V).
 
+Las integraciones con otras aplicaciones deben intercambiar eventos explícitos y mínimos. Una alerta de stock puede ayudar a planificar una tarea, pero no debe crear una copia del inventario. Los recordatorios del navegador dependen de permisos y capacidades de ejecución; no se presentan como un servicio garantizado de entrega en segundo plano.
 
-## 🎯 Producto
-DayFlow reúne tareas, horarios recurrentes, planificación diaria, calendario, recordatorios, revisión y memoria en una sola experiencia. Today es una vista general de solo lectura; cada dominio conserva su módulo propietario para evitar duplicaciones.
+La consolidación funcional de To-Do y Timetable está aceptada como hito de producto. La migración de datos de producción, retirada de fuentes heredadas y aprobación de release tienen controles independientes.
 
-## ✨ Capacidades y base técnica
-- Vista diaria, ejecución de bloques y gestión de tareas.
-- Horarios recurrentes, detección de solapamientos y exportación/importación ICS.
-- Recordatorios, revisión diaria, dashboard y memoria personal.
-- Firebase Authentication y datos aislados por UID.
-- Interfaz responsive y PWA.
-- Administración de acceso y políticas por función.
-- **Stack declarado:** React 19, Vite 7, Firebase Authentication, Cloud Firestore, PWA y Playwright. Los rangos/versiones instalados se verifican en `app/package.json`.
+## Desarrollo
 
-## 🔎 Quality checkpoint — 2026-11-12
+El código de aplicación se encuentra en `app/`. Desde la raíz se pueden utilizar los scripts npm con el prefijo `--prefix app`, según las definiciones vigentes en el repositorio. Las pruebas de Firestore Rules requieren Firebase Emulator; revisa los scripts antes de ejecutar validaciones.
 
-Maintenance-branch CI passed: 27/27 unit/domain tests, 6/6 Firestore Rules emulator tests, lint and production build/PWA. Authenticated CVP/E2E and production migration gates remain separate. See [QUALITY-CHECKPOINT-2026-11-12.md](QUALITY-CHECKPOINT-2026-11-12.md) for evidence and remaining release gates.
+## Documentación
 
-## 📊 Estado del proyecto
-**Avance por fases del roadmap principal: 50% (1 de 2 fases de producto documentadas).**
-- **Fase 1 — Cierre To-Do + Timetable: CERRADA por aceptación del usuario.**
-- **Fase 2 — Cupboard como inventario central: pertenece a Cupboard; integración de alertas/eventos con DayFlow sigue siendo evolución del ecosistema.**
-- La cifra mide fases de producto, no porcentaje de código ni release de producción.
+- [Contexto y continuidad](CONTEXT.md)
+- [Roadmap de producto](app/docs/ROADMAP.md)
+- [Matriz de QA](app/docs/QA_MATRIX.md)
+- [Contrato de dominio e integración](app/docs/INTEGRATION_CONTRACT.md)
+- [Auditoría de unificación](app/docs/audits/UNIFICATION-AUDIT-2026-10.md)
+- [Checkpoint de calidad](QUALITY-CHECKPOINT-2026-11-12.md)
 
-**Validación histórica documentada (checkpoint 2026-10-19):** Node 33/33; Firestore Rules 6/6 en emulador; ESLint, build y generación PWA aprobados; `npm audit` informó 0 vulnerabilidades. No es una ejecución nueva ni prueba de producción.
+## Repositorio y despliegue
 
-## 🧭 Evolución de producto
-1. Consolidación de To-Do y Timetable dentro de DayFlow — aceptada.
-2. Mantener DayFlow como propietario de tiempo, planificación, recordatorios y calendario.
-3. Consumir eventos/alertas relevantes de otras aplicaciones mediante contratos explícitos, sin duplicar inventario ni pedidos.
-4. Mantener fuentes heredadas disponibles hasta reconciliar datos, permisos, funciones, dominios, historial, backup y rollback.
+- Repositorio: [palmid3v/dayflow-palmid3v](https://github.com/palmid3v/dayflow-palmid3v)
+- Sitio web: [dayflowd3v.vercel.app](https://dayflowd3v.vercel.app)
 
-## 🔒 Seguridad y límite de release
-- Firebase Auth y Firestore son la identidad y fuente cloud de verdad; datos bajo `users/{uid}`.
-- LocalStorage es caché/recuperación, no fuente canónica.
-- Presupuesto objetivo: **$0 de gasto obligatorio**.
-- No depender de Cloud Functions programadas ni servicios de correo pagados bajo ese límite sin aprobación.
-- Migraciones y despliegues de Rules requieren backup, pruebas de emulador, aceptación y rollback.
-- No retirar To-Do/Timetable heredados antes de reconciliar datos y controles.
-- No se declara producción validada por resultados locales.
+La publicación del frontend no implica que las migraciones, pruebas autenticadas o procesos programados estén aprobados para producción.
 
-## 🧪 Desarrollo local
-Desde la raíz del repositorio:
+---
 
-```powershell
-npm --prefix app install
-npm --prefix app run dev
-npm --prefix app run lint
-npm --prefix app run build
-npm --prefix app test
-npm --prefix app run test:rules
-```
-
-Validación documentada de Rules utiliza Firestore Emulator. Revisar scripts vigentes en `app/package.json` antes de ejecutar.
-
-## 📚 Documentación clave
-- `CONTEXT.md` — arquitectura, límites y continuidad.
-- `app/docs/ROADMAP.md` — fases y prioridades.
-- `app/docs/QA_MATRIX.md` — baseline y validaciones pendientes.
-- `app/docs/audits/UNIFICATION-AUDIT-2026-10.md` — auditoría de unificación.
-- `app/docs/INTEGRATION_CONTRACT.md` — contrato de integración.
-- [PALMI-D3V ecosystem handoff](https://github.com/palmid3v/PALMI-D3V-Connected-Workspace/blob/main/AI-HANDOFF-2026-11-01.md).
-
-## 🤝 Identidad
-**DayFlow · PALMI-D3V** — *Build · Create · Improve · Validate.*
-
-DayFlow es propietario de productividad y tiempo. No es propietario del inventario de Cupboard, los pedidos de Sandwichies ni los registros financieros privados de Financial-D3v.
+**DayFlow · PALMI-D3V**  
+*Build · Create · Improve · Validate.*
