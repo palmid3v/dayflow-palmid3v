@@ -1,102 +1,78 @@
 # CONTEXT — DayFlow
 
-## Identity
+**Document review:** 2026-11-17  
+**Repository:** `palmid3v/dayflow-palmid3v`  
+**Owner:** PALMI-D3V  
+**Product role:** Personal productivity application
 
-- Product: DayFlow
-- Ecosystem: PALMI-D3V productivity suite
-- Role: Single productivity application and center of operations
-- Developer: PALMI-D3V
-- Last context review: 2026-10-19
+## Purpose
 
-## Product architecture
+DayFlow is the single PALMI-D3V productivity application. It unifies daily planning, tasks, recurring schedules, calendar events, reminders, reviews and personal memory in one responsive React/Vite PWA.
 
-DayFlow is the only intended runtime productivity application. Tasks, recurring schedule, daily planning, calendar imports, reminders, review, dashboard and memory are internal modules in one React/Vite/PWA application.
+To-Do and Timetable are legacy migration/rollback sources, not separate DayFlow runtime modules. Preserve them until production data, permissions, deployed functions, history, backup and rollback have been reconciled and release acceptance is recorded.
 
-To-Do and Timetable remain migration/rollback sources until functionality, actual Firestore data, permissions, deployed functions, domains and history have been reconciled. Do not delete or disable them during feature integration.
+## Product modules
 
-## Canonical data model
+- **Today:** daily plan, time blocks and execution status.
+- **Tasks:** create, edit, prioritize, complete, reopen and organize personal tasks.
+- **Schedule:** recurring schedule templates, occurrence management and overlap handling.
+- **Calendar:** display and ICS import of calendar events.
+- **Reminders:** browser notifications and in-app workflows subject to browser/runtime capabilities.
+- **Daily Review and Memory:** review outcomes and retain daily personal notes.
+- **Dashboard:** summaries of personal activity.
+- **Settings and access:** Firebase session, preferences and feature-level access.
 
-One Firebase Authentication identity and one Cloud Firestore project. User data must remain scoped to `users/{uid}`.
+## Data ownership and architecture
 
-```
-users/{uid}/tasks/{taskId}
-users/{uid}/timetableTemplates/{templateId}
-users/{uid}/timetableOccurrences/{occurrenceId}   # legacy inventory required
-users/{uid}/timetableSettings/{document}           # legacy inventory required
-users/{uid}/timetableExternalLinks/{document}      # legacy inventory required
-users/{uid}/dayflowPlans/{dateKey}
-users/{uid}/dayflowResults/{dateKey}
-users/{uid}/dayflowMemories/{dateKey}
-users/{uid}/dayflowReminders/current
-users/{uid}/dayflowCalendarImports/current
-users/{uid}/dayflowImportedCalendarEvents/{eventId}
-```
+- React 19, Vite 7, Firebase Authentication, Cloud Firestore and PWA.
+- Playwright and Node tests support automated validation.
+- Firestore is the cloud source of truth for authenticated user data, scoped to `users/{uid}`.
+- LocalStorage is cache/recovery only, not an alternative authoritative store.
+- Tasks have one canonical collection. Plans and other modules reference task IDs rather than duplicating task records.
+- Firestore Rules enforce user ownership and feature access; hiding UI is not a security boundary.
 
-Firestore is the cloud source of truth. LocalStorage is a cache/recovery layer. Tasks remain in one canonical collection and other domains reference task IDs instead of duplicating task documents.
+## Ecosystem ownership
 
-## Engineering constraints
+- DayFlow owns time, planning, tasks, calendar and reminders.
+- Cupboard owns household/business inventory.
+- Sandwichies owns commercial catalog, orders and customer operations.
+- Financial-D3V owns private personal finance and encrypted vault files.
 
-- Budget target: $0 mandatory service spend.
-- Firebase Auth and Cloud Firestore remain the identity/persistence backend.
-- Do not depend on scheduled Cloud Functions/Resend email delivery under the strict $0 requirement; prefer an on-demand in-app summary unless the owner explicitly changes the budget decision.
-- Do not add animation libraries when CSS transitions suffice.
-- Respect reduced-motion preferences, visible keyboard focus, mobile-safe touch targets and readable contrast.
-- Treat production Firestore migration and Rules deployment as controlled changes with backups, emulator tests and rollback.
-- Keep legacy repositories available until the new release has passed data, security, E2E, PWA and production acceptance.
-- Work directly on `main`; do not create additional branches unless the owner explicitly changes this instruction.
+DayFlow may consume explicit minimized events to create planning signals; it must not maintain shadow inventory, order or financial ledgers.
 
-## Current Git and validation baseline
+## Operating constraints
 
-- Latest reported commit: `2877bff` — `fix: update vulnerable grpc dependency`.
-- The commit was pushed to `origin/main`; the user confirmed `main` is synchronized and the working tree is clean.
-- `@grpc/grpc-js` is pinned through npm overrides to `1.14.6`; `npm audit` reports 0 vulnerabilities.
-- Full local Node suite: 33/33 passed, including 6/6 Firestore Rules tests through the Firestore emulator.
-- ESLint and production build passed; PWA service-worker generation completed.
+- Maintain the $0 mandatory-service spend target.
+- Do not add scheduled paid services or email delivery as required functionality without an explicit budget decision.
+- Respect reduced motion, keyboard focus, readable contrast and mobile touch targets.
+- Use Firebase Emulator for Rules and migration tests.
+- No production mutation or legacy retirement without backup, reconciliation and rollback evidence.
 
-## Fases vigentes
+## Product and QA status
 
-### Fase 1 — Cerrar DayFlow (To-Do + Timetable)
-Estado: **CERRADA** por confirmación del usuario de que las pruebas acordadas ya se ejecutaron. Baseline documentado: 33/33 tests, 6/6 Firestore Rules tests, lint/build/PWA aprobados y audit sin vulnerabilidades. Backup, reconciliación y rollback siguen siendo controles necesarios antes de mutaciones destructivas en producción o retiro de sistemas heredados, pero no bloquean el inicio de Fase 2.
+Phase 1 — To-Do + Timetable unification — is accepted as closed by the user. This acceptance is separate from production migration or retirement of legacy repositories.
 
-### Fase 2 — Cupboard como inventario central
-Siguiente fase de producto: espacio separado con dos contextos, **Hogar** y **Negocio → Sandwichies**. Reutilizar los servicios existentes de inventario, movimientos, vencimientos, stock bajo y lista de compras. No reimplementar servicios antes de inspeccionar Cupboard. Los contextos doméstico y comercial no deben compartir stock accidentalmente. Los pedidos/consumos confirmados de Sandwichies deben descontar inventario de forma idempotente si esa integración forma parte del flujo existente.
+The latest cited CI checkpoint (report dated 2026-11-12; successful run on 2026-11-13) records 27/27 unit/domain tests, 6/6 Firestore Rules emulator tests, lint and production build/PWA passing. Authenticated CVP/E2E remains conditional on CI secrets. These are dated results, not a fresh run on 2026-11-17.
 
-Responsabilidades: DayFlow = tiempo y planificación; Cupboard = inventario; Sandwichies = pedidos y consumo. Mantener el presupuesto de $0 de gasto obligatorio y trabajar directamente sobre `main`, sin crear ramas.
+## Current priorities
 
-## Development
+1. Complete authenticated CVP/E2E using appropriate test credentials.
+2. Verify task, schedule, reminder, memory and ICS persistence/recovery.
+3. Inventory deployed Firestore paths and legacy data before migration.
+4. Prepare backup, idempotent migration, reconciliation and rollback.
+5. Validate accessibility, mobile behavior and PWA update lifecycle.
+6. Keep Cupboard integration at the event/alert boundary; do not reimplement its inventory domain.
 
-```powershell
-npm --prefix app install
-npm --prefix app run lint
-npm --prefix app run build
-firebase emulators:exec --only firestore --project demo-dayflow "npm --prefix app test"
-```
+## Canonical documentation
 
-Run these validations again when the relevant code changes or when investigating a regression; do not repeatedly reopen a completed baseline without a reason.
+- `app/docs/ROADMAP.md`
+- `app/docs/QA_MATRIX.md`
+- `app/docs/INTEGRATION_CONTRACT.md`
+- `app/docs/audits/UNIFICATION-AUDIT-2026-10.md`
+- `QUALITY-CHECKPOINT-2026-11-12.md`
+- `app/README.md`
 
-## Documentation rule
+Preserve historical validation documents. Add new dated evidence rather than rewriting historical results as current.
 
-Record only evidence that exists. Separate confirmed local automated results from production acceptance. Update `app/docs/ROADMAP.md` and `app/docs/QA_MATRIX.md` when Phase 2 work changes the scope or status. Keep this file aligned with the current `main` commit and next actionable task.
-
-## Ecosystem handoff — 2026-11-01
-
-DayFlow is one of four separately versioned PALMI-D3V applications launched by [PALMI-D3V Connected Workspace](https://github.com/palmid3v/PALMI-D3V-Connected-Workspace). The shared runtime is configured at `D:\\PALMI-D3V\\projects`: DayFlow `app/` on `http://127.0.0.1:5180`; Cupboard `app/` on HTTPS port 5181; Sandwichies `app/` on port 5182; Financial-D3v `frontend/` on port 5183.
-
-**Ownership:** DayFlow owns personal time and planning. Cupboard owns inventory. Sandwichies owns orders and consumption requests. Financial-D3v owns private personal finance. Do not merge repositories or duplicate another app's domain services.
-
-**Current documented technology:** React 19, Vite 7, Firebase Authentication, Cloud Firestore, PWA and Playwright. Check `app/package.json` before assuming exact versions.
-
-**Current phase:** Phase 1 (To-Do + Timetable consolidation) was accepted as closed by the user. Keep legacy sources available until data, permissions, deployed functions, domains, history, backup and rollback are reconciled. The ecosystem's next product phase is Cupboard central inventory (Home and Business → Sandwichies); it is not a DayFlow inventory rewrite. Phase 4 date/event integration is a roadmap item, not confirmed implementation.
-
-**Historical QA checkpoint (2026-10-19, not a fresh run):** 33/33 Node tests, 6/6 Firestore Rules emulator tests, lint, build, PWA generation and npm audit (0 vulnerabilities) passed; `@grpc/grpc-js` override 1.14.6. Re-run after relevant code changes.
-
-**Global constraints:** $0 mandatory spend; use emulators for rules/migrations; no destructive production migration or legacy retirement without backup, acceptance and rollback. Work on `main` per owner instruction. For ecosystem orchestration and AI continuation, read [AI-HANDOFF-2026-11-01.md](https://github.com/palmid3v/PALMI-D3V-Connected-Workspace/blob/main/AI-HANDOFF-2026-11-01.md).
-
-## Maintenance handoff — 2026-11-12
-
-- Current branch: maintenance/ci-recovery-2026-11.
-- Open PR: https://github.com/palmid3v/dayflow-palmid3v/pull/41.
-- CI passed on 2026-11-13: 27/27 unit/domain tests, 6/6 Firestore Rules emulator tests, lint and production build/PWA.
-- Firestore Rules tests are now isolated from npm test and executed under the Firestore Emulator in CI. Authenticated CVP/E2E remains conditional on configured secrets and is not implied by the static CI pass.
-- Keep production migration, rollback and retirement of To-Do/Timetable separate from local/CI validation.
-- Latest evidence: QUALITY-CHECKPOINT-2026-11-12.md.
+---
+**DayFlow · PALMI-D3V**
