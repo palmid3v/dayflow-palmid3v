@@ -54,3 +54,8 @@ La publicación del frontend no implica que las migraciones, pruebas autenticada
 
 **DayFlow · PALMI-D3V**  
 *Build · Create · Improve · Validate.*
+
+
+## 📚 Documentation status · 2026-11-26
+
+See [DOCUMENTATION-STATUS-2026-11-26.md](docs/DOCUMENTATION-STATUS-2026-11-26.md) for the current documented scope and release gates.
